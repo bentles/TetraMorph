@@ -124,17 +124,17 @@ function main()
     }
 
 
-    var timeForShape = 5; //seconds
-    var countUpToNextShape = 0;
+    var timeForShape = 10; //seconds
+    var countUpToNextShape = timeForShape*tps;
     var startpos = -3000;
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every few seconds
-	if (countUpToNextShape < timeForShape*60)
+	if (countUpToNextShape < timeForShape*tps)
 	{
 	    countUpToNextShape++;
 	}
-	else if(countUpToNextShape === timeForShape*60)
+	else if(countUpToNextShape === timeForShape*tps)
 	{
 	    var gs = new GameSquare(10, false); //make an uneditable gamesquare
 	    gs.generateSquares();
@@ -145,17 +145,32 @@ function main()
 
 	    //TODO: this will be terrible and need to be fixed
 	    //at the same time I wanna see it in action
-	    animationlist.push(function (){gs.squares.forEach(function(x){
-		x.mesh.position.z += (-startpos/(timeForShape*60));
-	    });});
-			     
-	    
+	    animationlist.push(
+		function ()
+		{
+		    gs.squares.forEach(
+			function(x){
+			    x.mesh.position.z += (-startpos/(timeForShape*60));
+			});
+
+		    var done = (gs.squares[0].mesh.position.z > 0);
+		    if (done)
+		    {
+			console.log(animationlist.length);
+			animationlist.push(function(){
+			    gs.squares.forEach(function(x){
+				x.mesh.position.x += 10;
+			    });});
+		    }
+
+		    return done;
+			
+		});
 	    
 	    countUpToNextShape = 0;		
-	}
+	}	
 	
-	
-	//animationlist is a list of functions that return true if complete
+	//animationlist is a list of functions that return true fi complete
 	//I call each in turn and remove those that return true
 	var len = animationlist.length;
 	    while(len--)
