@@ -116,7 +116,7 @@ function main()
 	currentTime = newTime;
 	
 	accumulator += elapsedTime;
-	//console.log(accumulator);
+	console.log(accumulator);
 	//controls.update();// <-- does this do anything?
 
 	//loop if we can do more physics per render
@@ -173,9 +173,14 @@ function main()
 		controls.noRotate = true;
 		
 		if (e.button === 0)
-		    intersects[0].object.shape.split(renderlist);
+		{
+		    intersects[0].object.shape.split(renderlist);		    
+		}
+		
 		else if (e.button === 2)
+		{
 		    intersects[0].object.shape.flip();
+		}
 	    }
 	}
     }
@@ -237,14 +242,18 @@ function main()
 
     function onFocus()
     {
-	active = true;
-	pausedTime = Date.now() - pausedTime;
-	requestAnimationFrame(animate);
-	
+	console.log("focus");
+	if (!active)
+	    {
+		active = true;
+		pausedTime = Date.now() - pausedTime;
+		requestAnimationFrame(animate);
+	    }
     };
 
     function onBlur()
     {
+	console.log("blur");
 	active = false;
 	//TODO put something on the screen that says "click to focus"
 	pausedTime = Date.now();

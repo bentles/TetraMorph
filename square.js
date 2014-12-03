@@ -1,3 +1,5 @@
+var c;
+
 function Shape(mesh)
 {
     this.mesh = mesh;
@@ -90,9 +92,8 @@ Square.prototype.split = function(renderlist)
     }
 };
 Square.prototype.flip = function(){
-    
-    animationlist.push(
-	generateFlipAnimation(this, 15));
+    var animation= generateFlipAnimation(this, 15);
+    animationlist.push(animation);
 };
 
 function generatePositionedSquare(cornerlist, flipped)
