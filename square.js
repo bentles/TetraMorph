@@ -1,5 +1,3 @@
-var c;
-
 function Shape(mesh)
 {
     this.mesh = mesh;

@@ -19,7 +19,8 @@ var gap = 10;
 var depth = 5;
 
 //physics at 60fps
-var dt = 1000/60;
+var tps = 60; //ticks per second
+var dt = 1000/tps;
 var currentTime = 0, newTime = 0;
 var accumulator = 0;
 
@@ -64,17 +65,6 @@ function main()
 	}
 	
 	material = new THREE.MeshFaceMaterial(geometry.materials);
-	mesh = new THREE.Mesh( geometry, material );
-
-	//create out first square
-	//var firstsquare = new Square(mesh);
-	//renderlist.add(firstsquare);
-	squaregame = new GameSquare(10);
-	squaregame.generateSquares();
-	console.log(squaregame.squareString);
-	squaregame.squares.forEach(function (x){
-	    x.mesh.position.x += 550;
-	    renderlist.add(x);});
 
 	//player
 	playerGameSquare = new GameSquare(0);
@@ -133,8 +123,38 @@ function main()
 	renderer.render( scene, camera );	
     }
 
+
+    var timeForShape = 5; //seconds
+    var countUpToNextShape = 0;
+    var startpos = -3000;
     function gameLogic()
     {
+	//make new shapes that fly towards the screen every few seconds
+	if (countUpToNextShape < timeForShape*60)
+	{
+	    countUpToNextShape++;
+	}
+	else if(countUpToNextShape === timeForShape*60)
+	{
+	    var gs = new GameSquare(10, false); //make an uneditable gamesquare
+	    gs.generateSquares();
+	    gs.squares.forEach(function (x){
+		x.mesh.position.x += 550;
+		x.mesh.position.z = startpos;
+		renderlist.add(x);});
+
+	    //TODO: this will be terrible and need to be fixed
+	    //at the same time I wanna see it in action
+	    animationlist.push(function (){gs.squares.forEach(function(x){
+		x.mesh.position.z += (-startpos/(timeForShape*60));
+	    });});
+			     
+	    
+	    
+	    countUpToNextShape = 0;		
+	}
+	
+	
 	//animationlist is a list of functions that return true if complete
 	//I call each in turn and remove those that return true
 	var len = animationlist.length;
@@ -189,8 +209,6 @@ function main()
     {
 	controls.noRotate = false;	
     }
-
-    
     
     function RenderList()
     {
@@ -242,7 +260,7 @@ function main()
 
     function onFocus()
     {
-	if (!active)
+	if (!active) //needed on firefox
 	    {
 		active = true;
 		pausedTime = Date.now() - pausedTime;
@@ -252,10 +270,13 @@ function main()
 
     function onBlur()
     {
-	active = false;
-	//TODO put something on the screen that says "click to focus"
-	pausedTime = Date.now();
-	cancelAnimationFrame(animationFrameID);
+	if (active) //just to be safe
+	    {
+		active = false;
+		//TODO put something on the screen that says "click to focus"
+		pausedTime = Date.now();
+		cancelAnimationFrame(animationFrameID);
+	    }
     };    
         
     init();
