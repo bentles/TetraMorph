@@ -116,7 +116,7 @@ function main()
 	currentTime = newTime;
 	
 	accumulator += elapsedTime;
-	console.log(accumulator);
+	//console.log(accumulator);
 	//controls.update();// <-- does this do anything?
 
 	//loop if we can do more physics per render
@@ -242,7 +242,6 @@ function main()
 
     function onFocus()
     {
-	console.log("focus");
 	if (!active)
 	    {
 		active = true;
@@ -253,7 +252,6 @@ function main()
 
     function onBlur()
     {
-	console.log("blur");
 	active = false;
 	//TODO put something on the screen that says "click to focus"
 	pausedTime = Date.now();
