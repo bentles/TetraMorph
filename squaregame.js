@@ -1,6 +1,6 @@
 
 //these are out here for debug purposes
-var scene, camera, controls, renderer, raycaster, projector, mouseVector, renderlist;
+var scene, camera, controls, renderer, raycaster, projector, mouseVector;
 var playermaterial, material, mesh, startpos, animationlist, materialmap;
 var animationFrameID;
 
@@ -36,40 +36,41 @@ function main()
 	mouseVector = new THREE.Vector3();
 
 	//lighting
-	var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
-	light.position.set( 0.2, 0.3, 1 ).normalize();
+	var light = new THREE.PointLight( 0xffffff, 0.8 );
+	light.position.set( 0.3, 0.2, 1 ).normalize();
 	scene.add( light );
 
 	//controls
         controls = new THREE.OrbitControls(camera);
 	initControls(controls);
-
+	
 	//keep track of what's being rendered and animated
-	renderlist = new RenderList();
 	animationlist = [];
 
 	//work out shapes and materials
-	var frontmaterial = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
-	var sidematerial= new THREE.MeshPhongMaterial({color: 0xCCCCCC, shininess:70, vertexColors:THREE.FaceColors} );
-	var backmaterial = new THREE.MeshPhongMaterial({color: 0x145214, shininess:70, vertexColors:THREE.FaceColors} );
+	var frontmaterial = new THREE.MeshBasicMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
+	var sidematerial= new THREE.MeshBasicMaterial({color: 0xffffff, shininess:70, vertexColors:THREE.FaceColors} );
+	var backmaterial = new THREE.MeshBasicMaterial({color: 0x145214, shininess:70, vertexColors:THREE.FaceColors} );
 	var materials = [frontmaterial, sidematerial, backmaterial];
 
 	materialmap = [1,1,1,1,1,1,1,1,0,0,2,2];
 	
 	playermaterial = new THREE.MeshFaceMaterial(materials);
 	material = new THREE.MeshFaceMaterial(materials);
+
+	//create the backdrop
+	initBackDrop();
 	
 	//player
 	playerGameSquare = new GameSquare(playermaterial, 0);
 	playerGameSquare.generateSquares();
 	playerGameSquare.squares.forEach(function (x){
-	    x.mesh.position.x -= 550;
-	    renderlist.add(x);});	
+	    x.mesh.position.x -= 550;});	
 
 	//set up renderer
 	renderer = new THREE.WebGLRenderer({antialias:true});
 	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.setClearColor( 0xa0a0a0);
+	renderer.setClearColor( 0x242424 );
 	document.body.appendChild( renderer.domElement );
 
 	//add event listeners for mouse
@@ -121,6 +122,7 @@ function main()
     var timeForShape = 10; //seconds
     var countUpToNextShape = timeForShape*tps;
     var startpos = -3000;
+    var gamesquares = [];
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every few seconds
@@ -131,50 +133,37 @@ function main()
 	else if(countUpToNextShape === timeForShape*tps)
 	{
 	    var gs = new GameSquare(material, 10, false); //make an uneditable gamesquare
+	    gamesquares.push(gs);
+	    
 	    gs.generateSquares();
-	    gs.squares.forEach(function (x){
-		x.mesh.position.x += 550;
-		x.mesh.position.z = startpos;
-		renderlist.add(x);});
-
-	    //TODO: this will be terrible and need to be fixed
-	    //at the same time I wanna see it in action
-	    animationlist.push(
-		function ()
-		{
-		    gs.squares.forEach(
-			function(x){
-			    x.mesh.position.z += (-startpos/(timeForShape*60));
-			});
-
-		    var done = (gs.squares[0].mesh.position.z > 0);
-		    if (done)
-		    {
-			console.log(animationlist.length);
-			animationlist.push(function(){
-			    gs.squares.forEach(function(x){
-				x.mesh.position.x += 10;
-			    });});
-		    }
-
-		    return done;
-			
-		});
+	    gs.forEachSquareMesh(function (x){
+		x.position.x += 550;
+		x.position.z = startpos;
+	    });
 	    
 	    countUpToNextShape = 0;		
 	}	
-	
-	//animationlist is a list of functions that return true fi complete
-	//I call each in turn and remove those that return true
+
+	//Execute animations
+	//==================
+	//animationlist is a list of functions that return true if complete
+	//call each function in turn and remove those that return true
 	var len = animationlist.length;
 	    while(len--)
 	    {
-		var done = animationlist[len](); //for readability
+		var done = animationlist[len]();
 		if (done)
 		{
 		    animationlist.splice(len,1);		
 		}
 	    }
+    }
+
+    function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	
+	renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
     function onMouseDown(e)
@@ -195,7 +184,7 @@ function main()
 	    raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
 	    var intersects = raycaster.intersectObjects(scene.children);
 
-	    if (intersects[0])
+	    if (intersects[0] && (intersects[0].object.shape != undefined))
 	    {
 		//it's annoying when move the shape when you are simply trying to click
 		//so I simply disable that ability when you click on a square <3
@@ -203,7 +192,7 @@ function main()
 		
 		if (e.button === 0)
 		{
-		    intersects[0].object.shape.split(renderlist);		    
+		    intersects[0].object.shape.split(scene);		    
 		}
 		
 		else if (e.button === 2)
@@ -217,34 +206,6 @@ function main()
     function onMouseUp(e)
     {
 	controls.noRotate = false;	
-    }
-    
-    function RenderList()
-    {
-	this.list = [];	
-    }    
-    RenderList.prototype.add = function(/*shapes*/)
-    {
-	var outerthis = this;
-	var args = Array.prototype.slice.call(arguments);
-	args.forEach(function(shape) {
-	    outerthis.list.push(shape);
-	    scene.add(shape.mesh);});
-    };
-    RenderList.prototype.remove = function(/*shapes*/)
-    {
-	var outerthis = this;
-	var args = Array.prototype.slice.call(arguments);
-	args.forEach(function(shape){
-	    outerthis.list.splice(outerthis.list.indexOf(shape), 1);
-	    scene.remove(shape.mesh);});
-    };
-
-    function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-
-	renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
     function onKeyBoard(e){
@@ -265,6 +226,15 @@ function main()
 	controls.minAzimuthAngle = -Math.PI/2;
 	controls.maxAzimuthAngle = Math.PI/2;
 	controls.noPan = true;
+    }
+
+    function initBackDrop()
+    {
+	var geom = new THREE.BoxGeometry(2100, 1000, 10000);
+	var material = new THREE.MeshLambertMaterial({color: 0xCCCCCC, shininess:70, vertexColors:THREE.FaceColors} );
+	var mesh = new THREE.Mesh(geom, material);
+	mesh.material.side = THREE.BackSide ;
+	scene.add(mesh);
     }
 
     function onFocus()
