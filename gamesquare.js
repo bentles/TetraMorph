@@ -125,6 +125,21 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped)
     return new Square(mesh, flipped, this.editable);    
 };
 
+GameSquare.prototype.clearSquares = function()
+{
+    this.squares.forEach(function(square){scene.remove(square.mesh);});
+    this.squares = [];
+    this.squareString = "";
+};
+
+GameSquare.prototype.playerReset = function()
+{
+    this.clearSquares();
+    this.squareString = "f";
+    this.generateSquares();
+    this.squares[0].mesh.position.x += -550;
+};
+
 GameSquare.prototype.getNthLetterDetails = function(n)
 {
     var j = -1; //iterator
@@ -157,6 +172,11 @@ GameSquare.prototype.forEachSquareMesh = function(func)
     this.squares.forEach(function(x) {
 	func(x.mesh);
     });
+};
+
+GameSquare.prototype.getZ = function()
+{
+    return this.squares[0].mesh.position.z;
 };
 
 

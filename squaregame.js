@@ -4,12 +4,9 @@ var scene, camera, controls, renderer, raycaster, projector, mouseVector;
 var playermaterial, material, mesh, startpos, animationlist, materialmap;
 var animationFrameID;
 
-//debug vars
-var squaregame;
-
 //player's GameSquare
-var playerGameSquare
-;
+var playerGameSquare;
+
 //pausing and resuming
 var pausedTime = 0;
 var active = true;
@@ -49,7 +46,7 @@ function main()
 
 	//work out shapes and materials
 	var frontmaterial = new THREE.MeshBasicMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
-	var sidematerial= new THREE.MeshBasicMaterial({color: 0xffffff, shininess:70, vertexColors:THREE.FaceColors} );
+	var sidematerial= new THREE.MeshBasicMaterial({color: 0x123123, shininess:70, vertexColors:THREE.FaceColors} );
 	var backmaterial = new THREE.MeshBasicMaterial({color: 0x145214, shininess:70, vertexColors:THREE.FaceColors} );
 	var materials = [frontmaterial, sidematerial, backmaterial];
 
@@ -70,7 +67,6 @@ function main()
 	//set up renderer
 	renderer = new THREE.WebGLRenderer({antialias:true});
 	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.setClearColor( 0x242424 );
 	document.body.appendChild( renderer.domElement );
 
 	//add event listeners for mouse
@@ -132,14 +128,19 @@ function main()
 	}
 	else if(countUpToNextShape === timeForShape*tps)
 	{
-	    var gs = new GameSquare(material, 10, false); //make an uneditable gamesquare
-	    gamesquares.push(gs);
-	    
+	    //make an uneditable gamesquare
+	    var gs = new GameSquare(material, 10, false); 
 	    gs.generateSquares();
+	    gamesquares.push(gs);	    
+
+	    //position the gamesquare
 	    gs.forEachSquareMesh(function (x){
 		x.position.x += 550;
 		x.position.z = startpos;
 	    });
+
+	    //animate gs, each animation calls the next as needed
+	    animationlist.push(gameSquareMoveAniGen(playerGameSquare, gs));
 	    
 	    countUpToNextShape = 0;		
 	}	
@@ -148,6 +149,7 @@ function main()
 	//==================
 	//animationlist is a list of functions that return true if complete
 	//call each function in turn and remove those that return true
+	//this may or may not be a terrible way to do this that I regret later lol
 	var len = animationlist.length;
 	    while(len--)
 	    {
@@ -158,6 +160,37 @@ function main()
 		}
 	    }
     }
+
+    function gameSquareMoveAniGen(playergs, gs)
+    {
+	return function(){
+	    if (gs.getZ() < playergs.getZ())
+	    {
+		var step = Math.abs(playergs.getZ() - startpos)/(timeForShape*tps);
+		gs.forEachSquareMesh(
+		    function(mesh){
+			mesh.position.z += step;
+		    });
+		return false;
+	    }
+	    else
+	    {
+		animationlist.push(gameSquareCompleteAniGen(playergs, gs));
+		return true;
+	    }
+	};
+
+    }
+
+    function gameSquareCompleteAniGen(playergs, gs)
+    {
+	return function(){
+	    playergs.playerReset();
+	    gs.clearSquares();
+	    return true;
+	};
+    }
+
 
     function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
@@ -230,7 +263,7 @@ function main()
 
     function initBackDrop()
     {
-	var geom = new THREE.BoxGeometry(2100, 1000, 10000);
+	var geom = new THREE.BoxGeometry(2100, 1000, 20000);
 	var material = new THREE.MeshLambertMaterial({color: 0xCCCCCC, shininess:70, vertexColors:THREE.FaceColors} );
 	var mesh = new THREE.Mesh(geom, material);
 	mesh.material.side = THREE.BackSide ;
