@@ -1,15 +1,15 @@
 
 //these are out here for debug purposes
 var scene, camera, controls, renderer, raycaster, projector, mouseVector, renderlist;
-var geometry, material, mesh, startpos, animationlist, materialmap;
+var playermaterial, material, mesh, startpos, animationlist, materialmap;
 var animationFrameID;
 
 //debug vars
 var squaregame;
 
 //player's GameSquare
-var playerGameSquare;
-
+var playerGameSquare
+;
 //pausing and resuming
 var pausedTime = 0;
 var active = true;
@@ -31,7 +31,6 @@ function main()
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
 	camera.position.z = 1000;
-
 	
 	projector = new THREE.Projector();
 	mouseVector = new THREE.Vector3();
@@ -50,24 +49,18 @@ function main()
 	animationlist = [];
 
 	//work out shapes and materials
-	geometry = new THREE.BoxGeometry(1000, 1000, depth);
-	
-	var frontmaterial = new THREE.MeshPhongMaterial({ color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
-	var sidematerial = new THREE.MeshPhongMaterial({ color: 0xCCCCCC, shininess:70, vertexColors:THREE.FaceColors} );
-	var backmaterial = new THREE.MeshPhongMaterial({ color: 0x145214, shininess:70, vertexColors:THREE.FaceColors} );
-	geometry.materials = [frontmaterial, sidematerial, backmaterial];
+	var frontmaterial = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
+	var sidematerial= new THREE.MeshPhongMaterial({color: 0xCCCCCC, shininess:70, vertexColors:THREE.FaceColors} );
+	var backmaterial = new THREE.MeshPhongMaterial({color: 0x145214, shininess:70, vertexColors:THREE.FaceColors} );
+	var materials = [frontmaterial, sidematerial, backmaterial];
 
 	materialmap = [1,1,1,1,1,1,1,1,0,0,2,2];
-	//set up colours on faces
-	for (var i = 0; i < 12; i++)
-	{
-	    geometry.faces[i].materialIndex = materialmap[i];
-	}
 	
-	material = new THREE.MeshFaceMaterial(geometry.materials);
-
+	playermaterial = new THREE.MeshFaceMaterial(materials);
+	material = new THREE.MeshFaceMaterial(materials);
+	
 	//player
-	playerGameSquare = new GameSquare(0);
+	playerGameSquare = new GameSquare(playermaterial, 0);
 	playerGameSquare.generateSquares();
 	playerGameSquare.squares.forEach(function (x){
 	    x.mesh.position.x -= 550;
@@ -75,7 +68,8 @@ function main()
 
 	//set up renderer
 	renderer = new THREE.WebGLRenderer({antialias:true});
-	renderer.setSize( window.innerWidth, window.innerHeight );	
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setClearColor( 0xa0a0a0);
 	document.body.appendChild( renderer.domElement );
 
 	//add event listeners for mouse
@@ -136,7 +130,7 @@ function main()
 	}
 	else if(countUpToNextShape === timeForShape*tps)
 	{
-	    var gs = new GameSquare(10, false); //make an uneditable gamesquare
+	    var gs = new GameSquare(material, 10, false); //make an uneditable gamesquare
 	    gs.generateSquares();
 	    gs.squares.forEach(function (x){
 		x.mesh.position.x += 550;

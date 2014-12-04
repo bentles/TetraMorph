@@ -1,8 +1,9 @@
 
-function GameSquare(difficulty, editable) //0 difficulty is just a single square
+function GameSquare(material, difficulty, editable) //0 difficulty is just a single square
 {
     this.difficulty = (difficulty === undefined) ? 10 : difficulty;
     this.editable = (editable === undefined) ? true : editable;
+    this.material = material;
     this.squareString = "";
     this.numletters = 0;
     this.squares = [];
@@ -92,7 +93,7 @@ GameSquare.prototype.generateSquares = function()
 	    break;
 	default:
 	    {
-		var newSquare = generatePositionedSquare(cornerlist, this.squareString[i] === "t");
+		var newSquare = generatePositionedSquare(this.material, cornerlist, this.squareString[i] === "t");
 		newSquare.gameSquare = this;
 		this.squares.push(newSquare);
 		cornerlist[level]++;		

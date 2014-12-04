@@ -38,10 +38,10 @@ Square.prototype.split = function(renderlist)
 	//lol this is gonna need refactoring
 	
 	//create new meshes
-	var mesh0 = new THREE.Mesh(geom, material);
-	var mesh1 = new THREE.Mesh(geom, material);
-	var mesh2 = new THREE.Mesh(geom, material);
-	var mesh3 = new THREE.Mesh(geom, material);
+	var mesh0 = new THREE.Mesh(geom, this.mesh.material);
+	var mesh1 = new THREE.Mesh(geom, this.mesh.material);
+	var mesh2 = new THREE.Mesh(geom, this.mesh.material);
+	var mesh3 = new THREE.Mesh(geom, this.mesh.material);
 
 	//place them in the correct position
 	mesh0.position.addVectors(rmObject.position,
@@ -94,7 +94,7 @@ Square.prototype.flip = function(){
     animationlist.push(animation);
 };
 
-function generatePositionedSquare(cornerlist, flipped)
+function generatePositionedSquare(material, cornerlist, flipped)
 {
     var totalx = 0;
     var totaly = 0;
