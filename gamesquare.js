@@ -20,15 +20,33 @@ GameSquare.prototype.generateSquareString = function()
     for (var i = 0; i < this.difficulty; i++)
     {
 	var operation = Math.random() >= 0.5;
-	var letter = Math.floor(Math.random() * this.numletters);
 
-	var pos = this.getNthLetterDetails(letter).position;
+	var pos = this.getSkewedRandomLetter();
 
 	if (operation) //splitting a square	
 	    this.splitAtNthLetter(pos);
 	else //flipping a square
 	    this.flipAtNthLetter(pos);
     }
+};
+
+GameSquare.prototype.getSkewedRandomLetter = function()
+{
+    var rand = Math.random(); //[0, 1)
+    var depth = 0;
+    var length = this.squareString.length;
+
+    while(rand >= 0 && length--)
+    {
+	if (this.squareString[length] === ")")
+	    depth++;
+	else if (this.squareString[length] === ""(inde)
+	    depth--;
+	else	    
+	    rand -= 1/Math.pow(4,depth);
+    }
+    
+    return length;
 };
 
 GameSquare.prototype.generateSquares = function()

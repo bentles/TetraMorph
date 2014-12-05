@@ -120,7 +120,6 @@ function main()
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -3000;
-    var gamesquares = [];
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every few seconds
@@ -131,9 +130,8 @@ function main()
 	else if(countDownToNextShape === 0)
 	{
 	    //make an uneditable gamesquare
-	    var gs = new GameSquare(material, 10, false); 
-	    gs.generateSquares();
-	    gamesquares.push(gs);	    
+	    var gs = new GameSquare(material, 16, false); 
+	    gs.generateSquares();	    
 
 	    //position the gamesquare
 	    gs.forEachSquareMesh(function (x){
