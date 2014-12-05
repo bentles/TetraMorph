@@ -2,14 +2,22 @@
 
 <html>
   <head>
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
       <script src="three.min.js"></script>
       <script src="OrbitControls.js"></script>
       <script src="square.js"></script>
       <script src="gamesquare.js"></script>
-      <script src="squaregame.js"></script>
+      <script src="squaregame.js"></script>      
+      <link rel="stylesheet" type="text/css" href="style.css">
     <title>Squares</title>
   </head>
   <body style="margin:0px; overflow:hidden;" onload="main()">
     <canvas id=canvas style="position:absolute;">Your browser does not appear to support the HTML5 canvas element</canvas>
+    <div id="t" class="score">0</div>
+    <div id="f" class="score">0</div>
+    <div id="paused">
+	<h1>Game Paused</h1>
+	<h2>Click to Focus</h2>
+    </div>
   </body>
 </html>

@@ -1,0 +1,43 @@
+.score
+{
+    position:fixed;
+    bottom: 0px;
+    display: block;
+    color: white;
+    font-size: 20pt;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+#t
+{
+    color: #145214;
+    right: 5px;
+}
+
+#f
+{
+    color: #33CC33;
+    right: 42px;
+}
+
+#paused
+{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    
+}
+
+#paused h1,h2
+{
+    text-align: center;
+    margin: auto;
+    visibility: hidden;
+    display:block;
+    color: white;
+    /*Internet Magic Follows*/
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}

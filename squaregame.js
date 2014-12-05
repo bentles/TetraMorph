@@ -275,6 +275,7 @@ function main()
 	if (!active) //needed on firefox
 	    {
 		active = true;
+		$("#paused").css("visibility", "hidden");
 		pausedTime = Date.now() - pausedTime;
 		requestAnimationFrame(animate);
 	    }
@@ -285,7 +286,7 @@ function main()
 	if (active) //just to be safe
 	    {
 		active = false;
-		//TODO put something on the screen that says "click to focus"
+		$("#paused").css("visibility", "visible");
 		pausedTime = Date.now();
 		cancelAnimationFrame(animationFrameID);
 	    }
