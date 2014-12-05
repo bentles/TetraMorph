@@ -40,7 +40,7 @@ GameSquare.prototype.getSkewedRandomLetter = function()
     {
 	if (this.squareString[length] === ")")
 	    depth++;
-	else if (this.squareString[length] === ""(inde)
+	else if (this.squareString[length] === "(")
 	    depth--;
 	else	    
 	    rand -= 1/Math.pow(4,depth);

@@ -120,6 +120,7 @@ function main()
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -3000;
+    var difficulty = 3;
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every few seconds
@@ -130,7 +131,7 @@ function main()
 	else if(countDownToNextShape === 0)
 	{
 	    //make an uneditable gamesquare
-	    var gs = new GameSquare(material, 16, false); 
+	    var gs = new GameSquare(material, Math.floor(difficulty), false); 
 	    gs.generateSquares();	    
 
 	    //position the gamesquare
@@ -201,6 +202,7 @@ function main()
 	playergs.playerReset();
 	if (won)
 	{
+	    difficulty += 0.1;
 	    tscore.add(scores.t);
 	    fscore.add(scores.f);
 	}
