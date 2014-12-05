@@ -33,8 +33,7 @@
 {
     text-align: center;
     margin: auto;
-    visibility: hidden;
-    display:block;
+    display: block;
     color: white;
     /*Internet Magic Follows*/
     position: relative;

@@ -22,8 +22,11 @@ var currentTime = 0, newTime = 0;
 var accumulator = 0;
 
 function main()
-{    
+{
     function init() {
+	//not sure why but if i start of with none it never appears :/
+	$("#paused").css("display", "none");
+	
 	//scene and camera
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -74,9 +77,7 @@ function main()
 	document.addEventListener( 'mouseup', onMouseUp, false);
 	window.addEventListener('resize', onWindowResize, false);
 	window.addEventListener('keydown', onKeyBoard, false);
-	window.addEventListener('blur', onBlur, false);
-	window.addEventListener('focus', onFocus, false);
-	
+	window.addEventListener('blur', onBlur, false);	
     }
 
 
@@ -114,19 +115,20 @@ function main()
 	renderer.render( scene, camera );	
     }
 
-
+    var tscore = new Score(0, "t");
+    var fscore = new Score(0, "f");
     var timeForShape = 10; //seconds
-    var countUpToNextShape = timeForShape*tps;
+    var countDownToNextShape = 0;
     var startpos = -3000;
     var gamesquares = [];
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every few seconds
-	if (countUpToNextShape < timeForShape*tps)
+	if (countDownToNextShape > 0)
 	{
-	    countUpToNextShape++;
+	    countDownToNextShape--;
 	}
-	else if(countUpToNextShape === timeForShape*tps)
+	else if(countDownToNextShape === 0)
 	{
 	    //make an uneditable gamesquare
 	    var gs = new GameSquare(material, 10, false); 
@@ -142,7 +144,7 @@ function main()
 	    //animate gs, each animation calls the next as needed
 	    animationlist.push(gameSquareMoveAniGen(playerGameSquare, gs));
 	    
-	    countUpToNextShape = 0;		
+	    countDownToNextShape = timeForShape*tps;		
 	}	
 
 	//Execute animations
@@ -171,6 +173,14 @@ function main()
 		    function(mesh){
 			mesh.position.z += step;
 		    });
+
+		//if they win before the end move on to the next animation
+		if (playergs.squareString === gs.squareString)
+		{		    
+		    animationlist.push(gameSquareCompleteAniGen(playergs, gs));
+		    return true;
+		}
+		
 		return false;
 	    }
 	    else
@@ -184,10 +194,37 @@ function main()
 
     function gameSquareCompleteAniGen(playergs, gs)
     {
+	var steps = tps*5;
+	var won = (playergs.squareString === gs.squareString);
+	var scores = playergs.getSquareStringDetails();
+
+	//get the next shape going and increase score
+	countDownToNextShape = 0;
+	playergs.playerReset();
+	if (won)
+	{
+	    tscore.add(scores.t);
+	    fscore.add(scores.f);
+	}
+	
 	return function(){
-	    playergs.playerReset();
-	    gs.clearSquares();
-	    return true;
+	    if (steps > 0)
+		{
+		    gs.forEachSquareMesh(
+			function(mesh)
+			{
+			    //TODO: fancy stuff if they win or lose
+			    mesh.position.x += 10;
+			    mesh.rotation.x += 0.2;
+			});
+		    steps--;
+		    return false;
+		}
+	    else
+		{
+		    gs.clearSquares();
+		    return true;
+		}
 	};
     }
 
@@ -201,9 +238,11 @@ function main()
 
     function onMouseDown(e)
     {
+	console.log("outer:" + active);
 	//bring back focus if paused by esc key
 	if (!active)
 	{
+	    console.log("focus: " + active);
 	    onFocus();
 	}
 	else //must be resumed by click before another click can do anything
@@ -275,7 +314,7 @@ function main()
 	if (!active) //needed on firefox
 	    {
 		active = true;
-		$("#paused").css("visibility", "hidden");
+		$("#paused").css("display", "none");
 		pausedTime = Date.now() - pausedTime;
 		requestAnimationFrame(animate);
 	    }
@@ -286,7 +325,7 @@ function main()
 	if (active) //just to be safe
 	    {
 		active = false;
-		$("#paused").css("visibility", "visible");
+		$("#paused").css("display", "block");
 		pausedTime = Date.now();
 		cancelAnimationFrame(animationFrameID);
 	    }

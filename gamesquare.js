@@ -153,6 +153,24 @@ GameSquare.prototype.getNthLetterDetails = function(n)
     return {position:pos};
 };
 
+GameSquare.prototype.getSquareStringDetails = function()
+{
+    var t = 0;
+    var f = 0;
+
+    var len = this.squareString.length ;
+    while(len--)
+    {
+	var chr = this.squareString[len];
+	if (chr === "f")
+	    f++;
+	else if (chr === "t")
+	    t++;
+    }
+
+    return {"t":t, "f":f};
+};
+
 GameSquare.prototype.splitAtNthLetter = function(n)
 {
     this.squareString = this.squareString.substring(0, n) + "("
