@@ -3,7 +3,7 @@ TetraMorph
 A WIP game based on my Squares.js repo
 
 You can try it out here:
-http://bentles.github.io/TetraMorph <-- game am broked for now. do not play or you might hurt yourself
+http://bentles.github.io/TetraMorph
 
 Controls
 ---------
