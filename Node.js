@@ -1,5 +1,5 @@
 //lol Node.js
-function Node(value, children, parent){
+function Node(value, parent, children){
     this.value = (value === undefined)? null : value;
     this.parent = (parent === undefined)? null : parent;
     this.children = (children === undefined)? [] : children;
@@ -10,16 +10,37 @@ function Node(value, children, parent){
 }
 
 //since this will be used to hold squares we'll always be adding four
-Node.prototype.addChildren = function(a,b,c,d)
+Node.prototype.addChildren = function(sqra,sqrb,sqrc,sqrd)
 {
     //Only leaf nodes may have value
     this.value = null;
+    var a = new Node(sqra,this);
+    var b = new Node(sqrb,this);
+    var c = new Node(sqrc,this);
+    var d = new Node(sqrd,this);
+    sqra.node = a;
+    sqrb.node = b;
+    sqrc.node = c;
+    sqrd.node = d;    
     this.children.push(a,b,c,d);
 };
 
 Node.prototype.hasValue = function()
 {
-    return value !== null;
+    return this.value !== null;
+};
+
+Node.prototype.forEach = function(fn)
+{
+    if (this.hasValue)
+	fn(this.value);
+    else
+    	this.children.forEach(function(child){child.forEach(fn);});
+};
+
+Node.prototype.getGameSquare = function()
+{
+    return (this.parent instanceof GameSquare)? this.parent : this.parent.getGameSquare(); 
 };
 
 //A function to discover which squares have been missed by the player
@@ -46,7 +67,7 @@ function doubleTreeRecursion(playernode, gamenode, tlist, flist)
     else //gamenode has children
     {
 	if (playernode.hasValue()) //case III - recurse through all the missing children and add them using sTR	
-	    this.children.forEach(
+	    gamenode.children.forEach(
 		function(x){singleTreeRecursion(x, tlist, flist);});	
 	else
 	{

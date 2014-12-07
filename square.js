@@ -9,7 +9,7 @@ function Square(mesh, flipped, editable)
     Shape.call(this, mesh);
     this.flipped = (flipped === undefined)? false: flipped;
     this.editable = (editable === undefined)? true: editable;
-    this.gameSquare = null;
+    this.node = null;
 };
 Square.prototype = Object.create(Shape.prototype);
 Square.prototype.split = function(scene)
@@ -36,10 +36,8 @@ Square.prototype.split = function(scene)
 	    }
 
 	    //4 has to be about the most awkward number ever.
-	    //I can't decide if I should bother with arrays and loops or not
+	    //I still can't decide if I should bother with arrays and loops or not
 
-	    //lol this is gonna need refactoring
-	    
 	    //create new meshes
 	    var mesh0 = new THREE.Mesh(geom, this.mesh.material);
 	    var mesh1 = new THREE.Mesh(geom, this.mesh.material);
@@ -47,15 +45,10 @@ Square.prototype.split = function(scene)
 	    var mesh3 = new THREE.Mesh(geom, this.mesh.material);
 
 	    //place them in the correct position
-	    mesh0.position.addVectors(rmObject.position,
-				      new THREE.Vector3(-bigheight, bigheight, 0));
-	    mesh1.position.addVectors(rmObject.position,
-				      new THREE.Vector3(bigheight, bigheight, 0));
-	    mesh2.position.addVectors(rmObject.position,
-				      new THREE.Vector3(-bigheight, -bigheight, 0));
-	    mesh3.position.addVectors(rmObject.position,
-				      new THREE.Vector3(bigheight,-bigheight, 0));
-
+	    mesh0.position.addVectors(rmObject.position, new THREE.Vector3(-bigheight, bigheight, 0));
+	    mesh1.position.addVectors(rmObject.position, new THREE.Vector3(bigheight, bigheight, 0));
+	    mesh2.position.addVectors(rmObject.position, new THREE.Vector3(-bigheight, -bigheight, 0));
+	    mesh3.position.addVectors(rmObject.position, new THREE.Vector3(bigheight,-bigheight, 0));
 
 	    //orient them accordingly
 	    if (this.flipped)
@@ -73,20 +66,11 @@ Square.prototype.split = function(scene)
 	    var square3 = new Square(mesh3, this.flipped);
 
 	    //edit the parent squares list and squareString as needed
-	    if (this.gameSquare != null)
-	    {	    
-		var squarepos = this.gameSquare.squares.indexOf(this);
-		var letterpos = this.gameSquare.getNthLetterDetails(squarepos).position;
-		
-		square0.gameSquare = this.gameSquare;
-		square1.gameSquare = this.gameSquare;
-		square2.gameSquare = this.gameSquare;
-		square3.gameSquare = this.gameSquare;
-
-		this.gameSquare.splitAtNthLetter(letterpos);
-		this.gameSquare.squares.splice(squarepos, 1, square0, square1, square2, square3);
-
-		console.log(this.gameSquare.squareString);
+	    if (this.node != null)
+	    {
+		this.node.addChildren(square0, square1, square2, square3);
+		this.node.getGameSquare().updateSquareString();
+		console.log(this.node.getGameSquare().squareString);
 	    }
 	    
 	    scene.add(square0.mesh, square1.mesh, square2.mesh, square3.mesh);
@@ -123,12 +107,10 @@ function generateFlipAnimation(square, pifractions)
 	{
 	    square.flipped = !square.flipped;
 
-	    if (square.gameSquare != null)
+	    if (square.node != null)
 	    {
-		var squarepos = square.gameSquare.squares.indexOf(square);
-		var letterpos = square.gameSquare.getNthLetterDetails(squarepos).position;
-		square.gameSquare.flipAtNthLetter(letterpos);
-		console.log(square.gameSquare.squareString);
+		square.node.getGameSquare().updateSquareString();
+		console.log(square.node.getGameSquare().squareString);
 	    }
 	    
 	    return true;

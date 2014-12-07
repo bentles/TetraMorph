@@ -6,7 +6,8 @@ function GameSquare(material, difficulty, editable) //0 difficulty is just a sin
     this.material = material;
     this.squareString = "";
     this.numletters = 0;
-    this.squares = [];
+    //make the parent of the top node the gamesquare
+    this.squares = new Node(null, this); 
 }
 
 GameSquare.prototype.generateSquareString = function()
@@ -53,6 +54,7 @@ GameSquare.prototype.generateSquares = function()
 {
     //takes the squareString and creates the actual meshes that represent the gamesquare
     //these are packaged into Square objects for easy manipulation
+    //these in turn are placed in a quaternary-tree
     
     if (this.squareString === "")
 	this.generateSquareString(); 
@@ -66,12 +68,17 @@ GameSquare.prototype.generateSquares = function()
     //this is how deep we are in the tree
     var level = 0;
 
+    //visits nodes and builds the squares tree (hopefully)
+    var visitor = this.squares;
+
     //parse the string and create appropriately sized and spaced meshes
     for (var i = 0; i < this.squareString.length; i++)
     {
 	switch (this.squareString[i]){
 	case "(":
 	    {
+		visitor.addChildren(null, null, null, null);
+		visitor = visitor.children[0];
 		level++;
 		cornerlist[level] = 0;
 	    }
@@ -81,6 +88,10 @@ GameSquare.prototype.generateSquares = function()
 		level--;
 		cornerlist[level]++;
 		cornerlist.pop();
+
+		if (visitor.parent)
+		    if (visitor.parent[cornerlist[level]])
+			visitor = visitor.parent[cornerlist[level]];		
 	    }
 	    break;
 	default:
@@ -88,8 +99,12 @@ GameSquare.prototype.generateSquares = function()
 		var newSquare = this.generatePositionedSquare(cornerlist, this.squareString[i] === "t");
 		scene.add(newSquare.mesh);
 		newSquare.gameSquare = this;
-		this.squares.push(newSquare);
-		cornerlist[level]++;		
+		visitor.value = newSquare;
+		cornerlist[level]++;
+
+		if (visitor.parent)
+		    if (visitor.parent[cornerlist[level]])
+			visitor = visitor.parent[cornerlist[level]];
 	    }
 	    break;
 	}
@@ -146,7 +161,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped)
 GameSquare.prototype.clearSquares = function()
 {
     this.squares.forEach(function(square){scene.remove(square.mesh);});
-    this.squares = [];
+    this.squares = new Node(null, this);
     this.squareString = "";
 };
 
@@ -155,7 +170,7 @@ GameSquare.prototype.playerReset = function()
     this.clearSquares();
     this.squareString = "f";
     this.generateSquares();
-    this.squares[0].mesh.position.x += -550;
+    this.squares.value.mesh.position.x += -550;
 };
 
 GameSquare.prototype.getNthLetterDetails = function(n)
@@ -189,6 +204,7 @@ GameSquare.prototype.getSquareStringDetails = function()
     return {"t":t, "f":f};
 };
 
+/*Might not need these next two any more*/
 GameSquare.prototype.splitAtNthLetter = function(n)
 {
     this.squareString = this.squareString.substring(0, n) + "("
@@ -202,6 +218,23 @@ GameSquare.prototype.flipAtNthLetter = function(n)
     this.squareString = this.squareString.substring(0, n) + (this.squareString[n]==="f"? "t" : "f")
 	+ this.squareString.substring(n +1, this.squareString.length);    
 };
+
+GameSquare.prototype.updateSquareString = function()
+{
+    this.squareString = getSquareString(this.squares);
+};
+
+//recursion is fun :D
+function getSquareString(node)
+{
+    if (node.hasValue())
+	return node.value.flipped ? "t" : "f";
+    else
+    {
+	var cn = node.children;
+	return "(" + getSquareString(cn[0]) + getSquareString(cn[1]) + getSquareString(cn[2]) + getSquareString(cn[3]) + ")" ;
+    }
+}
 
 GameSquare.prototype.forEachSquareMesh = function(func)
 {
