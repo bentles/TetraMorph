@@ -21,8 +21,19 @@ Node.prototype.addChildren = function(sqra,sqrb,sqrc,sqrd)
     sqra.node = a;
     sqrb.node = b;
     sqrc.node = c;
-    sqrd.node = d;    
+    sqrd.node = d;
+    this.children = [];
     this.children.push(a,b,c,d);
+};
+
+Node.prototype.initChildren = function()
+{
+    this.children = [];
+    for (var i = 0; i < 4; i++)
+    {
+	var a = new Node(null, this);
+	this.children.push(a);
+    }
 };
 
 Node.prototype.hasValue = function()
@@ -32,7 +43,7 @@ Node.prototype.hasValue = function()
 
 Node.prototype.forEach = function(fn)
 {
-    if (this.hasValue)
+    if (this.hasValue())
 	fn(this.value);
     else
     	this.children.forEach(function(child){child.forEach(fn);});

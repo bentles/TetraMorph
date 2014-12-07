@@ -64,8 +64,8 @@ function main()
 	//player
 	playerGameSquare = new GameSquare(playermaterial, 0);
 	playerGameSquare.generateSquares();
-	playerGameSquare.squares.forEach(function (x){
-	    x.mesh.position.x -= 550;});	
+	playerGameSquare.forEachSquareMesh(function (x){
+	    x.position.x -= 550;});	
 
 	//set up renderer
 	renderer = new THREE.WebGLRenderer({antialias:true});
@@ -137,8 +137,9 @@ function main()
 	    //position the gamesquare
 	    gs.forEachSquareMesh(function (x){
 		x.position.x += 550;
-		x.position.z = startpos;
 	    });
+
+	    gs.setZ(startpos);
 
 	    //animate gs, each animation calls the next as needed
 	    animationlist.push(gameSquareMoveAniGen(playerGameSquare, gs));
@@ -168,10 +169,7 @@ function main()
 	    if (gs.getZ() < playergs.getZ())
 	    {
 		var step = Math.abs(playergs.getZ() - startpos)/(timeForShape*tps);
-		gs.forEachSquareMesh(
-		    function(mesh){
-			mesh.position.z += step;
-		    });
+		gs.addZ(step);
 
 		//if they win before the end move on to the next animation
 		if (playergs.squareString === gs.squareString)
