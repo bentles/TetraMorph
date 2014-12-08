@@ -1,7 +1,7 @@
 
 //these are out here for debug purposes
 var scene, camera, renderer, raycaster, projector, mouseVector;
-var playermaterial, material, mesh, startpos, animationlist, materialmap;
+var playermaterial, material, mesh, startpos, animationlist, materialmap, backdrop;
 var animationFrameID;
 
 //player's GameSquare
@@ -44,9 +44,9 @@ function main()
 	animationlist = [];
 
 	//work out shapes and materials
-	var frontmaterial = new THREE.MeshBasicMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
-	var sidematerial= new THREE.MeshBasicMaterial({color: 0x123123, shininess:70, vertexColors:THREE.FaceColors} );
-	var backmaterial = new THREE.MeshBasicMaterial({color: 0x145214, shininess:70, vertexColors:THREE.FaceColors} );
+	var frontmaterial = new THREE.MeshBasicMaterial({color: 0x33CC33, shininess:50, vertexColors:THREE.FaceColors} );
+	var sidematerial= new THREE.MeshBasicMaterial({color: 0x123123, shininess:50, vertexColors:THREE.FaceColors} );
+	var backmaterial = new THREE.MeshBasicMaterial({color: 0x145214, shininess:50, vertexColors:THREE.FaceColors} );
 	var materials = [frontmaterial, sidematerial, backmaterial];
 
 	materialmap = [1,1,1,1,1,1,1,1,0,0,2,2];
@@ -110,8 +110,8 @@ function main()
 	renderer.render( scene, camera );	
     }
 
-    var tscore = new Score(0, "t");
-    var fscore = new Score(0, "f");
+    var tscore = new Score(0, "t", false, 0x145214);
+    var fscore = new Score(0, "f", true,  0x33CC33);
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -3000;
@@ -263,13 +263,18 @@ function main()
 	    else
 		onFocus();
 	}
+	else if (e.keyCode === 32)
+	{
+	    tscore.toggleMultiplier();
+	    fscore.toggleMultiplier();
+	}
     }
 
     function initBackDrop()
     {
 	var geom = new THREE.BoxGeometry(2100, 1000, 20000);
-	var material = new THREE.MeshLambertMaterial({color: 0xCCCCCC, shininess:70, vertexColors:THREE.FaceColors} );
-	var mesh = new THREE.Mesh(geom, material);
+	backdrop = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
+	var mesh = new THREE.Mesh(geom, backdrop);
 	mesh.material.side = THREE.BackSide ;
 	scene.add(mesh);
     }
