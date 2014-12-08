@@ -1,6 +1,6 @@
 
 //these are out here for debug purposes
-var scene, camera, controls, renderer, raycaster, projector, mouseVector;
+var scene, camera, renderer, raycaster, projector, mouseVector;
 var playermaterial, material, mesh, startpos, animationlist, materialmap;
 var animationFrameID;
 
@@ -39,10 +39,6 @@ function main()
 	var light = new THREE.PointLight( 0xffffff, 0.8 );
 	light.position.set( 0.3, 0.2, 1 ).normalize();
 	scene.add( light );
-
-	//controls
-        controls = new THREE.OrbitControls(camera);
-	initControls(controls);
 	
 	//keep track of what's being rendered and animated
 	animationlist = [];
@@ -75,7 +71,8 @@ function main()
 	document.addEventListener('mousedown', onMouseDown, false);
 	window.addEventListener('resize', onWindowResize, false);
 	window.addEventListener('keydown', onKeyBoard, false);
-	window.addEventListener('blur', onBlur, false);	
+	window.addEventListener('blur', onBlur, false);
+	window.addEventListener('contextmenu', function ( event ) { event.preventDefault(); }, false );
     }
 
 
@@ -244,11 +241,8 @@ function main()
 	    raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
 	    var intersects = raycaster.intersectObjects(scene.children);
 
-	    if (intersects[0] && (intersects[0].object.shape != undefined))
+	    if (intersects[0] && (intersects[0].object.shape !== undefined))
 	    {
-		//it's annoying moving the shape when you are trying to click
-		//so I simply disable that ability when you click on a square <3	
-
 		if (e.button === 0 && e.shiftKey || e.button === 1)		
 		    intersects[0].object.shape.requestMerge();		
 		else if (e.button === 0)		
@@ -269,16 +263,6 @@ function main()
 	    else
 		onFocus();
 	}
-    }
-
-    function initControls(controls){
-	controls.damping = 0.2;
-	controls.minPolarAngle = Math.PI/2;
-	controls.maxPolarAngle = Math.PI/2;	
-	controls.minAzimuthAngle = -Math.PI/2;
-	controls.maxAzimuthAngle = Math.PI/2;
-	controls.noPan = true;
-	controls.noRotate = true;
     }
 
     function initBackDrop()
