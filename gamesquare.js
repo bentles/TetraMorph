@@ -100,8 +100,7 @@ GameSquare.prototype.generateSquares = function()
 	default:
 	    {
 		var newSquare = this.generatePositionedSquare(cornerlist, this.squareString[i] === "t");
-		scene.add(newSquare.mesh);
-		visitor.value = newSquare;
+		visitor.setValue(newSquare);
 		newSquare.node = visitor;
 		cornerlist[level]++;
 
@@ -112,6 +111,20 @@ GameSquare.prototype.generateSquares = function()
 	    break;
 	}
     }
+};
+GameSquare.prototype.generatePositionedSquareAtNode = function(node, flipped)
+{
+    var orignode = node;
+    var cornerlist = [];
+    while (node.parent instanceof Node)
+    {
+	cornerlist.unshift(node.parent.children.indexof(node)); //<-- urgh but whatevs
+	node = node.parent;
+    }
+    cornerlist.unshift(0);
+
+    var newSquare = this.generatePositionedSquare(cornerlist,flipped);
+    orignode.setValue(newSquare);
 };
 
 GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped)
@@ -161,6 +174,11 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped)
     return new Square(mesh, flipped, this.editable);    
 };
 
+GameSquare.prototype.merge = function(square)
+{
+    
+};
+
 GameSquare.prototype.clearSquares = function()
 {
     this.squares.forEach(function(square){scene.remove(square.mesh);});
@@ -176,6 +194,7 @@ GameSquare.prototype.playerReset = function()
     this.squares.value.mesh.position.x += -550;
 };
 
+/*
 GameSquare.prototype.getNthLetterDetails = function(n)
 {
     var j = -1; //iterator
@@ -187,7 +206,7 @@ GameSquare.prototype.getNthLetterDetails = function(n)
 	    j++;
     }
     return {position:pos};
-};
+}; */
 
 GameSquare.prototype.getSquareStringDetails = function()
 {
@@ -205,9 +224,8 @@ GameSquare.prototype.getSquareStringDetails = function()
     }
 
     return {"t":t, "f":f};
-};
+}; 
 
-/*Might not need these next two any more*/
 GameSquare.prototype.splitAtNthLetter = function(n)
 {
     this.squareString = this.squareString.substring(0, n) + "("

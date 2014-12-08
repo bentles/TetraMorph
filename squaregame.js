@@ -186,7 +186,6 @@ function main()
 		return true;
 	    }
 	};
-
     }
 
     function gameSquareCompleteAniGen(playergs, gs)

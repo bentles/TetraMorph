@@ -54,6 +54,20 @@ Node.prototype.getGameSquare = function()
     return (this.parent instanceof GameSquare)? this.parent : this.parent.getGameSquare(); 
 };
 
+Node.prototype.setValue = function(square)
+{
+    this.value = square;
+    scene.add(square.mesh);
+
+    //this just looks cool
+    this.children.forEach(
+	function (child){child.forEachSquareMesh(
+	    function(mesh){scene.remove(mesh);});	
+    });
+    
+    this.children = [];
+};
+
 //A function to discover which squares have been missed by the player
 //It populates two lists: one for flipped(tlist) and one for unflipped(flist) squares
 //----------------------------------------------------------------------

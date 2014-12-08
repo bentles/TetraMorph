@@ -84,7 +84,12 @@ Square.prototype.flip = function(){
 	animationlist.push(animation);
     }
 };
-
+Square.prototype.requestMerge = function(){
+    if (this.editable)
+    {
+	this.node.getGameSquare().merge(this);
+    }
+};
 function generateFlipAnimation(square, pifractions)
 {
     var mesh = square.mesh;
