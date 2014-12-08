@@ -57,12 +57,13 @@ Node.prototype.getGameSquare = function()
 Node.prototype.setValue = function(square)
 {
     this.value = square;
+    square.node = this;
     scene.add(square.mesh);
 
     //this just looks cool
     this.children.forEach(
-	function (child){child.forEachSquareMesh(
-	    function(mesh){scene.remove(mesh);});	
+	function (child){child.forEach(
+	    function(square){scene.remove(square.mesh);});	
     });
     
     this.children = [];

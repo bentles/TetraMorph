@@ -7,6 +7,7 @@ function GameSquare(material, difficulty, editable) //0 difficulty is just a sin
     this.squareString = "";
     this.numletters = 0;
     this.z = 0;
+    this.x = 0;
     //make the parent of the top node the gamesquare
     this.squares = new Node(null, this); 
 }
@@ -118,12 +119,13 @@ GameSquare.prototype.addPositionedSquareAtNode = function(node, flipped)
     var cornerlist = [];
     while (node.parent instanceof Node)
     {
-	cornerlist.unshift(node.parent.children.indexof(node)); //<-- urgh but whatevs
+	cornerlist.unshift(node.parent.children.indexOf(node)); //<-- urgh but whatevs
 	node = node.parent;
     }
     cornerlist.unshift(0);
 
     var newSquare = this.generatePositionedSquare(cornerlist,flipped);
+    newSquare.mesh.position.x += this.x;
     orignode.setValue(newSquare);
 };
 
@@ -261,6 +263,19 @@ GameSquare.prototype.addZ = function(num)
     this.z += num;
     this.forEachSquareMesh(function(mesh){mesh.position.z += num;});    
 };
+
+GameSquare.prototype.getX = function()
+{
+    return this.x;
+};
+
+GameSquare.prototype.addX = function(num)
+{
+    this.x += num;
+    this.forEachSquareMesh(function(mesh){mesh.position.x += num;});    
+};
+
+
 
 
 

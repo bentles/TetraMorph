@@ -64,8 +64,7 @@ function main()
 	//player
 	playerGameSquare = new GameSquare(playermaterial, 0);
 	playerGameSquare.generateSquares();
-	playerGameSquare.forEachSquareMesh(function (x){
-	    x.position.x -= 550;});	
+	playerGameSquare.addX(-550);	
 
 	//set up renderer
 	renderer = new THREE.WebGLRenderer({antialias:true});
@@ -74,7 +73,6 @@ function main()
 
 	//add event listeners for mouse
 	document.addEventListener( 'mousedown', onMouseDown, false);
-	document.addEventListener( 'mouseup', onMouseUp, false);
 	window.addEventListener('resize', onWindowResize, false);
 	window.addEventListener('keydown', onKeyBoard, false);
 	window.addEventListener('blur', onBlur, false);	
@@ -135,10 +133,7 @@ function main()
 	    gs.generateSquares();	    
 
 	    //position the gamesquare
-	    gs.forEachSquareMesh(function (x){
-		x.position.x += 550;
-	    });
-
+	    gs.addX(550);
 	    gs.setZ(startpos);
 
 	    //animate gs, each animation calls the next as needed
@@ -256,7 +251,7 @@ function main()
 
 		if (e.button === 0 && e.shiftKey)		
 		    intersects[0].object.shape.requestMerge();		
-		if (e.button === 0)		
+		else if (e.button === 0)		
 		    intersects[0].object.shape.split(scene);
 		else if (e.button === 2)		
 		    intersects[0].object.shape.flip();
