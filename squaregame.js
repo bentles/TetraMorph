@@ -24,7 +24,7 @@ var accumulator = 0;
 function main()
 {
     function init() {
-	//not sure why but if i start of with none it never appears :/
+	//not sure why but if i start off with none it never appears :/
 	$("#paused").css("display", "none");
 	
 	//scene and camera
@@ -72,7 +72,7 @@ function main()
 	document.body.appendChild( renderer.domElement );
 
 	//add event listeners for mouse
-	document.addEventListener( 'mousedown', onMouseDown, false);
+	document.addEventListener('mousedown', onMouseDown, false);
 	window.addEventListener('resize', onWindowResize, false);
 	window.addEventListener('keydown', onKeyBoard, false);
 	window.addEventListener('blur', onBlur, false);	
@@ -249,7 +249,7 @@ function main()
 		//it's annoying moving the shape when you are trying to click
 		//so I simply disable that ability when you click on a square <3	
 
-		if (e.button === 0 && e.shiftKey)		
+		if (e.button === 0 && e.shiftKey || e.button === 1)		
 		    intersects[0].object.shape.requestMerge();		
 		else if (e.button === 0)		
 		    intersects[0].object.shape.split(scene);
