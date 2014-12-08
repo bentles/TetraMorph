@@ -235,16 +235,12 @@ function main()
 
     function onMouseDown(e)
     {
-	console.log("outer:" + active);
-	//bring back focus if paused by esc key
 	if (!active)
 	{
-	    console.log("focus: " + active);
 	    onFocus();
 	}
 	else //must be resumed by click before another click can do anything
-	{
-	    
+	{	    
 	    mouseVector.x = 2*(e.clientX / window.innerWidth) -1 ;
 	    mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
 
@@ -255,26 +251,18 @@ function main()
 
 	    if (intersects[0] && (intersects[0].object.shape != undefined))
 	    {
-		//it's annoying when move the shape when you are simply trying to click
-		//so I simply disable that ability when you click on a square <3
-		controls.noRotate = true;
-		
-		if (e.button === 0)
-		{
-		    intersects[0].object.shape.split(scene);		    
-		}
-		
-		else if (e.button === 2)
-		{
+		//it's annoying moving the shape when you are trying to click
+		//so I simply disable that ability when you click on a square <3	
+
+		if (e.button === 0 && e.shiftKey)		
+		    intersects[0].object.shape.requestMerge();		
+		if (e.button === 0)		
+		    intersects[0].object.shape.split(scene);
+		else if (e.button === 2)		
 		    intersects[0].object.shape.flip();
-		}
+		
 	    }
 	}
-    }
-
-    function onMouseUp(e)
-    {
-	controls.noRotate = false;	
     }
 
     function onKeyBoard(e){
@@ -295,6 +283,7 @@ function main()
 	controls.minAzimuthAngle = -Math.PI/2;
 	controls.maxAzimuthAngle = Math.PI/2;
 	controls.noPan = true;
+	controls.noRotate = true;
     }
 
     function initBackDrop()

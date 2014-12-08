@@ -87,7 +87,7 @@ Square.prototype.flip = function(){
 Square.prototype.requestMerge = function(){
     if (this.editable)
     {
-	this.node.getGameSquare().merge(this);
+	this.node.getGameSquare().addPositionedSquareAtNode(this.node, this.flipped);
     }
 };
 function generateFlipAnimation(square, pifractions)

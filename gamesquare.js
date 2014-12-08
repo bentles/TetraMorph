@@ -112,7 +112,7 @@ GameSquare.prototype.generateSquares = function()
 	}
     }
 };
-GameSquare.prototype.generatePositionedSquareAtNode = function(node, flipped)
+GameSquare.prototype.addPositionedSquareAtNode = function(node, flipped)
 {
     var orignode = node;
     var cornerlist = [];
@@ -174,11 +174,6 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped)
     return new Square(mesh, flipped, this.editable);    
 };
 
-GameSquare.prototype.merge = function(square)
-{
-    
-};
-
 GameSquare.prototype.clearSquares = function()
 {
     this.squares.forEach(function(square){scene.remove(square.mesh);});
@@ -193,20 +188,6 @@ GameSquare.prototype.playerReset = function()
     this.generateSquares();
     this.squares.value.mesh.position.x += -550;
 };
-
-/*
-GameSquare.prototype.getNthLetterDetails = function(n)
-{
-    var j = -1; //iterator
-    var pos = -1; //position of letter to change
-    while(j < n)
-    {
-	pos++;
-	if (this.squareString[pos] !== "(" && this.squareString[pos] !== ")")
-	    j++;
-    }
-    return {position:pos};
-}; */
 
 GameSquare.prototype.getSquareStringDetails = function()
 {
