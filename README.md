@@ -7,6 +7,7 @@ http://bentles.github.io/TetraMorph
 
 Controls
 ---------
-- Left click to split a square
-- Right click to flip a square
-- Esc to pause
+- left click to split a square
+- right click to flip a square
+- shift + left click to merge squares  
+- esc to pause
