@@ -80,6 +80,7 @@ Square.prototype.split = function(scene)
 Square.prototype.flip = function(){
     if (this.editable)
     {
+	this.flipped = !this.flipped;
 	var animation= generateFlipAnimation(this, 15);
 	animationlist.push(animation);
     }
@@ -112,8 +113,6 @@ function generateFlipAnimation(square, pifractions)
 	}
 	else
 	{
-	    square.flipped = !square.flipped;
-
 	    if (square.node != null)
 	    {
 		square.node.getGameSquare().updateSquareString();
