@@ -1,5 +1,6 @@
 
 //these are out here for debug purposes
+//all variables will be moved into main
 var scene, camera, renderer, raycaster, projector, mouseVector;
 var playermaterial, material, mesh, startpos, animationlist, materialmap, backdrop;
 var animationFrameID;
@@ -217,6 +218,59 @@ function main()
 	};
     }
 
+    function getRGB(colorHex)
+    {
+	var r = colorHex / 0x10000 | 0;
+	var g = (colorHex % 0x10000) / 0x100 | 0;
+	var b = colorHex % 0x100;
+
+	return {"r":r, "g":g, "b":b};
+    }
+
+    //programatically create a pixelated striped texture
+    //because downloading stuff is slow
+    function generateStripedTexture(color1, color2, width)
+    {
+	//length:width = 16:1 
+	//we shall use a 512x32 texture
+	var texsize = 512*32;
+	var texture = new Uint8Array(texsize*4);
+	var col1 = getRGB(color1);
+	var col2 = getRGB(color2);
+	var colorwidth = width;
+	var linewidth = 128;
+	//each end of a closed interval of color
+	var lhs = -4;
+	var rhs = colorwidth - 4 - 1;
+	
+	for (var i = 0; i < texsize * 4; i+= 4)
+	{
+	    if (i % (linewidth))
+	    {
+		lhs += 4; rhs += 4;
+		lhs %= linewidth; rhs %= linewidth;
+	    }
+	    if (lhs > rhs) //we check two regions
+	    {
+		if ((i >= 0 && i <= rhs)|| (i >= lhs && i <= (linewidth - 1)))
+		    addColorUints(col1, 128, texture, i);
+		else
+		    addColorUints(col2, 128, texture, i);
+	    }
+	    else if (i >= lhs && i <= rhs)
+		addColorUints(col1, 128, texture, i);
+	    else
+		addColorUints(col2, 128, texture, i);	    
+	}
+    }
+
+    function addColorUints(color, alpha, array, i)
+    {
+	array[i] = color.r;
+	array[i+1] = color.g;
+	array[i+2] = color.b;
+	array[i+3] = alpha;
+    }
 
     function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
@@ -272,7 +326,7 @@ function main()
 
     function initBackDrop()
     {
-	var geom = new THREE.BoxGeometry(2100, 1000, 20000);
+	var geom = new THREE.BoxGeometry(2100, 1000, 16000);
 	backdrop = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
 	var mesh = new THREE.Mesh(geom, backdrop);
 	mesh.material.side = THREE.BackSide ;
