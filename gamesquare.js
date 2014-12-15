@@ -18,7 +18,7 @@ GameSquare.prototype.generateSquareString = function()
     //equality of two gamesquares is simply equality of their squareString
     
     this.numletters = 1;
-    this.squareString = "f";
+    this.squareString = Math.random() >= 0.5 ? "f" : "t";
     
     for (var i = 0; i < this.difficulty; i++)
     {

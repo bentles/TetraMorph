@@ -8,24 +8,6 @@ function Node(value, parent, children){
     if (this.children.length !== 0)
 	this.value = null;
 }
-
-//since this will be used to hold squares we'll always be adding four
-Node.prototype.addChildren = function(sqra,sqrb,sqrc,sqrd)
-{
-    //Only leaf nodes may have value
-    this.value = null;
-    var a = new Node(sqra,this);
-    var b = new Node(sqrb,this);
-    var c = new Node(sqrc,this);
-    var d = new Node(sqrd,this);
-    sqra.node = a;
-    sqrb.node = b;
-    sqrc.node = c;
-    sqrd.node = d;
-    this.children = [];
-    this.children.push(a,b,c,d);
-};
-
 Node.prototype.initChildren = function()
 {
     if (this.value)
