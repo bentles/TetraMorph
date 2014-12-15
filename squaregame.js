@@ -26,7 +26,7 @@ function main()
 {
     function init() {
 	//not sure why but if i start off with none it never appears :/
-	$("#paused").css("display", "none");
+	document.getElementById("paused").style.display = "none";
 	
 	//scene and camera
 	scene = new THREE.Scene();
@@ -272,6 +272,15 @@ function main()
 	array[i+3] = alpha;
     }
 
+    function initBackDrop()
+    {
+	var geom = new THREE.BoxGeometry(2100, 1000, 16000);
+	backdrop = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
+	var mesh = new THREE.Mesh(geom, backdrop);
+	mesh.material.side = THREE.BackSide ;
+	scene.add(mesh);
+    }
+
     function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
@@ -300,7 +309,7 @@ function main()
 		if (e.button === 0 && e.shiftKey || e.button === 1)		
 		    intersects[0].object.shape.requestMerge();		
 		else if (e.button === 0)		
-		    intersects[0].object.shape.split(scene);
+		    intersects[0].object.shape.requestSplit();
 		else if (e.button === 2)		
 		    intersects[0].object.shape.flip();
 		
@@ -324,21 +333,12 @@ function main()
 	}
     }
 
-    function initBackDrop()
-    {
-	var geom = new THREE.BoxGeometry(2100, 1000, 16000);
-	backdrop = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
-	var mesh = new THREE.Mesh(geom, backdrop);
-	mesh.material.side = THREE.BackSide ;
-	scene.add(mesh);
-    }
-
     function onFocus()
     {
 	if (!active) //needed on firefox
 	    {
 		active = true;
-		$("#paused").css("display", "none");
+		document.getElementById("paused").style.display = "none";
 		pausedTime = Date.now() - pausedTime;
 		requestAnimationFrame(animate);
 	    }
@@ -349,7 +349,7 @@ function main()
 	if (active) //just to be safe
 	    {
 		active = false;
-		$("#paused").css("display", "block");
+		document.getElementById("paused").style.display = "block";
 		pausedTime = Date.now();
 		cancelAnimationFrame(animationFrameID);
 	    }

@@ -12,69 +12,16 @@ function Square(mesh, flipped, editable)
     this.node = null;
 };
 Square.prototype = Object.create(Shape.prototype);
-Square.prototype.split = function(scene)
+
+Square.prototype.requestSplit = function()
 {
     if (this.editable)
     {
-	var rmObject = this.mesh;
-	var rmGeomParams = rmObject.geometry.parameters;
-	var bigheight = (rmGeomParams.height + gap)/4;
-	var height = (rmGeomParams.height - gap)/2;
-
-	if (height > 5) //put a lower bound on how small these tiles get
-	{
-	    scene.remove(rmObject);
-	    
-	    var geom = new THREE.BoxGeometry(height,
-					     height,
-					     rmGeomParams.depth);
-
-	    //add back material association to the geometry
-	    for (var i = 0; i < 12; i++)
-	    {
-		geom.faces[i].materialIndex = materialmap[i];
-	    }
-
-	    //4 has to be about the most awkward number ever.
-	    //I still can't decide if I should bother with arrays and loops or not
-
-	    //create new meshes
-	    var mesh0 = new THREE.Mesh(geom, this.mesh.material);
-	    var mesh1 = new THREE.Mesh(geom, this.mesh.material);
-	    var mesh2 = new THREE.Mesh(geom, this.mesh.material);
-	    var mesh3 = new THREE.Mesh(geom, this.mesh.material);
-
-	    //place them in the correct position
-	    mesh0.position.addVectors(rmObject.position, new THREE.Vector3(-bigheight, bigheight, 0));
-	    mesh1.position.addVectors(rmObject.position, new THREE.Vector3(bigheight, bigheight, 0));
-	    mesh2.position.addVectors(rmObject.position, new THREE.Vector3(-bigheight, -bigheight, 0));
-	    mesh3.position.addVectors(rmObject.position, new THREE.Vector3(bigheight,-bigheight, 0));
-
-	    //orient them accordingly
-	    if (this.flipped)
-	    {
-		mesh0.rotation.x = Math.PI;
-		mesh1.rotation.x = Math.PI;
-		mesh2.rotation.x = Math.PI;
-		mesh3.rotation.x = Math.PI;
-	    }
-
-	    //create squares
-	    var square0 = new Square(mesh0, this.flipped);
-	    var square1 = new Square(mesh1, this.flipped);
-	    var square2 = new Square(mesh2, this.flipped);
-	    var square3 = new Square(mesh3, this.flipped);
-
-	    //edit the parent squares list and squareString as needed
-	    if (this.node != null)
-	    {
-		this.node.addChildren(square0, square1, square2, square3);
-		this.node.getGameSquare().updateSquareString();
-		console.log(this.node.getGameSquare().squareString);
-	    }
-	    
-	    scene.add(square0.mesh, square1.mesh, square2.mesh, square3.mesh);
-	}
+	var gs = this.node.getGameSquare();
+	this.node.initChildren();
+	for (var i = 0; i < 4; i++)
+	    gs.addPositionedSquareAtNode(this.node.children[i], this.flipped);
+	gs.updateSquareString();
     }
 };
 Square.prototype.flip = function(){

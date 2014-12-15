@@ -28,6 +28,10 @@ Node.prototype.addChildren = function(sqra,sqrb,sqrc,sqrd)
 
 Node.prototype.initChildren = function()
 {
+    if (this.value)
+	scene.remove(this.value.mesh);
+    
+    this.value = null;
     this.children = [];
     for (var i = 0; i < 4; i++)
     {
