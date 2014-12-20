@@ -1,9 +1,8 @@
-
 function GameSquare(material, difficulty, editable) //0 difficulty is just a single square
 {
     this.difficulty = (difficulty === undefined) ? 10 : difficulty;
     this.editable = (editable === undefined) ? true : editable;
-    this.material = material;
+    this.material = material.clone();
     this.squareString = "";
     this.numletters = 0;
     this.z = 0;
@@ -11,7 +10,6 @@ function GameSquare(material, difficulty, editable) //0 difficulty is just a sin
     //make the parent of the top node the gamesquare
     this.squares = new Node(null, this); 
 }
-
 GameSquare.prototype.generateSquareString = function()
 {
     //generates strings of the form "t" or "f" or "(tttt)" or "(tf(ttf(tfff))f)" which represent a gamesquare's squares

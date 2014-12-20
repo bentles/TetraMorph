@@ -3,7 +3,6 @@ function Shape(mesh)
     this.mesh = mesh;
     mesh.shape = this;
 }
-
 function Square(mesh, flipped, editable)
 {
     Shape.call(this, mesh);
@@ -12,7 +11,6 @@ function Square(mesh, flipped, editable)
     this.node = null;
 };
 Square.prototype = Object.create(Shape.prototype);
-
 Square.prototype.requestSplit = function()
 {
     if (this.editable)
@@ -28,8 +26,9 @@ Square.prototype.flip = function(){
     if (this.editable)
     {
 	this.flipped = !this.flipped;
-	var animation= generateFlipAnimation(this, 15);
-	animationlist.push(animation);
+	this.animateFlip(15);
+	var gs = this.node.getGameSquare();
+	gs.updateSquareString();
     }
 };
 Square.prototype.requestMerge = function(){
@@ -40,37 +39,120 @@ Square.prototype.requestMerge = function(){
 	gs.updateSquareString();
     }
 };
-function generateFlipAnimation(square, pifractions)
+Square.prototype.animateFlip = function(pifractions)
 {
-    var mesh = square.mesh;
+    var mesh = this.mesh;
     var step = (1/pifractions)*Math.PI;
     var count = 0;
 
     //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
-    return function()
-    {
-	if (count < pifractions)
+    animationlist.push(
+	function()
 	{
-	    mesh.rotation.x += step ;
-	    count++;
-
-	    if (mesh.rotation.x >= Math.PI*2)
- 		mesh.rotation.x = mesh.rotation.x - Math.PI*2;
-	    return false;
-	}
-	else
-	{
-	    if (square.node != null)
+	    if (count < pifractions)
 	    {
-		square.node.getGameSquare().updateSquareString();
-		console.log(square.node.getGameSquare().squareString);
-	    }
-	    
-	    return true;
-	}
-    };
-}
+		mesh.rotation.x += step ;
+		count++;
 
+		if (mesh.rotation.x >= Math.PI*2)
+ 		    mesh.rotation.x = mesh.rotation.x - Math.PI*2;
+		return false;
+	    }
+	    else
+	    {
+		if (this.node != null)
+		{
+		    this.node.getGameSquare().updateSquareString();
+		    console.log(this.node.getGameSquare().squareString);
+		}
+		
+		return true;
+	    }
+	});
+};
+
+/*Takes a function that generates an animation, this function takes 3 paramaters
+ *the first is the square we manipulate, the last two are an optional flag
+ *
+ */
+Square.prototype.animate = function(funcgen, destroy, callback)
+{
+    animationlist.push(funcgen(this, destroy, callback));
+};
+Square.prototype.animateFade = function(steps, kill, callback)
+{
+    this.animate(
+	function(square, destroy, callback){
+	    var totalsteps = steps*tps;
+	    var decrease = 1/totalsteps;	    
+	    return function()
+	    {
+		square.mesh.material.materials.forEach(function(x){
+		    x.opacity -= decrease;
+		});
+		totalsteps--;
+		
+		if (!totalsteps)
+		{
+		    square.killOrCallback(destroy, callback);
+		    return true;
+		}
+		return false;
+	    };
+	}
+    ,kill, callback);	
+};
+
+Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEuler, steps, kill, callback)
+{
+    this.animate(
+	function(square, destroy, callback){
+	    var totalsteps = steps * tps;
+	    var mesh = square.mesh;
+	    var posdiff = new THREE.Vector3();
+	    posdiff.subVectors(posVect3, mesh.position);
+	    posdiff.divideScalar(totalsteps);
+
+	    var thisdimens = new THREE.Vector2(mesh.geometry.parameters.width, mesh.geometry.parameters.height);
+	    var thatdimens = thisdimens.clone();
+	    var dimensiondiff = new THREE.Vector2();
+	    dimensiondiff.subVectors (thisdimens, dimensionsVect2);
+	    dimensiondiff.divideScalar(totalsteps);    
+	    
+	    var rotxdiff = rotationEuler.x - mesh.rotation.x;
+	    rotxdiff /= totalsteps;
+	    var rotydiff = rotationEuler.y - mesh.rotation.y;
+	    rotydiff /= totalsteps;
+	    var rotzdiff = rotationEuler.z - mesh.rotation.z;
+	    rotzdiff /= totalsteps;
+
+	    return function(){
+		
+		mesh.position.add(posdiff);
+		thatdimens.sub(dimensiondiff);
+		mesh.scale.x = thatdimens.x / thisdimens.x;
+		mesh.scale.y = thatdimens.y / thisdimens.y;
+		mesh.rotation.x += rotxdiff;
+		mesh.rotation.y += rotydiff;
+		mesh.rotation.z += rotzdiff;
+		
+		totalsteps--;
+		if (!totalsteps)
+		{
+		    square.killOrCallback(destroy, callback);
+		    return true;
+		}
+		return false;
+	    };	
+    }  , true, callback);
+};
+Square.prototype.killOrCallback = function(destroy, callback)
+{
+    if (destroy)
+	scene.remove(this.mesh);
+    if (callback)
+	callback();
+};
 //a is start
 //r is the multiplication factor
 //n is the term number

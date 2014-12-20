@@ -37,17 +37,18 @@ function main()
 	mouseVector = new THREE.Vector3();
 
 	//lighting
-	var light = new THREE.PointLight( 0xffffff, 0.8 );
+	var light = new THREE.PointLight( 0xffffff, 0.4 );
 	light.position.set( 0.3, 0.2, 1 ).normalize();
 	scene.add( light );
+	
 	
 	//keep track of what's being rendered and animated
 	animationlist = [];
 
 	//work out shapes and materials
-	var frontmaterial = new THREE.MeshBasicMaterial({color: 0x33CC33, shininess:50, vertexColors:THREE.FaceColors} );
-	var sidematerial= new THREE.MeshBasicMaterial({color: 0x123123, shininess:50, vertexColors:THREE.FaceColors} );
-	var backmaterial = new THREE.MeshBasicMaterial({color: 0x145214, shininess:50, vertexColors:THREE.FaceColors} );
+	var frontmaterial = new THREE.MeshBasicMaterial({transparent:true, color: 0x33CC33, shininess:50, vertexColors:THREE.FaceColors} );
+	var sidematerial= new THREE.MeshBasicMaterial({transparent:true, color: 0x123123, shininess:50, vertexColors:THREE.FaceColors} );
+	var backmaterial = new THREE.MeshBasicMaterial({transparent:true, color: 0x145214, shininess:50, vertexColors:THREE.FaceColors} );
 	var materials = [frontmaterial, sidematerial, backmaterial];
 
 	materialmap = [1,1,1,1,1,1,1,1,0,0,2,2];
@@ -61,7 +62,8 @@ function main()
 	//player
 	playerGameSquare = new GameSquare(playermaterial, 0);
 	playerGameSquare.generateSquares();
-	playerGameSquare.addX(-550);	
+	playerGameSquare.addX(-550);
+	playerGameSquare.playerReset();
 
 	//set up renderer
 	renderer = new THREE.WebGLRenderer({antialias:true});
@@ -98,8 +100,8 @@ function main()
 	//controls.update();// <-- does this do anything?
 
 	//loop if we can do more physics per render
-	//don't do physics at all if not enough time has passed
-	//since last render. instead, render again
+	//don't do physics at all if not enough time has passed for another step
+	//instead, render again
 	while (accumulator >= dt) 
 	{
 	    gameLogic();
@@ -116,10 +118,10 @@ function main()
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -3000;
-    var difficulty = 3;
+    var difficulty = 12;
     function gameLogic()
     {
-	//make new shapes that fly towards the screen every few seconds
+	//make new shapes that fly towards the screen every timeForShapeind seconds
 	if (countDownToNextShape > 0)
 	{
 	    countDownToNextShape--;
@@ -140,11 +142,12 @@ function main()
 	    countDownToNextShape = timeForShape*tps;		
 	}	
 
-	//Execute animations
-	//==================
-	//animationlist is a list of functions that return true if complete
-	//call each function in turn and remove those that return true
-	//this may or may not be a terrible way to do this that I regret later lol
+	/*Execute animations
+	 *==================
+	 *animationlist is a list of functions that return true if complete
+	 *call each function in turn and remove those that return true
+	 *this may or may not be a terrible way to do this that I regret later lol
+	 */
 	var len = animationlist.length;
 	    while(len--)
 	    {
@@ -167,15 +170,15 @@ function main()
 		//if they win before the end move on to the next animation
 		if (playergs.squareString === gs.squareString)
 		{		    
-		    animationlist.push(gameSquareCompleteAniGen(playergs, gs));
+		    gameSquareCompleteAniGen(playergs, gs);
 		    return true;
-		}
-		
+		}		
 		return false;
 	    }
 	    else
 	    {
-		animationlist.push(gameSquareCompleteAniGen(playergs, gs));
+		//TODO: change this
+		gameSquareCompleteAniGen(playergs, gs);
 		return true;
 	    }
 	};
@@ -195,27 +198,17 @@ function main()
 	    difficulty += 0.1;
 	    tscore.add(scores.t);
 	    fscore.add(scores.f);
+
+	    gs.squares.forEach(function(x){
+		x.animateMoveTo(new THREE.Vector3(780, -430, 800), new THREE.Vector2(20,20), x.mesh.rotation, 2, function(){scene.remove(x.mesh);});
+	    });	   
 	}
-	
-	return function(){
-	    if (steps > 0)
-		{
-		    gs.forEachSquareMesh(
-			function(mesh)
-			{
-			    //TODO: fancy stuff if they win or lose
-			    mesh.position.x += 10;
-			    mesh.rotation.x += 0.2;
-			});
-		    steps--;
-		    return false;
-		}
-	    else
-		{
-		    gs.clearSquares();
-		    return true;
-		}
-	};
+	else
+	{
+	    gs.squares.forEach(function(x){
+		x.animateFade(5, function(){scene.remove(x.mesh);});
+	    });
+	}
     }
 
     function getRGB(colorHex)
@@ -274,7 +267,7 @@ function main()
 
     function initBackDrop()
     {
-	var geom = new THREE.BoxGeometry(2100, 1000, 16000);
+	var geom = new THREE.BoxGeometry(2100, 1000, 10000);
 	backdrop = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
 	var mesh = new THREE.Mesh(geom, backdrop);
 	mesh.material.side = THREE.BackSide ;
