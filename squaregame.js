@@ -118,7 +118,7 @@ function main()
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -3000;
-    var difficulty = 12;
+    var difficulty = 3;
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every timeForShapeind seconds
