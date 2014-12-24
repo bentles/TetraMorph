@@ -12,7 +12,7 @@ function GameSquare(material, difficulty, editable) //0 difficulty is just a sin
 }
 GameSquare.prototype.generateSquareString = function()
 {
-    //generates strings of the form "t" or "f" or "(tttt)" or "(tf(ttf(tfff))f)" which represent a gamesquare's squares
+    //generates strings of the form "t" or "(tttt)" or "(tf(ttf(tfff))f)" which represent a gamesquare's squares
     //equality of two gamesquares is simply equality of their squareString
     
     this.numletters = 1;
@@ -29,6 +29,9 @@ GameSquare.prototype.generateSquareString = function()
 	else //flipping a square
 	    this.flipAtNthLetter(pos);
     }
+
+    if (this.squareString === "f")
+	this.generateSquareString();
 };
 
 GameSquare.prototype.getSkewedRandomLetter = function()
@@ -164,7 +167,6 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped)
     
     var mesh = new THREE.Mesh(geom, this.material);
 
-    //could be right lol
     mesh.position.x = totalx;
     mesh.position.y = totaly;
     

@@ -1,4 +1,3 @@
-
 //these are out here for debug purposes
 //all variables will be moved into main
 var scene, camera, renderer, raycaster, projector, mouseVector;
@@ -41,10 +40,9 @@ function main()
 	light.position.set( 0.3, 0.2, 1 ).normalize();
 	scene.add( light );
 	
-	
-	//keep track of what's being rendered and animated
+	//keep track of what's being animated
 	animationlist = [];
-
+	
 	//work out shapes and materials
 	var frontmaterial = new THREE.MeshBasicMaterial({transparent:true, color: 0x33CC33, shininess:50, vertexColors:THREE.FaceColors} );
 	var sidematerial= new THREE.MeshBasicMaterial({transparent:true, color: 0x123123, shininess:50, vertexColors:THREE.FaceColors} );
@@ -113,8 +111,8 @@ function main()
 	renderer.render( scene, camera );	
     }
 
-    var tscore = new Score(0, "t", false, 0x145214);
-    var fscore = new Score(0, "f", true,  0x33CC33);
+    var tscore = new Score(0, "t", false, 0x33CC33);
+    var fscore = new Score(0, "f", true,  0x145214);
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -3000;
@@ -186,13 +184,14 @@ function main()
 
     function gameSquareCompleteAniGen(playergs, gs)
     {
+	var resetTime = 0.5;
 	var steps = tps*5;
 	var won = (playergs.squareString === gs.squareString);
 	var scores = playergs.getSquareStringDetails();
-
+	
 	//get the next shape going and increase score
-	countDownToNextShape = 0;
-	playergs.playerReset();
+
+	
 	if (won)
 	{
 	    difficulty += 0.1;
@@ -200,7 +199,8 @@ function main()
 	    fscore.add(scores.f);
 
 	    gs.squares.forEach(function(x){
-		x.animateMoveTo(new THREE.Vector3(780, -430, 800), new THREE.Vector2(20,20), x.mesh.rotation, 2, function(){scene.remove(x.mesh);});
+		x.animateMoveTo(new THREE.Vector3(600, -330, 700), new THREE.Vector2(20,20), x.mesh.rotation, resetTime, true, function(){playergs.playerReset();
+																  countDownToNextShape = 0;});
 	    });	   
 	}
 	else
@@ -211,66 +211,42 @@ function main()
 	}
     }
 
-    function getRGB(colorHex)
-    {
-	var r = colorHex / 0x10000 | 0;
-	var g = (colorHex % 0x10000) / 0x100 | 0;
-	var b = colorHex % 0x100;
-
-	return {"r":r, "g":g, "b":b};
-    }
-
-    //programatically create a pixelated striped texture
-    //because downloading stuff is slow
-    function generateStripedTexture(color1, color2, width)
-    {
-	//length:width = 16:1 
-	//we shall use a 512x32 texture
-	var texsize = 512*32;
-	var texture = new Uint8Array(texsize*4);
-	var col1 = getRGB(color1);
-	var col2 = getRGB(color2);
-	var colorwidth = width;
-	var linewidth = 128;
-	//each end of a closed interval of color
-	var lhs = -4;
-	var rhs = colorwidth - 4 - 1;
-	
-	for (var i = 0; i < texsize * 4; i+= 4)
-	{
-	    if (i % (linewidth))
-	    {
-		lhs += 4; rhs += 4;
-		lhs %= linewidth; rhs %= linewidth;
-	    }
-	    if (lhs > rhs) //we check two regions
-	    {
-		if ((i >= 0 && i <= rhs)|| (i >= lhs && i <= (linewidth - 1)))
-		    addColorUints(col1, 128, texture, i);
-		else
-		    addColorUints(col2, 128, texture, i);
-	    }
-	    else if (i >= lhs && i <= rhs)
-		addColorUints(col1, 128, texture, i);
-	    else
-		addColorUints(col2, 128, texture, i);	    
-	}
-    }
-
-    function addColorUints(color, alpha, array, i)
-    {
-	array[i] = color.r;
-	array[i+1] = color.g;
-	array[i+2] = color.b;
-	array[i+3] = alpha;
-    }
-
     function initBackDrop()
     {
-	var geom = new THREE.BoxGeometry(2100, 1000, 10000);
-	backdrop = new THREE.MeshPhongMaterial({color: 0x33CC33, shininess:70, vertexColors:THREE.FaceColors} );
+	
+	var width = 512;
+	var height = 16;
+
+	//create textures
+	var texture = generateStripedTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return i % 17 < 6;});
+	var texture2 = generateStripedTexture(0x444444, 0, 0x999999, 0, width*2, height, function(i){return i % 17 < 6;});
+	var text = new THREE.DataTexture(texture, width, height, THREE.RGBAFormat);
+	var text2 = new THREE.DataTexture(texture2, width, height, THREE.RGBAFormat);	
+	text.magFilter = THREE.NearestFilter;
+	text.minFilter = THREE.LinearMipMapLinearFilter;
+	text2.magFilter = THREE.NearestFilter;
+	text2.minFilter = THREE.LinearMipMapLinearFilter;	
+	text.needsUpdate = true;
+	text2.needsUpdate = true;
+
+	//create materials
+	var mat1 = new THREE.MeshPhongMaterial({map:text, shininess:70, vertexColors:THREE.FaceColors} );
+	var mat2 = new THREE.MeshPhongMaterial({map:text2, shininess:70, vertexColors:THREE.FaceColors} );
+	var mats = [mat1, mat2];
+	var matmap = [1,1,1,1,1,1,1,1,0,0,0,0];
+	
+	backdrop = new THREE.MeshFaceMaterial(mats);
+	mat2.color.setHex(0x145214);	
+	
+	var geom = new THREE.BoxGeometry(2100, 1000, 20000);
+	for (var i = 0; i < matmap.length; i++)
+	{
+	    geom.faces[i].materialIndex = matmap[i];
+	}
+	
 	var mesh = new THREE.Mesh(geom, backdrop);
 	mesh.material.side = THREE.BackSide ;
+	
 	scene.add(mesh);
     }
 
@@ -279,6 +255,7 @@ function main()
 	camera.updateProjectionMatrix();
 	
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.render(scene, camera);
     }
 
     function onMouseDown(e)
@@ -305,7 +282,6 @@ function main()
 		    intersects[0].object.shape.requestSplit();
 		else if (e.button === 2)		
 		    intersects[0].object.shape.flip();
-		
 	    }
 	}
     }
@@ -347,10 +323,51 @@ function main()
 		cancelAnimationFrame(animationFrameID);
 	    }
     };    
-        
+
+    
+    function getRGB(colorHex)
+    {
+	var r = colorHex / 0x10000 | 0;
+	var g = (colorHex % 0x10000) / 0x100 | 0;
+	var b = colorHex % 0x100;
+
+	return {"r":r, "g":g, "b":b};
+    }
+    
+    /*
+     *programatically create a pixelated striped texture
+     *because downloading stuff is slow
+     *func takes a single argument, i, that is the position of the pixel
+     *in the image and returns true or false
+     */
+    function generateStripedTexture(color1, alpha1, color2, alpha2, width, height, func)
+    {
+	var col1 = getRGB(color1);
+	var col2 = getRGB(color2);
+	var numpixels = width * height;
+	var texture = new Uint8Array(numpixels * 4);
+	
+	for (var i = 0; i < numpixels; i++)
+	{
+	    if (func(i))
+		addColorUints(col1, alpha1, texture, i*4);
+	    else
+		addColorUints(col2, alpha2, texture, i*4);
+	}
+
+	return texture;	
+    }
+
+    function addColorUints(color, alpha, array, i)
+    {
+	array[i] = color.r;
+	array[i+1] = color.g;
+	array[i+2] = color.b;
+	array[i+3] = alpha;
+    }
+    
     init();
     animate();
 }
-
 
 
