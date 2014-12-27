@@ -36,7 +36,7 @@ function main()
 	mouseVector = new THREE.Vector3();
 
 	//lighting
-	var light = new THREE.PointLight( 0xffffff, 0.4 );
+	var light = new THREE.PointLight( 0xffffff, 0.8 );
 	light.position.set( 0.3, 0.2, 1 ).normalize();
 	scene.add( light );
 	
@@ -103,7 +103,6 @@ function main()
 	while (accumulator >= dt) 
 	{
 	    gameLogic();
-
 	    accumulator -= dt;
 	}
 
@@ -111,19 +110,17 @@ function main()
 	renderer.render( scene, camera );	
     }
 
-    var tscore = new Score(0, "t", false, 0x33CC33);
-    var fscore = new Score(0, "f", true,  0x145214);
+    var tscore = new Score(0, "t", false,  0x145214);
+    var fscore = new Score(0, "f", true, 0x33CC33);
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
-    var startpos = -3000;
+    var startpos = -10000;
     var difficulty = 3;
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every timeForShapeind seconds
-	if (countDownToNextShape > 0)
-	{
-	    countDownToNextShape--;
-	}
+	if (countDownToNextShape > 0)	
+	    countDownToNextShape--;	
 	else if(countDownToNextShape === 0)
 	{
 	    //make an uneditable gamesquare
@@ -150,10 +147,8 @@ function main()
 	    while(len--)
 	    {
 		var done = animationlist[len]();
-		if (done)
-		{
-		    animationlist.splice(len,1);		
-		}
+		if (done)		
+		    animationlist.splice(len,1);
 	    }
     }
 
@@ -189,24 +184,24 @@ function main()
 	var won = (playergs.squareString === gs.squareString);
 	var scores = playergs.getSquareStringDetails();
 	
-	//get the next shape going and increase score
-
-	
 	if (won)
 	{
 	    difficulty += 0.1;
 	    tscore.add(scores.t);
 	    fscore.add(scores.f);
 
+	    //reset player and get next shape going at the end of the animation so that you can see the last move
+	    //careful. callbacks happen for all squares. only works because animations end at the same time
 	    gs.squares.forEach(function(x){
-		x.animateMoveTo(new THREE.Vector3(600, -330, 700), new THREE.Vector2(20,20), x.mesh.rotation, resetTime, true, function(){playergs.playerReset();
-																  countDownToNextShape = 0;});
-	    });	   
+		x.animateMoveTo(new THREE.Vector3(600, -330, 700), new THREE.Vector2(20,20),
+				x.mesh.rotation, resetTime, true,
+				function(){playergs.playerReset(); countDownToNextShape = 0;});});	   
 	}
 	else
 	{
+	    playergs.playerReset();
 	    gs.squares.forEach(function(x){
-		x.animateFade(5, function(){scene.remove(x.mesh);});
+		x.animateFade(3,true);
 	    });
 	}
     }
@@ -218,8 +213,8 @@ function main()
 	var height = 16;
 
 	//create textures
-	var texture = generateStripedTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return i % 17 < 6;});
-	var texture2 = generateStripedTexture(0x444444, 0, 0x999999, 0, width*2, height, function(i){return i % 17 < 6;});
+	var texture = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return i % 17 < 6;});
+	var texture2 = generateTexture(0x444444, 0, 0x999999, 0, width*2, height, function(i){return i % 17 < 6;});
 	var text = new THREE.DataTexture(texture, width, height, THREE.RGBAFormat);
 	var text2 = new THREE.DataTexture(texture2, width, height, THREE.RGBAFormat);	
 	text.magFilter = THREE.NearestFilter;
@@ -230,14 +225,15 @@ function main()
 	text2.needsUpdate = true;
 
 	//create materials
-	var mat1 = new THREE.MeshPhongMaterial({map:text, shininess:70, vertexColors:THREE.FaceColors} );
-	var mat2 = new THREE.MeshPhongMaterial({map:text2, shininess:70, vertexColors:THREE.FaceColors} );
+	var mat1 = new THREE.MeshLambertMaterial({map:text, /*shininess:70,*/ vertexColors:THREE.FaceColors} );
+	var mat2 = new THREE.MeshPhongMaterial({map:text2, /*shininess:70,*/ vertexColors:THREE.FaceColors} );
 	var mats = [mat1, mat2];
-	var matmap = [1,1,1,1,1,1,1,1,0,0,0,0];
+	var matmap = [0,0,0,0,0,0,0,0,0,0,0,0];
 	
-	backdrop = new THREE.MeshFaceMaterial(mats);
-	mat2.color.setHex(0x145214);	
-	
+	backdrop = mat2;//new THREE.MeshFaceMaterial(mats);
+	backdrop.side = THREE.BackSide;
+	mat2.color.setHex(0x33CC33);	
+		
 	var geom = new THREE.BoxGeometry(2100, 1000, 20000);
 	for (var i = 0; i < matmap.length; i++)
 	{
@@ -245,8 +241,7 @@ function main()
 	}
 	
 	var mesh = new THREE.Mesh(geom, backdrop);
-	mesh.material.side = THREE.BackSide ;
-	
+		
 	scene.add(mesh);
     }
 
@@ -301,7 +296,6 @@ function main()
 	    fscore.toggleMultiplier();
 	}
     }
-
     function onFocus()
     {
 	if (!active) //needed on firefox
@@ -312,7 +306,6 @@ function main()
 		requestAnimationFrame(animate);
 	    }
     };
-
     function onBlur()
     {
 	if (active) //just to be safe
@@ -322,9 +315,7 @@ function main()
 		pausedTime = Date.now();
 		cancelAnimationFrame(animationFrameID);
 	    }
-    };    
-
-    
+    }; 
     function getRGB(colorHex)
     {
 	var r = colorHex / 0x10000 | 0;
@@ -332,15 +323,14 @@ function main()
 	var b = colorHex % 0x100;
 
 	return {"r":r, "g":g, "b":b};
-    }
-    
+    }    
     /*
      *programatically create a pixelated striped texture
      *because downloading stuff is slow
      *func takes a single argument, i, that is the position of the pixel
      *in the image and returns true or false
      */
-    function generateStripedTexture(color1, alpha1, color2, alpha2, width, height, func)
+    function generateTexture(color1, alpha1, color2, alpha2, width, height, func)
     {
 	var col1 = getRGB(color1);
 	var col2 = getRGB(color2);
@@ -357,7 +347,6 @@ function main()
 
 	return texture;	
     }
-
     function addColorUints(color, alpha, array, i)
     {
 	array[i] = color.r;
