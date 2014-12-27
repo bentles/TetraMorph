@@ -206,17 +206,22 @@ function main()
 	}
     }
 
+    function texstep(i, modnum, width, step)
+    {
+	return ((i % modnum) < (width + step)) && ((i % modnum) >= (step));
+    }
+
     function initBackDrop()
     {
 	
-	var width = 512;
-	var height = 16;
+	var width = 256;
+	var height = 8;
 
 	//create textures
-	var texture = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return i % 17 < 6;});
-	var texture2 = generateTexture(0x444444, 0, 0x999999, 0, width*2, height, function(i){return i % 17 < 6;});
+	var texture = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return texstep(i, 5, 1, 3);});
+	var texture2 = generateTexture(0x444444, 0, 0x999999, 0, height, width, function(i){return texstep(i, 5, 1, 3);});
 	var text = new THREE.DataTexture(texture, width, height, THREE.RGBAFormat);
-	var text2 = new THREE.DataTexture(texture2, width, height, THREE.RGBAFormat);	
+	var text2 = new THREE.DataTexture(texture2, height, width, THREE.RGBAFormat);
 	text.magFilter = THREE.NearestFilter;
 	text.minFilter = THREE.LinearMipMapLinearFilter;
 	text2.magFilter = THREE.NearestFilter;
@@ -225,18 +230,19 @@ function main()
 	text2.needsUpdate = true;
 
 	//create materials
-	var mat1 = new THREE.MeshLambertMaterial({map:text, /*shininess:70,*/ vertexColors:THREE.FaceColors} );
-	var mat2 = new THREE.MeshPhongMaterial({map:text2, /*shininess:70,*/ vertexColors:THREE.FaceColors} );
+	var mat1 = new THREE.MeshPhongMaterial({map:text, vertexColors:THREE.FaceColors} );
+	var mat2 = new THREE.MeshPhongMaterial({map:text2, vertexColors:THREE.FaceColors} );
+	mat1.side = THREE.BackSide;
+	mat2.side = THREE.BackSide;
 	var mats = [mat1, mat2];
-	var matmap = [0,0,0,0,0,0,0,0,0,0,0,0];
+	var matmap = [0,0,0,0,1,1,1,1,1,1,1,1];
 	
-	backdrop = mat2;//new THREE.MeshFaceMaterial(mats);
-	backdrop.side = THREE.BackSide;
-	mat2.color.setHex(0x33CC33);	
+	backdrop = new THREE.MeshFaceMaterial(mats);	
+	mat2.color.setHex(0x00CC00);
+	mat1.color.setHex(0x0000CC);
 		
 	var geom = new THREE.BoxGeometry(2100, 1000, 20000);
-	for (var i = 0; i < matmap.length; i++)
-	{
+	for (var i = 0; i < matmap.length; i++)	{
 	    geom.faces[i].materialIndex = matmap[i];
 	}
 	
