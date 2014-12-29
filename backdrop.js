@@ -1,4 +1,4 @@
-function Backdrop(dimension, repeats)
+function Backdrop(dimension, repeats, startcolour)
 {
     var that = this;
     this.repeats = repeats;
@@ -35,18 +35,34 @@ function Backdrop(dimension, repeats)
     this.matmap = [0,0,0,0,1,1,1,1,1,1,0,0];
     
     this.backdrop = new THREE.MeshFaceMaterial(this.mats);	
-    this.mat2.color.setHex(0x00CC00);
+    this.mat2.color.setHex(startcolour);
     this.mat1.color.setHex(0x0000CC);
     
-    var geom = new THREE.BoxGeometry(2100, 1000, 20000);
+    this.geom = new THREE.BoxGeometry(2100, 1000, 60000);
     for (var i = 0; i < this.matmap.length; i++)	{
-	geom.faces[i].materialIndex = this.matmap[i];
+	this.geom.faces[i].materialIndex = this.matmap[i];
     }
     
-    var mesh = new THREE.Mesh(geom, this.backdrop);
+    this.mesh = new THREE.Mesh(this.geom, this.backdrop);
     
-    scene.add(mesh);    
+    scene.add(this.mesh);    
 }
+
+Backdrop.prototype.animateBreathe = function()
+{
+    var step = 0;
+    var mesh = this.mesh;
+    animationlist.push(function(){
+	step += Math.PI * 0.005;
+	mesh.scale.set((Math.cos(step)+ 2), (Math.cos(step)+ 2) , 1);
+	return false;
+    });
+};
+
+Backdrop.prototype.setColor = function(hex)
+{
+    this.mat2.color.setHex(hex);
+};
 
 Backdrop.prototype.setRepeats = function()
 {

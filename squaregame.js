@@ -4,6 +4,7 @@ var scene, camera, renderer, raycaster, projector, mouseVector;
 var playermaterial, material, mesh, startpos, animationlist, materialmap, backdrop;
 var animationFrameID;
 
+
 //player's GameSquare
 var playerGameSquare;
 
@@ -29,7 +30,7 @@ function main()
 	
 	//scene and camera
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 30000 );
 	camera.position.z = 1000;
 	
 	projector = new THREE.Projector();
@@ -55,7 +56,8 @@ function main()
 	material = new THREE.MeshFaceMaterial(materials);
 
 	//create the backdrop
-	initBackDrop();
+	backdrop = new Backdrop(4, 10, 0x00CC00);
+	backdrop.animateBreathe();
 	
 	//player
 	playerGameSquare = new GameSquare(playermaterial, 0);
@@ -109,13 +111,15 @@ function main()
 	//TODO add interpolation somehow
 	renderer.render( scene, camera );	
     }
-
-    var tscore = new Score(0, "t", false,  0x145214);
-    var fscore = new Score(0, "f", true, 0x33CC33);
+    var color1 = 0x145214;
+    var color2 = 0x33CC33;
+    var tscore = new Score(0, "t", false, color1 );
+    var fscore = new Score(0, "f", true, color2);
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -10000;
     var difficulty = 3;
+    var multiplier = true;
     function gameLogic()
     {
 	//make new shapes that fly towards the screen every timeForShapeind seconds
@@ -206,11 +210,6 @@ function main()
 	}
     }
 
-    function initBackDrop()
-    {
-	backdrop = new Backdrop(4, 10);	
-    }
-
     function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
@@ -258,8 +257,11 @@ function main()
 	}
 	else if (e.keyCode === 32)
 	{
+	    multiplier = !multiplier;
+	    
 	    tscore.toggleMultiplier();
 	    fscore.toggleMultiplier();
+	    backdrop.setColor(multiplier? color1: color2 );
 	}
     }
     function onFocus()

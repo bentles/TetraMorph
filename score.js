@@ -15,8 +15,6 @@ Score.prototype.toggleMultiplier = function()
 {
     this.multiplier = !this.multiplier;
     this.domElement.style.fontSize = this.multiplier? this.large: this.small;
-    if (this.multiplier)
-	backdrop.color.setHex(this.color);
 };
 
 Score.prototype.add = function(x)
