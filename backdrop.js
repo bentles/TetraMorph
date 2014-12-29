@@ -53,7 +53,8 @@ Backdrop.prototype.animateBreathe = function()
     var step = 0;
     var mesh = this.mesh;
     animationlist.push(function(){
-	step += Math.PI * 0.005;
+	step += Math.PI * breathespeed;
+	step = (step >= 2*Math.PI)? step - 2 * Math.PI : step;
 	mesh.scale.set((Math.cos(step)+ 2), (Math.cos(step)+ 2) , 1);
 	return false;
     });

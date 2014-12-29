@@ -3,7 +3,7 @@
 var scene, camera, renderer, raycaster, projector, mouseVector;
 var playermaterial, material, mesh, startpos, animationlist, materialmap, backdrop;
 var animationFrameID;
-
+var breathespeed = 0.005;
 
 //player's GameSquare
 var playerGameSquare;
@@ -196,6 +196,7 @@ function main()
 
 	    //reset player and get next shape going at the end of the animation so that you can see the last move
 	    //careful. callbacks happen for all squares. only works because animations end at the same time
+	    countDownToNextShape = -1;
 	    gs.squares.forEach(function(x){
 		x.animateMoveTo(new THREE.Vector3(600, -330, 700), new THREE.Vector2(20,20),
 				x.mesh.rotation, resetTime, true,
@@ -263,6 +264,12 @@ function main()
 	    fscore.toggleMultiplier();
 	    backdrop.setColor(multiplier? color1: color2 );
 	}
+	else if (e.keyCode === 107)
+	    breathespeed += 0.001;
+	else if (e.keyCode === 109)
+	    breathespeed -= 0.001;
+
+	console.log(breathespeed);
     }
     function onFocus()
     {
