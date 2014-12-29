@@ -206,62 +206,9 @@ function main()
 	}
     }
 
-    /*
-      var crateTexture = new THREE.ImageUtils.loadTexture( 'images/crate.gif' );
-      crateTexture.wrapS = crateTexture.wrapT = THREE.RepeatWrapping;
-      crateTexture.repeat.set( 5, 5 );
-      var crateMaterial = new THREE.MeshBasicMaterial( { map: crateTexture } );
-      var crate = new THREE.Mesh( cubeGeometry.clone(), crateMaterial );
-      crate.position.set(60, 50, -100);
-      scene.add( crate );		
-      */
-
     function initBackDrop()
     {
-	
-	var width = 4;
-	var height = 4;
-
-	//create textures
-	var texture = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return i % (width + 1);});
-	var texture2 = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return !(width*height-1 -i) || !i || i % (width - 1); });
-	//first texture setup
-	var text = new THREE.DataTexture(texture, width, height, THREE.RGBAFormat);
-	text.wrapS = text.wrapT = THREE.RepeatWrapping;
-	text.repeat.set( 50, 1 );
-	
-	//second texture setup
-	var text2 = new THREE.DataTexture(texture2, width, height, THREE.RGBAFormat);	
-	text2.wrapS = text2.wrapT = THREE.RepeatWrapping;
-	text2.repeat.set( 1, 50 );
-	
-	text.magFilter = THREE.NearestFilter;
-	text.minFilter = THREE.LinearMipMapLinearFilter;
-	text2.magFilter = THREE.NearestFilter;
-	text2.minFilter = THREE.LinearMipMapLinearFilter;	
-	text.needsUpdate = true;
-	text2.needsUpdate = true;
-
-	//create materials
-	var mat1 = new THREE.MeshPhongMaterial({map:text, emissive:0x111111 ,vertexColors:THREE.FaceColors} );
-	var mat2 = new THREE.MeshPhongMaterial({map:text2, emissive:0x00CC00 , vertexColors:THREE.FaceColors} );
-	mat1.side = THREE.BackSide;
-	mat2.side = THREE.BackSide;
-	var mats = [mat1, mat2];
-	var matmap = [0,0,0,0,1,1,1,1,1,1,0,0];
-	
-	backdrop = new THREE.MeshFaceMaterial(mats);	
-	mat2.color.setHex(0x00CC00);
-	mat1.color.setHex(0x0000CC);
-		
-	var geom = new THREE.BoxGeometry(2100, 1000, 20000);
-	for (var i = 0; i < matmap.length; i++)	{
-	    geom.faces[i].materialIndex = matmap[i];
-	}
-	
-	var mesh = new THREE.Mesh(geom, backdrop);
-		
-	scene.add(mesh);
+	backdrop = new Backdrop(4, 10);	
     }
 
     function onWindowResize() {
@@ -335,43 +282,7 @@ function main()
 		cancelAnimationFrame(animationFrameID);
 	    }
     }; 
-    function getRGB(colorHex)
-    {
-	var r = colorHex / 0x10000 | 0;
-	var g = (colorHex % 0x10000) / 0x100 | 0;
-	var b = colorHex % 0x100;
-
-	return {"r":r, "g":g, "b":b};
-    }    
-    /*
-     *programatically create a pixelated striped texture
-     *because downloading stuff is slow
-     *func takes a single argument, i, that is the position of the pixel
-     *in the image and returns true or false
-     */
-    function generateTexture(color1, alpha1, color2, alpha2, width, height, func)
-    {
-	var col1 = getRGB(color1);
-	var col2 = getRGB(color2);
-	var numpixels = width * height;
-	var texture = new Uint8Array(numpixels * 4);
-	
-	for (var i = 0; i < numpixels; i++)
-	{
-	    if (func(i))
-		addColorUints(col1, alpha1, texture, i*4);
-	    else
-		addColorUints(col2, alpha2, texture, i*4);
-	}
-	return texture;	
-    }
-    function addColorUints(color, alpha, array, i)
-    {
-	array[i] = color.r;
-	array[i+1] = color.g;
-	array[i+2] = color.b;
-	array[i+3] = alpha;
-    }
+ 
     
     init();
     animate();
