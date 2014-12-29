@@ -122,7 +122,7 @@ function main()
     var multiplier = true;
     function gameLogic()
     {
-	//make new shapes that fly towards the screen every timeForShapeind seconds
+	//make new shapes that fly towards the screen every timeForShape seconds
 	if (countDownToNextShape > 0)	
 	    countDownToNextShape--;	
 	else if(countDownToNextShape === 0)
@@ -159,14 +159,14 @@ function main()
     function gameSquareMoveAniGen(playergs, gs)
     {
 	return function(){
-	    if (gs.getZ() < playergs.getZ())
+	    if (countDownToNextShape  > 0)
 	    {
 		var step = Math.abs(playergs.getZ() - startpos)/(timeForShape*tps);
 		gs.addZ(step);
 
 		//if they win before the end move on to the next animation
 		if (playergs.squareString === gs.squareString)
-		{		    
+		{
 		    gameSquareCompleteAniGen(playergs, gs);
 		    return true;
 		}		

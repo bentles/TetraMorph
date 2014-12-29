@@ -14,6 +14,7 @@ GameSquare.prototype.generateSquareString = function()
 {
     //generates strings of the form "t" or "(tttt)" or "(tf(ttf(tfff))f)" which represent a gamesquare's squares
     //equality of two gamesquares is simply equality of their squareString
+    //the squarestring is maintained by the gamesquare through all operations
     
     this.numletters = 1;
     this.squareString = Math.random() >= 0.5 ? "f" : "t";
@@ -22,11 +23,12 @@ GameSquare.prototype.generateSquareString = function()
     {
 	var operation = Math.random() >= 0.5;
 
-	var pos = this.getSkewedRandomLetter();
-
-	if (operation) //splitting a square	
+	var pos = this.getSkewedRandomLetterDetails().pos;
+	var depth = this.getSkewedRandomLetterDetails().depth;
+	
+	if (operation && depth < 3) //splitting a square	
 	    this.splitAtNthLetter(pos);
-	else //flipping a square
+	else if (!operation)
 	    this.flipAtNthLetter(pos);
     }
 
@@ -34,7 +36,7 @@ GameSquare.prototype.generateSquareString = function()
 	this.generateSquareString();
 };
 
-GameSquare.prototype.getSkewedRandomLetter = function()
+GameSquare.prototype.getSkewedRandomLetterDetails = function()
 {
     var rand = Math.random(); //[0, 1)
     var depth = 0;
@@ -50,7 +52,7 @@ GameSquare.prototype.getSkewedRandomLetter = function()
 	    rand -= 1/Math.pow(4,depth);
     }
     
-    return length;
+    return {"pos":length, "depth":depth};
 };
 
 GameSquare.prototype.generateSquares = function()
