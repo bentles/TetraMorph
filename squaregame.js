@@ -206,22 +206,35 @@ function main()
 	}
     }
 
-    function texstep(i, modnum, width, step)
-    {
-	return ((i % modnum) < (width + step)) && ((i % modnum) >= (step));
-    }
+    /*
+      var crateTexture = new THREE.ImageUtils.loadTexture( 'images/crate.gif' );
+      crateTexture.wrapS = crateTexture.wrapT = THREE.RepeatWrapping;
+      crateTexture.repeat.set( 5, 5 );
+      var crateMaterial = new THREE.MeshBasicMaterial( { map: crateTexture } );
+      var crate = new THREE.Mesh( cubeGeometry.clone(), crateMaterial );
+      crate.position.set(60, 50, -100);
+      scene.add( crate );		
+      */
 
     function initBackDrop()
     {
 	
-	var width = 256;
-	var height = 8;
+	var width = 4;
+	var height = 4;
 
 	//create textures
-	var texture = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return texstep(i, 5, 1, 3);});
-	var texture2 = generateTexture(0x444444, 0, 0x999999, 0, height, width, function(i){return texstep(i, 5, 1, 3);});
+	var texture = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return i % (width + 1);});
+	var texture2 = generateTexture(0x444444, 0, 0x999999, 0, width, height, function(i){return !(width*height-1 -i) || !i || i % (width - 1); });
+	//first texture setup
 	var text = new THREE.DataTexture(texture, width, height, THREE.RGBAFormat);
-	var text2 = new THREE.DataTexture(texture2, height, width, THREE.RGBAFormat);
+	text.wrapS = text.wrapT = THREE.RepeatWrapping;
+	text.repeat.set( 50, 1 );
+	
+	//second texture setup
+	var text2 = new THREE.DataTexture(texture2, width, height, THREE.RGBAFormat);	
+	text2.wrapS = text2.wrapT = THREE.RepeatWrapping;
+	text2.repeat.set( 1, 50 );
+	
 	text.magFilter = THREE.NearestFilter;
 	text.minFilter = THREE.LinearMipMapLinearFilter;
 	text2.magFilter = THREE.NearestFilter;
@@ -230,12 +243,12 @@ function main()
 	text2.needsUpdate = true;
 
 	//create materials
-	var mat1 = new THREE.MeshPhongMaterial({map:text, vertexColors:THREE.FaceColors} );
-	var mat2 = new THREE.MeshPhongMaterial({map:text2, vertexColors:THREE.FaceColors} );
+	var mat1 = new THREE.MeshPhongMaterial({map:text, emissive:0x111111 ,vertexColors:THREE.FaceColors} );
+	var mat2 = new THREE.MeshPhongMaterial({map:text2, emissive:0x00CC00 , vertexColors:THREE.FaceColors} );
 	mat1.side = THREE.BackSide;
 	mat2.side = THREE.BackSide;
 	var mats = [mat1, mat2];
-	var matmap = [0,0,0,0,1,1,1,1,1,1,1,1];
+	var matmap = [0,0,0,0,1,1,1,1,1,1,0,0];
 	
 	backdrop = new THREE.MeshFaceMaterial(mats);	
 	mat2.color.setHex(0x00CC00);
@@ -350,7 +363,6 @@ function main()
 	    else
 		addColorUints(col2, alpha2, texture, i*4);
 	}
-
 	return texture;	
     }
     function addColorUints(color, alpha, array, i)
