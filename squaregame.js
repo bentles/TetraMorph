@@ -56,7 +56,7 @@ function main()
 	material = new THREE.MeshFaceMaterial(materials);
 
 	//create the backdrop
-	backdrop = new Backdrop(4, 10, 0x00CC00);
+	backdrop = new Backdrop(4, 4, 0x00CC00);
 	backdrop.animateBreathe();
 	
 	//player
@@ -191,6 +191,20 @@ function main()
 	if (won)
 	{
 	    difficulty += 0.1;
+
+	    var diffdecimal = difficulty - Math.floor(difficulty);
+
+	    if (diffdecimal <= 0.15)
+		backdrop.setRepeats(4);
+	    else if (diffdecimal <= 0.35)
+		backdrop.setRepeats(8);
+	    else if (diffdecimal <= 0.55)
+		backdrop.setRepeats(16);
+	    else if (diffdecimal <= 0.75)
+		backdrop.setRepeats(32);
+	    else 
+		backdrop.setRepeats(64);
+	    
 	    tscore.add(scores.t);
 	    fscore.add(scores.f);
 

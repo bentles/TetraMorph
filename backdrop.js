@@ -65,8 +65,9 @@ Backdrop.prototype.setColor = function(hex)
     this.mat2.color.setHex(hex);
 };
 
-Backdrop.prototype.setRepeats = function()
+Backdrop.prototype.setRepeats = function(i)
 {
+    this.repeats = i;
     this.text1.repeat.set( this.repeats, 1 );
     this.text2.repeat.set( 1, this.repeats );
 };
