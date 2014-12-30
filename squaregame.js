@@ -202,7 +202,7 @@ function main()
 	    //careful. callbacks happen for all squares. only works because animations end at the same time
 	    countDownToNextShape = -1;
 	    gs.squares.forEach(function(x){
-		x.animateMoveTo(new THREE.Vector3(600, -330, 700), new THREE.Vector2(20,20),
+		x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(200,200),
 				x.mesh.rotation, resetTime, true,
 				function(){playergs.playerReset(); countDownToNextShape = 0;});});	   
 	}
