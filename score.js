@@ -28,7 +28,25 @@ Score.prototype.toggleMultiplier = function()
 
 Score.prototype.add = function(x)
 {
+    var that = this;
     this.count += this.multiplier? 2*x : x ;
     this.domElement.innerHTML = this.count;
-    this.barDomElement.setAttribute("width",(Math.log(this.count)/Math.log(10))*100 || 0);
+    var time = 0.5; //time for the animation is half a sec
+    var target = (Math.log(this.count)/Math.log(10))*100;
+    target = target < 0 ? 0 : target;
+    var current = parseInt(this.barDomElement.getAttribute("width"));
+    var step = (target - current)/(time*tps) ;
+    var count = 0;
+    animationlist.push(function(){
+	count++;
+	if (count <= (time*tps))
+	{
+	    that.barDomElement.setAttribute("width", current + step*count);
+	    return false;
+	}
+	else
+	    return true;
+	
+    });
+    
 };
