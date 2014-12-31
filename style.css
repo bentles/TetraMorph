@@ -1,12 +1,3 @@
-.score
-{
-    position:fixed;
-    bottom: 20px;
-    display: block;
-    color: white;
-    margin-right: 20px;
-}
-
 .game
 {
     /*Stop highlighting*/
@@ -24,24 +15,24 @@ svg
     margin: 0 auto;
 }
 
+#left-tongue, #right-tongue
+{
+    position: absolute;
+    width: 50%;
+    height: 100%;
+}
+
+#right-tongue
+{
+    float:right;
+}
+
 #scores
 {
     position: absolute;
     width: 100%;
     bottom: 0px;
     display: block;
-}
-
-#t
-{
-    color: #145214;
-    right: 5px;
-}
-
-#f
-{
-    color: #33CC33;
-    right: 42px;
 }
 
 #paused

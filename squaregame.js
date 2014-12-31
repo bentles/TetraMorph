@@ -113,8 +113,8 @@ function main()
     }
     var color1 = 0x145214;
     var color2 = 0x33CC33;
-    var tscore = new Score(0, "t", false, color1 );
-    var fscore = new Score(0, "f", true, color2);
+    var tscore = new Score(0, "t", false, color1, ["r1", "r2", "r3"], "right-tongue");
+    var fscore = new Score(0, "f", true, color2, ["l1", "l2", "l3"], "left-tongue");
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -10000;
@@ -266,7 +266,7 @@ function main()
 	    
 	    tscore.toggleMultiplier();
 	    fscore.toggleMultiplier();
-	    backdrop.setColor(multiplier? color1: color2 );
+	    backdrop.setColor(multiplier? color2: color1);
 	}
 	else if (e.keyCode === 107)
 	    breathespeed += 0.001;
