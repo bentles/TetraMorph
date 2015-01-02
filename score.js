@@ -32,7 +32,7 @@ Score.prototype.add = function(x)
     this.count += this.multiplier? 2*x : x ;
     this.domElement.innerHTML = this.count;
     var time = 0.5; //time for the animation is half a sec
-    var target = (Math.log(this.count)/Math.log(10))*100;
+    var target = (Math.log(this.count)/Math.log(10))*100 || 0;
     target = target < 0 ? 0 : target;
     var current = parseInt(this.barDomElement.getAttribute("width"));
     var step = (target - current)/(time*tps) ;
@@ -41,12 +41,17 @@ Score.prototype.add = function(x)
 	count++;
 	if (count <= (time*tps))
 	{
+	    //look into changing this if possible for two to play at once.
 	    that.barDomElement.setAttribute("width", current + step*count);
 	    return false;
 	}
 	else
 	    return true;
 	
-    });
-    
+    });    
+};
+
+Score.prototype.lost = function()
+{
+    return this.count < 0;
 };

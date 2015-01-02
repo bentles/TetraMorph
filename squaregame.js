@@ -1,7 +1,7 @@
 //these are out here for debug purposes
 //all variables will be moved into main
-var scene, camera, renderer, raycaster, projector, mouseVector;
-var playermaterial, material, mesh, startpos, animationlist, materialmap, backdrop;
+var scene, camera, renderer, raycaster, mouseVector;
+var playermaterial, startpos, animationlist, materialmap, backdrop;
 var animationFrameID;
 var breathespeed = 0.005;
 
@@ -22,18 +22,25 @@ var dt = 1000/tps;
 var currentTime = 0, newTime = 0;
 var accumulator = 0;
 
+//game state
+var lost = false;
+
 function main()
 {
     function init() {
 	//not sure why but if i start off with none it never appears :/
 	document.getElementById("paused").style.display = "none";
+	document.getElementById("gameover").style.display = "none";
+
+	//set up seed
+	var seed =  Math.random();
+	Math.seedrandom(seed);
 	
 	//scene and camera
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 30000 );
 	camera.position.z = 1000;
 	
-	projector = new THREE.Projector();
 	mouseVector = new THREE.Vector3();
 
 	//lighting
@@ -66,7 +73,7 @@ function main()
 	playerGameSquare.playerReset();
 
 	//set up renderer
-	renderer = new THREE.WebGLRenderer({antialias:true});
+	renderer = new THREE.WebGLRenderer({antialias:true, canvas:document.getElementById("canvas")});
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 
@@ -91,13 +98,9 @@ function main()
 	    elapsedTime -= pausedTime;
 	    pausedTime = 0;
 	}
-	
-	//console.log(time);
 	currentTime = newTime;
 	
 	accumulator += elapsedTime;
-	//console.log(accumulator);
-	//controls.update();// <-- does this do anything?
 
 	//loop if we can do more physics per render
 	//don't do physics at all if not enough time has passed for another step
@@ -122,24 +125,27 @@ function main()
     var multiplier = true;
     function gameLogic()
     {
-	//make new shapes that fly towards the screen every timeForShape seconds
-	if (countDownToNextShape > 0)	
-	    countDownToNextShape--;	
-	else if(countDownToNextShape === 0)
+	if (!lost) //while you are still alive the game goes on
 	{
-	    //make an uneditable gamesquare
-	    var gs = new GameSquare(material, Math.floor(difficulty), false); 
-	    gs.generateSquares();	    
+	    //make new shapes that fly towards the screen every timeForShape seconds
+	    if (countDownToNextShape > 0)	
+		countDownToNextShape--;	
+	    else if(countDownToNextShape === 0)
+	    {
+		//make an uneditable gamesquare
+		var gs = new GameSquare(material, Math.floor(difficulty), false); 
+		gs.generateSquares();	    
 
-	    //position the gamesquare
-	    gs.addX(550);
-	    gs.setZ(startpos);
+		//position the gamesquare
+		gs.addX(550);
+		gs.setZ(startpos);
 
-	    //animate gs, each animation calls the next as needed
-	    animationlist.push(gameSquareMoveAniGen(playerGameSquare, gs));
-	    
-	    countDownToNextShape = timeForShape*tps;		
-	}	
+		//animate the gamesquare, each animation calls the next as needed
+		animationlist.push(gameSquareMoveAniGen(playerGameSquare, gs));
+		
+		countDownToNextShape = timeForShape*tps;		
+	    }
+	}
 
 	/*Execute animations
 	 *==================
@@ -186,7 +192,7 @@ function main()
 	var resetTime = 0.5;
 	var steps = tps*5;
 	var won = (playergs.squareString === gs.squareString);
-	var scores = playergs.getSquareStringDetails();
+	var scores = gs.getSquareStringDetails();
 	
 	if (won)
 	{
@@ -208,11 +214,28 @@ function main()
 	}
 	else
 	{
+	    tscore.add(-scores.t);
+	    fscore.add(-scores.f);
+	    
 	    playergs.playerReset();
 	    gs.squares.forEach(function(x){
 		x.animateFade(3,true);
 	    });
+
+	    //game over
+	    if (fscore.lost() || tscore.lost())
+	    {
+		document.getElementById("gameover").style.display = "block";
+		lost = true;
+	    }
 	}
+    }
+
+    function gameReset()
+    {
+	lost = false;
+	init();
+	animate();
     }
 
     function onWindowResize() {
@@ -225,7 +248,11 @@ function main()
 
     function onMouseDown(e)
     {
-	if (!active)
+	if (lost)
+	{
+	    gameReset();
+	}
+	else if (!active)
 	{
 	    onFocus();
 	}
@@ -290,7 +317,8 @@ function main()
 	if (active) //just to be safe
 	    {
 		active = false;
-		document.getElementById("paused").style.display = "block";
+		if (!lost)
+		    document.getElementById("paused").style.display = "block";
 		pausedTime = Date.now();
 		cancelAnimationFrame(animationFrameID);
 	    }

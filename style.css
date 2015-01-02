@@ -1,4 +1,4 @@
-.game
+.unclickable
 {
     /*Stop highlighting*/
     -webkit-touch-callout: none;
@@ -7,6 +7,12 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+body
+{
+    margin: 0;
+
 }
 
 svg
@@ -35,15 +41,19 @@ svg
     display: block;
 }
 
-#paused
+#canvas
+{
+    z-index: -1;
+}
+
+.game
 {
     position: fixed;
     width: 100%;
-    height: 90%;
-    
+    height: 100%;    
 }
 
-#paused h1,h2
+.game h1,h2
 {
     text-align: center;
     margin: 0 auto;

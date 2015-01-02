@@ -9,7 +9,7 @@ function Backdrop(dimension, repeats, startcolour)
     this.texture1 = this.generateTexture(0x444444, 0, 0x999999, 0, this.width, this.height,
 					 function(i){
 					     return (i % (that.width + 1));});
-    console.log(this.texture1);
+ 
     this.texture2 = this.generateTexture(0x444444, 0, 0x999999, 0, this.width, this.height,
 					 function(i){
 					     return !(that.width*that.height-1 -i) || !i || i % (that.width - 1); });
