@@ -4,7 +4,7 @@ function Animation(func)
     this.func = func;
 }
 
-Animation.prototype.play = function()
+Animation.prototype.playStep = function()
 {
     return this.done || this.func();
 };

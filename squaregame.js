@@ -28,7 +28,7 @@ var lost = false;
 function main()
 {
     function init() {
-	//not sure why but if i start off with none it never appears :/
+	//not sure why but if i start off with none in css it never appears :/
 	document.getElementById("paused").style.display = "none";
 	document.getElementById("gameover").style.display = "none";
 
@@ -75,7 +75,6 @@ function main()
 	//set up renderer
 	renderer = new THREE.WebGLRenderer({antialias:true, canvas:document.getElementById("canvas")});
 	renderer.setSize( window.innerWidth, window.innerHeight );
-	document.body.appendChild( renderer.domElement );
 
 	//add event listeners for mouse
 	document.addEventListener('mousedown', onMouseDown, false);
@@ -114,6 +113,7 @@ function main()
 	//TODO add interpolation somehow
 	renderer.render( scene, camera );	
     }
+    
     //score setup
     var color1 = 0x145214;
     var color2 = 0x33CC33;
@@ -139,7 +139,7 @@ function main()
 		movingForwardAnimation.stop();
 		gameSquareWin(gs, difficulty, tscore, fscore);
 		gameSquareAnimateWin();
-		countDownToNextShape = 0.5*tps;
+		countDownToNextShape = 0.3*tps;
 		gs = null; //marker for having won
 	    }
 
@@ -152,6 +152,7 @@ function main()
 		    gameSquareLose(gs, tscore, fscore);
 		    gameSquareAnimateLose();
 		}
+		
 		//reset player square
 		playerGameSquare.playerReset();
 		
@@ -164,7 +165,12 @@ function main()
 		gs.setZ(startpos);
 
 		//animate the gamesquare
-		movingForwardAnimation = gameSquareMoveAniGen(playerGameSquare, gs); 
+		movingForwardAnimation = new Animation(function(){
+		    var step = Math.abs(playerGameSquare.getZ() - startpos)/(timeForShape*tps);
+		    gs.addZ(step);
+		    return false;
+		});
+		
 		animationlist.push(movingForwardAnimation);
 		
 		countDownToNextShape = timeForShape*tps;		
@@ -174,13 +180,12 @@ function main()
 		//if they win before the end move on to the next animation
 		//continue counting down
 		countDownToNextShape--;
-	    }
-	    
+	    }	    
 	}
 
-	/*Execute animations
-	 *==================
-	 *animationlist is a list of Animations that return true if complete
+	/*
+	 *Execute animations
+	 *animationlist is a list of Animations whose play method returns true if complete
 	 *call each Animation's play method in turn and remove those that return true
 	 *this may or may not be a terrible way to do this that I regret later lol
 	 */
@@ -188,19 +193,10 @@ function main()
 	while(len--)
 	{
 	    //console.log(animationlist);
-	    var done = animationlist[len].play();
+	    var done = animationlist[len].playStep();
 	    if (done)		
 		animationlist.splice(len,1);
 	}
-    }
-
-    function gameSquareMoveAniGen(playergs, gs)
-    {
-	return new Animation( function(){
-	    var step = Math.abs(playergs.getZ() - startpos)/(timeForShape*tps);
-	    gs.addZ(step);
-	    return false;
-	});
     }
 
     function gameSquareWin(gs, difficulty, tscore, fscore)
@@ -241,7 +237,6 @@ function main()
 	    x.animateFade(3,true);
 	});
     }
-
 
 
     function gameReset()
