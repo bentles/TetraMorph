@@ -117,8 +117,8 @@ function main()
     //score setup
     var color1 = 0x145214;
     var color2 = 0x33CC33;
-    var tscore = new Score(0, "t", false, color1, ["r1", "r2", "r3"], "right-tongue");
-    var fscore = new Score(0, "f", true, color2, ["l1", "l2", "l3"], "left-tongue");
+    var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue");
+    var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue");
 
     //start states for game variables
     var timeForShape = 10; //seconds
@@ -192,7 +192,6 @@ function main()
 	var len = animationlist.length;
 	while(len--)
 	{
-	    //console.log(animationlist);
 	    var done = animationlist[len].playStep();
 	    if (done)		
 		animationlist.splice(len,1);
@@ -217,7 +216,11 @@ function main()
 	//game over
 	if (fscore.lost() || tscore.lost())
 	{
-	    document.getElementById("gameover").style.display = "block";
+	    var gameOverDiv = document.getElementById("gameover");
+	    gameOverDiv.style.display = "block";
+	    gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Max Light Score : " + fscore.maxCount
+		+ "</h2><h2>Max Dark Score: " + tscore.maxCount
+		+ "</h2><h2>Difficulty Reached: " + difficulty + "</h2><h1>Refresh to play again</h1>";
 	    lost = true;
 	}
     }
@@ -334,5 +337,3 @@ function main()
     init();
     animate();
 }
-
-

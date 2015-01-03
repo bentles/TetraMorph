@@ -276,8 +276,3 @@ GameSquare.prototype.addX = function(num)
     this.x += num;
     this.forEachSquareMesh(function(mesh){mesh.position.x += num;});    
 };
-
-
-
-
-

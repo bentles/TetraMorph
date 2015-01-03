@@ -107,6 +107,3 @@ function singleTreeRecursion(node, tlist, flist)
 		singleTreeRecursion(x, tlist, flist);
 	    });    
 }
-
-
-

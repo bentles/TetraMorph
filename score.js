@@ -1,7 +1,8 @@
-function Score(count, id, multiplier, color, colourableids, bar)
+function Score(id, multiplier, color, colourableids, bar)
 {
     this.id = id;
-    this.count = count;
+    this.count = 0;
+    this.maxCount = 0;
     this.multiplier = multiplier;
     this.color = color;
 
@@ -31,6 +32,9 @@ Score.prototype.add = function(x)
     var that = this;
     this.count += this.multiplier? 2*x : x ;
     this.domElement.innerHTML = this.count;
+    this.maxCount = this.count > this.maxCount ? this.count : this.maxCount ;
+
+    //animate tongue
     var time = 0.5; //time for the animation is half a sec
     var target = (Math.log(this.count)/Math.log(10))*100 || 0;
     target = target < 0 ? 0 : target;
