@@ -224,10 +224,10 @@ function main()
     
     function gameSquareAnimateWin()
     {
-	var time = 0.5;
+	var time = 0.6;
 	var steps = tps*5;
 	gs.squares.forEach(function(x){
-	    x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(200,200),
+	    x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(20,20),
 			    x.mesh.rotation, time, true);});
     }
 
