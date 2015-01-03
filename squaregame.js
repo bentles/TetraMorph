@@ -1,6 +1,6 @@
 //these are out here for debug purposes
 //all variables will be moved into main
-var scene, camera, renderer, raycaster, mouseVector;
+var scene, camera, renderer, raycaster, material, mouseVector;
 var playermaterial, startpos, animationlist, materialmap, backdrop;
 var animationFrameID;
 var breathespeed = 0.005;
@@ -114,122 +114,135 @@ function main()
 	//TODO add interpolation somehow
 	renderer.render( scene, camera );	
     }
+    //score setup
     var color1 = 0x145214;
     var color2 = 0x33CC33;
     var tscore = new Score(0, "t", false, color1, ["r1", "r2", "r3"], "right-tongue");
     var fscore = new Score(0, "f", true, color2, ["l1", "l2", "l3"], "left-tongue");
+
+    //start states for game variables
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -10000;
     var difficulty = 3;
     var multiplier = true;
+    var gs = null;
+    var movingForwardAnimation;
+    
     function gameLogic()
     {
 	if (!lost) //while you are still alive the game goes on
 	{
-	    //make new shapes that fly towards the screen every timeForShape seconds
-	    if (countDownToNextShape > 0)	
-		countDownToNextShape--;	
-	    else if(countDownToNextShape === 0)
+	    var roundWon = (gs !== null) && (playerGameSquare.squareString === gs.squareString);	    
+	    if (roundWon)
 	    {
-		//make an uneditable gamesquare
-		var gs = new GameSquare(material, Math.floor(difficulty), false); 
-		gs.generateSquares();	    
+		movingForwardAnimation.stop();
+		gameSquareWin(gs, difficulty, tscore, fscore);
+		gameSquareAnimateWin();
+		countDownToNextShape = 0.5*tps;
+		gs = null; //marker for having won
+	    }
 
+	    if(countDownToNextShape === 0)
+	    {
+		//need to play animation for losing if gs is not null by this point
+		if (gs !== null)
+		{
+		    movingForwardAnimation.stop();
+		    gameSquareLose(gs, tscore, fscore);
+		    gameSquareAnimateLose();
+		}
+		//reset player square
+		playerGameSquare.playerReset();
+		
+		//make an uneditable gamesquare
+		gs = new GameSquare(material, Math.floor(difficulty), false); 
+		gs.generateSquares();
+	
 		//position the gamesquare
 		gs.addX(550);
 		gs.setZ(startpos);
 
-		//animate the gamesquare, each animation calls the next as needed
-		animationlist.push(gameSquareMoveAniGen(playerGameSquare, gs));
+		//animate the gamesquare
+		movingForwardAnimation = gameSquareMoveAniGen(playerGameSquare, gs); 
+		animationlist.push(movingForwardAnimation);
 		
 		countDownToNextShape = timeForShape*tps;		
 	    }
+	    else if (countDownToNextShape > 0)
+	    {
+		//if they win before the end move on to the next animation
+		//continue counting down
+		countDownToNextShape--;
+	    }
+	    
 	}
 
 	/*Execute animations
 	 *==================
-	 *animationlist is a list of functions that return true if complete
-	 *call each function in turn and remove those that return true
+	 *animationlist is a list of Animations that return true if complete
+	 *call each Animation's play method in turn and remove those that return true
 	 *this may or may not be a terrible way to do this that I regret later lol
 	 */
 	var len = animationlist.length;
-	    while(len--)
-	    {
-		var done = animationlist[len]();
-		if (done)		
-		    animationlist.splice(len,1);
-	    }
+	while(len--)
+	{
+	    //console.log(animationlist);
+	    var done = animationlist[len].play();
+	    if (done)		
+		animationlist.splice(len,1);
+	}
     }
 
     function gameSquareMoveAniGen(playergs, gs)
     {
-	return function(){
-	    if (countDownToNextShape  > 0)
-	    {
-		var step = Math.abs(playergs.getZ() - startpos)/(timeForShape*tps);
-		gs.addZ(step);
-
-		//if they win before the end move on to the next animation
-		if (playergs.squareString === gs.squareString)
-		{
-		    gameSquareCompleteAniGen(playergs, gs);
-		    return true;
-		}		
-		return false;
-	    }
-	    else
-	    {
-		//TODO: change this
-		gameSquareCompleteAniGen(playergs, gs);
-		return true;
-	    }
-	};
+	return new Animation( function(){
+	    var step = Math.abs(playergs.getZ() - startpos)/(timeForShape*tps);
+	    gs.addZ(step);
+	    return false;
+	});
     }
 
-    function gameSquareCompleteAniGen(playergs, gs)
+    function gameSquareWin(gs, difficulty, tscore, fscore)
     {
-	var resetTime = 0.5;
-	var steps = tps*5;
-	var won = (playergs.squareString === gs.squareString);
 	var scores = gs.getSquareStringDetails();
+	difficulty += 0.1;
 	
-	if (won)
+	tscore.add(scores.t);
+	fscore.add(scores.f);
+    }
+
+    function gameSquareLose(gs, tscore, fscore)
+    {
+	var scores = gs.getSquareStringDetails();
+	tscore.add(-scores.t);
+	fscore.add(-scores.f);
+	
+	//game over
+	if (fscore.lost() || tscore.lost())
 	{
-	    difficulty += 0.1;
-
-	    var diffdecimal = difficulty - Math.floor(difficulty);
-	    //TODO use ^ for something
-	    
-	    tscore.add(scores.t);
-	    fscore.add(scores.f);
-
-	    //reset player and get next shape going at the end of the animation so that you can see the last move
-	    //careful. callbacks happen for all squares. only works because animations end at the same time
-	    countDownToNextShape = -1;
-	    gs.squares.forEach(function(x){
-		x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(200,200),
-				x.mesh.rotation, resetTime, true,
-				function(){playergs.playerReset(); countDownToNextShape = 0;});});	   
-	}
-	else
-	{
-	    tscore.add(-scores.t);
-	    fscore.add(-scores.f);
-	    
-	    playergs.playerReset();
-	    gs.squares.forEach(function(x){
-		x.animateFade(3,true);
-	    });
-
-	    //game over
-	    if (fscore.lost() || tscore.lost())
-	    {
-		document.getElementById("gameover").style.display = "block";
-		lost = true;
-	    }
+	    document.getElementById("gameover").style.display = "block";
+	    lost = true;
 	}
     }
+    
+    function gameSquareAnimateWin()
+    {
+	var time = 0.5;
+	var steps = tps*5;
+	gs.squares.forEach(function(x){
+	    x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(200,200),
+			    x.mesh.rotation, time, true);});
+    }
+
+    function gameSquareAnimateLose()
+    {
+	gs.squares.forEach(function(x){
+	    x.animateFade(3,true);
+	});
+    }
+
+
 
     function gameReset()
     {
@@ -299,8 +312,6 @@ function main()
 	    breathespeed += 0.001;
 	else if (e.keyCode === 109)
 	    breathespeed -= 0.001;
-
-	console.log(breathespeed);
     }
     function onFocus()
     {

@@ -37,7 +37,7 @@ Score.prototype.add = function(x)
     var current = parseInt(this.barDomElement.getAttribute("width"));
     var step = (target - current)/(time*tps) ;
     var count = 0;
-    animationlist.push(function(){
+    animationlist.push(new Animation(function(){
 	count++;
 	if (count <= (time*tps))
 	{
@@ -48,7 +48,7 @@ Score.prototype.add = function(x)
 	else
 	    return true;
 	
-    });    
+    }));    
 };
 
 Score.prototype.lost = function()

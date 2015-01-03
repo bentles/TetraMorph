@@ -1,3 +1,4 @@
+
 function Shape(mesh)
 {
     this.mesh = mesh;
@@ -46,7 +47,7 @@ Square.prototype.animateFlip = function(pifractions)
     var count = 0;
 
     //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
-    animationlist.push(
+    animationlist.push(new Animation(
 	function()
 	{
 	    if (count < pifractions)
@@ -68,16 +69,16 @@ Square.prototype.animateFlip = function(pifractions)
 		
 		return true;
 	    }
-	});
+	}));
 };
 
-/*Takes a function that generates an animation, this function takes 3 paramaters
- *the first is the square we manipulate, the last two are an optional flag
- *
+/*
+ *Takes a function that generates an animation, this function takes 3 paramaters
+ *the first is the square we manipulate, the last two are an optional flag and a callback
  */
 Square.prototype.animate = function(funcgen, destroy, callback)
 {
-    animationlist.push(funcgen(this, destroy, callback));
+    animationlist.push(new Animation(funcgen(this, destroy, callback)));
 };
 Square.prototype.animateFade = function(steps, kill, callback)
 {

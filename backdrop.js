@@ -52,12 +52,12 @@ Backdrop.prototype.animateBreathe = function()
 {
     var step = 0;
     var mesh = this.mesh;
-    animationlist.push(function(){
+    animationlist.push(new Animation(function(){
 	step += Math.PI * breathespeed;
 	step = (step >= 2*Math.PI)? step - 2 * Math.PI : step;
 	mesh.scale.set((Math.cos(step)+ 2), (Math.cos(step)+ 2) , 1);
 	return false;
-    });
+    }));
 };
 
 Backdrop.prototype.setColor = function(hex)
