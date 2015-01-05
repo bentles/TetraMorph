@@ -137,7 +137,8 @@ function main()
 	    if (roundWon)
 	    {
 		movingForwardAnimation.stop();
-		gameSquareWin(gs, difficulty, tscore, fscore);
+		gameSquareWin(gs, tscore, fscore);
+		difficulty += 0.1;
 		gameSquareAnimateWin();
 		countDownToNextShape = 0.3*tps;
 		gs = null; //marker for having won
@@ -198,10 +199,10 @@ function main()
 	}
     }
 
-    function gameSquareWin(gs, difficulty, tscore, fscore)
+    function gameSquareWin(gs, tscore, fscore)
     {
 	var scores = gs.getSquareStringDetails();
-	difficulty += 0.1;
+	console.log(difficulty);
 	
 	tscore.add(scores.t);
 	fscore.add(scores.f);
