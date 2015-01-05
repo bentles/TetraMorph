@@ -19,7 +19,7 @@ GameSquare.prototype.generateSquareString = function()
     this.numletters = 1;
     this.squareString = Math.random() >= 0.5 ? "f" : "t";
     
-    for (var i = 0; i < this.difficulty; i++)
+    for (var i = 0; i < (this.difficulty/10); i++)
     {
 	var operation = Math.random() >= 0.5;
 

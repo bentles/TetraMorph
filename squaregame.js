@@ -124,7 +124,7 @@ function main()
     var timeForShape = 10; //seconds
     var countDownToNextShape = 0;
     var startpos = -10000;
-    var difficulty = 3;
+    var difficulty = 30;
     var multiplier = true;
     var gs = null;
     var movingForwardAnimation;
@@ -138,7 +138,7 @@ function main()
 	    {
 		movingForwardAnimation.stop();
 		gameSquareWin(gs, tscore, fscore);
-		difficulty += 0.1;
+		difficulty += 1;
 		gameSquareAnimateWin();
 		countDownToNextShape = 0.3*tps;
 		gs = null; //marker for having won
@@ -202,8 +202,6 @@ function main()
     function gameSquareWin(gs, tscore, fscore)
     {
 	var scores = gs.getSquareStringDetails();
-	console.log(difficulty);
-	
 	tscore.add(scores.t);
 	fscore.add(scores.f);
     }
