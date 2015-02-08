@@ -88,10 +88,22 @@ svg
     width: 100%;
 }
 
+.selectable:hover {
+    color: #0099CC;
+    cursor: pointer;
+    text-shadow: -2px 2px #ffffff;
+}
+
 
 h1
 {
-    
+    font-size: 7vw;
+    cursor: default;
+}
+
+h2
+{
+    font-size: 2vw;
 
 }
 

@@ -2,7 +2,6 @@ function Score(id, multiplier, color, colourableids, bar)
 {
     this.id = id;
     this.count = 0;
-    this.maxCount = 0;
     this.multiplier = multiplier;
     this.color = color;
 
@@ -30,9 +29,9 @@ Score.prototype.toggleMultiplier = function()
 Score.prototype.add = function(x)
 {
     var that = this;
-    this.count += this.multiplier? 2*x : x ;
+    this.count += x;
+    this.count = this.count < 0? 0 : this.count;
     this.domElement.innerHTML = this.count;
-    this.maxCount = this.count > this.maxCount ? this.count : this.maxCount ;
 
     //animate tongue
     var time = 0.5; //time for the animation is half a sec

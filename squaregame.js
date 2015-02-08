@@ -138,7 +138,7 @@ function main()
 	    {
 		movingForwardAnimation.stop();
 		gameSquareWin(gs, tscore, fscore);
-		difficulty += 1;
+		difficulty += 2;
 		gameSquareAnimateWin();
 		countDownToNextShape = 0.3*tps;
 		gs = null; //marker for having won
@@ -213,15 +213,13 @@ function main()
 	fscore.add(-scores.f);
 	
 	//game over
-	if (fscore.lost() || tscore.lost())
-	{
-	    var gameOverDiv = document.getElementById("gameover");
-	    gameOverDiv.style.display = "block";
-	    gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Max Light Score : " + fscore.maxCount
-		+ "</h2><h2>Max Dark Score: " + tscore.maxCount
-		+ "</h2><h2>Difficulty Reached: " + difficulty + "</h2><h1>Refresh to play again</h1>";
-	    lost = true;
-	}
+	var gameOverDiv = document.getElementById("gameover");
+	gameOverDiv.style.display = "block";
+	gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Light Score : " + fscore.count
+	    + "</h2><h2>Dark Score: " + tscore.count
+	    + "</h2><h2>Difficulty Reached: " + difficulty + "</h2>";//<h3>Refresh to play again</h3>";
+	lost = true;
+	
     }
     
     function gameSquareAnimateWin()
