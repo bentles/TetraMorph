@@ -4,7 +4,7 @@
     <head>
 	<script src="seedrandom.min.js"></script>
 	<script src="animation.js"></script>
-	<script src="Node.js"></script>
+	<script src="node.js"></script>
 	<script src="three.min.js"></script>
 	<script src="backdrop.js"></script>
 	<script src="score.js"></script>
@@ -15,23 +15,36 @@
 	<title>TetraMorph</title>
     </head>
     <body onload="main()">
-
-	<div id="paused" class="game unclickable">
-	    <h1>Game Paused</h1>
-	    <h2>Click to Focus</h2>
-	</div>
-	<div id="gameover" class="game unclickable">
-	    <h1>Game Over</h1>
-	    <div id="stats">
-
-	    </div>
-	    <h2>Click to Play Again</h2>
-	</div>
-	<div id="title" class = "game unclickable"></div>
-	<div id="scores" class="unclickable">
+	<div class="outer">
+	<div class ="middle">
 	    
+	   <!-- <div id="gamestart" class="game">
+		<h1>TetraMorph</h1>
+		<h2 class="selectable">New Game</h2>
+		<h2>Enter Seed</h2>
+		
+	    </div> -->
+	    <div id="paused" class="game unclickable">
+		<h1>Game Paused</h1>
+		<h2>Seed: </h2>
+		<h2>Click to Focus</h2>
+	    </div>
+	    <div id="gameover" class="game unclickable">
+		<h1>Game Over</h1>
+		<div id="stats">
+		</div>
+		<h2>Click to Play Again</h2>
+	    </div>
+	    <div id="title" class = "game unclickable"></div>
+	    <div id="scores" class="unclickable">
+	</div>    
+
 	    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 	    <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+	</div>
+
+	</div>
 
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -164,7 +177,7 @@
        sodipodi:nodetypes="cssssssscssssscssssscsscc" />
     <text
        xml:space="preserve"
-       style="font-size:23.99377441px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
+       style="font-size:23.99377441px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Joystix"
        x="505.11276"
        y="37.535675"
        id="t"
@@ -231,7 +244,7 @@
        sodipodi:nodetypes="cssssssscssssscssssscsscc" />
     <text
        xml:space="preserve"
-       style="font-size:23.99377441px;font-style:normal;font-weight:normal;text-align:end;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:end;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans"
+       style="font-size:23.99377441px;font-style:normal;font-weight:normal;text-align:end;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:end;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Joystix"
        x="491.5065"
        y="37.535549"
        id="f"
@@ -245,7 +258,7 @@
 
 
 
-	</div>
+	
 	<canvas id="canvas" style="position:absolute;">Your browser does not appear to support the HTML5 canvas element</canvas>
     </body>
 </html>

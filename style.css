@@ -1,3 +1,5 @@
+@font-face { font-family: Joystix; src: url('joystix monospace.otf'); } 
+
 .unclickable
 {
     /*Stop highlighting*/
@@ -9,15 +11,28 @@
     user-select: none;
 }
 
+input
+{
+    border: 0px solid #000000;
+    border-bottom-width: 2px;
+    border-bottom-color: white;
+    background-color: transparent;
+}
+
 body
 {
     margin: 0;
+    font-family: Joystix;
 }
 
 svg
 {
+    position: fixed;
     display:block;
     margin: 0 auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 #left-tongue, #right-tongue
@@ -45,22 +60,38 @@ svg
     z-index: -1;
 }
 
-.game
-{
-    position: fixed;
-    width: 100%;
-    height: 100%;    
-}
-
-.game h1,h2
+.game h1,h2,input
 {
     text-align: center;
     margin: 0 auto;
     display: block;
     color: white;
     /*Internet Magic Follows*/
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
+
+}
+
+.outer {
+    display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.middle {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.game {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+
+h1
+{
+    
+
 }
 
