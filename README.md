@@ -18,4 +18,4 @@ The game will constantly generate patterns of squares of increasing complexity. 
 
 How to win
 ----------
-Unfortunately you're out of luck here. You cannot win this game. Your aim is to survive. Currently there is no fail state but the plan is that you will collect squares by correcctly recreating patterns and then lose them when it's too difficult for you to keep up.
+Unfortunately you're out of luck here. You cannot win this game. Your aim is to survive. Game over occurs when you fail to recreate a square before it is in line with the square you are manipulating.
