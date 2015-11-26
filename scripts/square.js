@@ -1,3 +1,6 @@
+var THREE = require("./three.min.js");
+var Animation = require("./animation.js");
+
 function Shape(mesh) {
     this.mesh = mesh;
     mesh.shape = this;
@@ -128,15 +131,13 @@ Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEul
             };
         }, true, callback);
 };
+
 Square.prototype.killOrCallback = function(destroy, callback) {
     if (destroy)
         scene.remove(this.mesh);
     if (callback)
         callback();
 };
-//a is start
-//r is the multiplication factor
-//n is the term number
-function geometricSeriesSum(a, r, n) {
-    return a * ((1 - Math.pow(r, n)) / (1 - r));
-}
+
+
+module.exports = Shape ;

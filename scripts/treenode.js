@@ -1,4 +1,5 @@
-//lol Node.js
+var GameSquare = require("./gamesquare.js");
+
 function Node(value, parent, children) {
     this.value = (value === undefined) ? null : value;
     this.parent = (parent === undefined) ? null : parent;
@@ -100,3 +101,5 @@ function singleTreeRecursion(node, tlist, flist) {
                 singleTreeRecursion(x, tlist, flist);
             });
 }
+
+module.exports = Node;

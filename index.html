@@ -2,23 +2,14 @@
 
 <html>
     <head>
-	<script src="scripts/seedrandom.min.js"></script>
-	<script src="scripts/animation.js"></script>
-	<script src="scripts/node.js"></script>
-	<script src="scripts/three.min.js"></script>
-	<script src="scripts/backdrop.js"></script>
-	<script src="scripts/score.js"></script>
-	<script src="scripts/square.js"></script>
-	<script src="scripts/gamesquare.js"></script>
-	<script src="scripts/squaregame.js"></script>
-	<link rel="stylesheet" type="text/css" href="styles/style.css">
-	<title>TetraMorph</title>
+	    <link rel="stylesheet" type="text/css" href="styles/style.css">
+	    <title>TetraMorph</title>
     </head>
-    <body onload="main()">
+    <body>
 	<div class="outer">
 	<div class ="middle">
 	    
-	   <div id="gamestart" class="game">
+	   <div id="gamestart" class="game  unclickable">
 		<h1>TetraMorph</h1>
 		<h2 class="selectable">New Game</h2>
 		<h2 class="selectable">Enter Seed</h2>
@@ -259,6 +250,8 @@
 
 
 	
-	<canvas id="canvas" style="position:absolute;">Your browser does not appear to support the HTML5 canvas element</canvas>
+<canvas id="canvas" style="position:absolute;">Your browser does not appear to support the HTML5 canvas element</canvas>
+
+<script src="scripts/bundle.js"></script>
     </body>
 </html>

@@ -51,3 +51,5 @@ Score.prototype.add = function(x) {
 Score.prototype.lost = function() {
     return this.count < 0;
 };
+
+module.exports = Score;

@@ -1,5 +1,12 @@
-function Backdrop(dimension, repeats, startcolour) {
+var Animation = require("./animation.js");
+var THREE = require("./three.min.js");
+
+//need a cleaner way to do this stuff
+
+function Backdrop(dimension, repeats, startcolour, scene, animationlist, tps, breathespeed) {
     var that = this;
+    this.breathespeed = breathespeed;
+    this.animationlist = animationlist;
     this.repeats = repeats;
     this.width = dimension;
     this.height = dimension;
@@ -60,8 +67,8 @@ function Backdrop(dimension, repeats, startcolour) {
 Backdrop.prototype.animateBreathe = function() {
     var step = 0;
     var mesh = this.mesh;
-    animationlist.push(new Animation(function() {
-        step += Math.PI * breathespeed;
+    this.animationlist.push(new Animation(function() {
+        step += Math.PI * this.breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
         return false;
@@ -124,3 +131,5 @@ Backdrop.prototype.addColorUints = function(color, alpha, array, i) {
     array[i + 2] = color.b;
     array[i + 3] = alpha;
 };
+
+module.exports = Backdrop;

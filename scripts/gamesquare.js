@@ -1,19 +1,32 @@
-function GameSquare(material, difficulty, editable) //0 difficulty is just a single square
-    {
-        this.difficulty = (difficulty === undefined) ? 10 : difficulty;
-        this.editable = (editable === undefined) ? true : editable;
-        this.material = material.clone();
-        this.squareString = "";
-        this.numletters = 0;
-        this.z = 0;
-        this.x = 0;
-        //make the parent of the top node the gamesquare
-        this.squares = new Node(null, this);
-    }
+var THREE = require("./three.min.js");
+
+var Square = require("./square.js");
+var util = require("./util.js");
+var Node = require("./treenode.js");
+
+function GameSquare(material, materialmap, difficulty, scene, editable) //0 difficulty is just a single square
+{
+    this.materialmap = materialmap;
+    this.scene = scene;
+    this.depth = 5;
+    this.gap = 10;
+    this.difficulty = (difficulty === undefined) ? 10 : difficulty;
+    this.editable = (editable === undefined) ? true : editable;
+    this.material = material.clone();
+    this.squareString = "";
+    this.numletters = 0;
+    this.z = 0;
+    this.x = 0;
+    //make the parent of the top node the gamesquare
+    this.squares = new Node(null, this);
+}
+
 GameSquare.prototype.generateSquareString = function() {
-    //generates strings of the form "t" or "(tttt)" or "(tf(ttf(tfff))f)" which represent a gamesquare's squares
-    //equality of two gamesquares is simply equality of their squareString
-    //the squarestring is maintained by the gamesquare through all operations
+    //generates strings of the form "t" or "(tttt)" or
+    //"(tf(ttf(tfff))f)" which represent a gamesquare's squares
+    //equality of two gamesquares is simply equality of their
+    //squareString the squarestring is maintained by the gamesquare
+    //through all operations
 
     this.numletters = 1;
     this.squareString = Math.random() >= 0.5 ? "f" : "t";
@@ -142,8 +155,8 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
         x = x === 0 ? -1 : x;
         var y = cornerlist[i] < 2 ? 1 : -1;
 
-        var change = height / 4 + gap / 4;
-        height = (height - gap) / 2;
+        var change = height / 4 + this.gap / 4;
+        height = (height - this.gap) / 2;
 
         totalx += x * change;
         totaly += y * change;
@@ -151,12 +164,12 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
 
     i--; //i must be one too large for the loop to end
 
-    dimension = dimension / Math.pow(2, i) - geometricSeriesSum(gap / 2, 1 / 2, i); //probably wrong
+    dimension = dimension / Math.pow(2, i) - util.geometricSeriesSum(this.gap / 2, 1 / 2, i); //probably wrong
 
-    var geom = new THREE.BoxGeometry(height, height, depth);
+    var geom = new THREE.BoxGeometry(height, height, this.depth);
 
     for (var j = 0; j < 12; j++) {
-        geom.faces[j].materialIndex = materialmap[j];
+        geom.faces[j].materialIndex = this.materialmap[j];
     }
 
     var mesh = new THREE.Mesh(geom, this.material);
@@ -172,7 +185,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
 
 GameSquare.prototype.clearSquares = function() {
     this.squares.forEach(function(square) {
-        scene.remove(square.mesh);
+        this.scene.remove(square.mesh);
     });
     this.squares = new Node(null, this);
     this.squareString = "";
@@ -261,3 +274,5 @@ GameSquare.prototype.addX = function(num) {
         mesh.position.x += num;
     });
 };
+
+module.exports = GameSquare;

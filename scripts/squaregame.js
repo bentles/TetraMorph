@@ -1,7 +1,18 @@
-//these are out here for debug purposes
-//all variables will be moved into main
-var scene, camera, renderer, raycaster, material, mouseVector;
-var playermaterial, startpos, animationlist, materialmap, backdrop;
+//add ability to seed RNG to the math object
+require("./seedrandom.min.js");
+
+//the threejs library object
+var THREE = require("./three.min.js");
+
+//internal dependencies
+var materials = require("./materials");
+var Backdrop = require("./backdrop.js");
+var GameSquare = require("./gamesquare.js");
+var Animation = require("./animation.js");
+var Score = require("./score.js");
+
+var scene, camera, renderer, raycaster, mouseVector;
+var startpos, animationlist, backdrop;
 var animationFrameID;
 var breathespeed = 0.005;
 
@@ -14,10 +25,6 @@ var playerGameSquare;
 var pausedTime = 0;
 var active = true;
 
-//display constants
-var gap = 10;
-var depth = 5;
-
 //physics at 60fps
 var tps = 60; //ticks per second
 var dt = 1000 / tps;
@@ -28,321 +35,296 @@ var accumulator = 0;
 //game state
 var lost = false;
 
-function main() {
-    function init() {
-        //not sure why but if i start off with none in css it never appears :/
-        switchToScreen(0);
+function init() {
+    //not sure why but if i start off with none in css it never appears :/
+    switchToScreen(0);
 
-        //set up seed
-        var seed = Math.random();
-        Math.seedrandom(seed);
+    //set up seed
+    var seed = Math.random();
+    Math.seedrandom(seed);
 
-        //scene and camera
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
-        camera.position.z = 1000;
+    //scene and camera
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
+    camera.position.z = 1000;
 
-        mouseVector = new THREE.Vector3();
+    mouseVector = new THREE.Vector3();
 
-        //lighting
-        var light = new THREE.PointLight(0xffffff, 0.8);
-        light.position.set(0.3, 0.2, 1).normalize();
-        scene.add(light);
+    //lighting
+    var light = new THREE.PointLight(0xffffff, 0.8);
+    light.position.set(0.3, 0.2, 1).normalize();
+    scene.add(light);
 
-        //keep track of what's being animated
-        animationlist = [];
+    //keep track of what's being animated
+    animationlist = [];
 
-        //work out shapes and materials
-        var frontmaterial = new THREE.MeshBasicMaterial({
-            transparent: true,
-            color: 0x33CC33,
-            shininess: 50,
-            vertexColors: THREE.FaceColors
-        });
-        var sidematerial = new THREE.MeshBasicMaterial({
-            transparent: true,
-            color: 0x123123,
-            shininess: 50,
-            vertexColors: THREE.FaceColors
-        });
-        var backmaterial = new THREE.MeshBasicMaterial({
-            transparent: true,
-            color: 0x145214,
-            shininess: 50,
-            vertexColors: THREE.FaceColors
-        });
-        var materials = [frontmaterial, sidematerial, backmaterial];
+    //create the backdrop
+    backdrop = new Backdrop(4, 4, 0x00CC00, scene, animationlist, tps, breathespeed);
+    backdrop.animateBreathe();
 
-        materialmap = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2];
+    //player
+    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0, scene);
+    playerGameSquare.generateSquares();
+    playerGameSquare.addX(-550);
+    playerGameSquare.playerReset();
 
-        playermaterial = new THREE.MeshFaceMaterial(materials);
-        material = new THREE.MeshFaceMaterial(materials);
+    //set up renderer
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        canvas: document.getElementById("canvas")
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
-        //create the backdrop
-        backdrop = new Backdrop(4, 4, 0x00CC00);
-        backdrop.animateBreathe();
+    //add event listeners for mouse
+    document.addEventListener('mousedown', onMouseDown, false);
+    window.addEventListener('resize', onWindowResize, false);
+    window.addEventListener('keydown', onKeyBoard, false);
+    window.addEventListener('blur', onBlur, false);
+    window.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    }, false);
+}
 
-        //player
-        playerGameSquare = new GameSquare(playermaterial, 0);
-        playerGameSquare.generateSquares();
-        playerGameSquare.addX(-550);
-        playerGameSquare.playerReset();
+function animate(time) {
+    animationFrameID = requestAnimationFrame(animate);
 
-        //set up renderer
-        renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            canvas: document.getElementById("canvas")
-        });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    newTime = time || 0;
 
-        //add event listeners for mouse
-        document.addEventListener('mousedown', onMouseDown, false);
-        window.addEventListener('resize', onWindowResize, false);
-        window.addEventListener('keydown', onKeyBoard, false);
-        window.addEventListener('blur', onBlur, false);
-        window.addEventListener('contextmenu', function(event) {
-            event.preventDefault();
-        }, false);
+    var elapsedTime = newTime - currentTime;
+
+    if (pausedTime > 0) //game has recently been paused
+    {
+        elapsedTime -= pausedTime;
+        pausedTime = 0;
+    }
+    currentTime = newTime;
+
+    accumulator += elapsedTime;
+
+    //loop if we can do more physics per render
+    //don't do physics at all if not enough time has passed for another step
+    //instead, render again
+    while (accumulator >= dt) {
+        gameLogic();
+        accumulator -= dt;
     }
 
+    //TODO add interpolation somehow
+    renderer.render(scene, camera);
+}
 
-    function animate(time) {
-        animationFrameID = requestAnimationFrame(animate);
+//score setup
+var color1 = 0x145214;
+var color2 = 0x33CC33;
+var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue");
+var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue");
 
-        newTime = time || 0;
+//start states for game variables
+var timeForShape = 10; //seconds
+var countDownToNextShape = 0;
+var startpos = -10000;
+var difficulty = 30;
+var multiplier = true;
+var gs = null;
+var movingForwardAnimation;
 
-        var elapsedTime = newTime - currentTime;
-
-        if (pausedTime > 0) //game has recently been paused
-        {
-            elapsedTime -= pausedTime;
-            pausedTime = 0;
+function gameLogic() {
+    if (!lost) //while you are still alive the game goes on
+    {
+        var roundWon = (gs !== null) && (playerGameSquare.squareString === gs.squareString);
+        if (roundWon) {
+            movingForwardAnimation.stop();
+            gameSquareWin(gs, tscore, fscore);
+            difficulty += 2;
+            gameSquareAnimateWin();
+            countDownToNextShape = 0.3 * tps;
+            gs = null; //marker for having won
         }
-        currentTime = newTime;
 
-        accumulator += elapsedTime;
-
-        //loop if we can do more physics per render
-        //don't do physics at all if not enough time has passed for another step
-        //instead, render again
-        while (accumulator >= dt) {
-            gameLogic();
-            accumulator -= dt;
-        }
-
-        //TODO add interpolation somehow
-        renderer.render(scene, camera);
-    }
-
-    //score setup
-    var color1 = 0x145214;
-    var color2 = 0x33CC33;
-    var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue");
-    var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue");
-
-    //start states for game variables
-    var timeForShape = 10; //seconds
-    var countDownToNextShape = 0;
-    var startpos = -10000;
-    var difficulty = 30;
-    var multiplier = true;
-    var gs = null;
-    var movingForwardAnimation;
-
-    function gameLogic() {
-        if (!lost) //while you are still alive the game goes on
-        {
-            var roundWon = (gs !== null) && (playerGameSquare.squareString === gs.squareString);
-            if (roundWon) {
+        if (countDownToNextShape === 0) {
+            //need to play animation for losing if gs is not null by this point
+            if (gs !== null) {
                 movingForwardAnimation.stop();
-                gameSquareWin(gs, tscore, fscore);
-                difficulty += 2;
-                gameSquareAnimateWin();
-                countDownToNextShape = 0.3 * tps;
-                gs = null; //marker for having won
+                gameSquareLose(gs, tscore, fscore);
+                gameSquareAnimateLose();
             }
 
-            if (countDownToNextShape === 0) {
-                //need to play animation for losing if gs is not null by this point
-                if (gs !== null) {
-                    movingForwardAnimation.stop();
-                    gameSquareLose(gs, tscore, fscore);
-                    gameSquareAnimateLose();
-                }
+            //reset player square
+            playerGameSquare.playerReset();
 
-                //reset player square
-                playerGameSquare.playerReset();
+            //make an uneditable gamesquare
+            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), scene, false);
+            gs.generateSquares();
 
-                //make an uneditable gamesquare
-                gs = new GameSquare(material, Math.floor(difficulty), false);
-                gs.generateSquares();
+            //position the gamesquare
+            gs.addX(550);
+            gs.setZ(startpos);
 
-                //position the gamesquare
-                gs.addX(550);
-                gs.setZ(startpos);
+            //animate the gamesquare
+            movingForwardAnimation = new Animation(function() {
+                var step = Math.abs(playerGameSquare.getZ() - startpos) / (timeForShape * tps);
+                gs.addZ(step);
+                return false;
+            });
 
-                //animate the gamesquare
-                movingForwardAnimation = new Animation(function() {
-                    var step = Math.abs(playerGameSquare.getZ() - startpos) / (timeForShape * tps);
-                    gs.addZ(step);
-                    return false;
-                });
+            animationlist.push(movingForwardAnimation);
 
-                animationlist.push(movingForwardAnimation);
-
-                countDownToNextShape = timeForShape * tps;
-            } else if (countDownToNextShape > 0) {
-                //if they win before the end move on to the next animation
-                //continue counting down
-                countDownToNextShape--;
-            }
-        }
-
-
-        /* Execute animations:
-         * ===================
-         * animationlist is a list of Animations whose play method returns true if complete
-         * call each Animation's play method in turn and remove those that return true
-         * this may or may not be a terrible way to do this that I regret later lol
-         */
-        var len = animationlist.length;
-        while (len--) {
-            var done = animationlist[len].playStep();
-            if (done) {
-                var nextAnims = animationlist[len].getNextAnis();
-                animationlist.splice(len, 1);
-
-                //Animations can have a list of successors which activate after an
-                //animation is complete
-                if (nextAnims.length > 0)
-                    nextAnims.forEach(function(x) {
-                        animationlist.push(x);
-                    }, this);
-            }
+            countDownToNextShape = timeForShape * tps;
+        } else if (countDownToNextShape > 0) {
+            //if they win before the end move on to the next animation
+            //continue counting down
+            countDownToNextShape--;
         }
     }
 
-    function gameSquareWin(gs, tscore, fscore) {
-        var scores = gs.getSquareStringDetails();
-        tscore.add(scores.t);
-        fscore.add(scores.f);
-    }
 
-    function gameSquareLose(gs, tscore, fscore) {
-        var scores = gs.getSquareStringDetails();
-        tscore.add(-scores.t);
-        fscore.add(-scores.f);
+    /* Execute animations:
+     * ===================
+     * animationlist is a list of Animations whose play method returns true if complete
+     * call each Animation's play method in turn and remove those that return true
+     * this may or may not be a terrible way to do this that I regret later lol
+     */
+    var len = animationlist.length;
+    while (len--) {
+        var done = animationlist[len].playStep();
+        if (done) {
+            var nextAnims = animationlist[len].getNextAnis();
+            animationlist.splice(len, 1);
 
-        //game over
-        var gameOverDiv = document.getElementById("gameover");
-
-        gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Light Score : " + fscore.count + "</h2><h2>Dark Score: " + tscore.count + "</h2><h2>Difficulty Reached: " + difficulty + "</h2>"; //<h3>Refresh to play again</h3>";
-        switchToScreen(1); //game over 
-        lost = true;
-    }
-
-    function gameSquareAnimateWin() {
-        var time = 0.6;
-        var steps = tps * 5;
-        gs.squares.forEach(function(x) {
-            x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(20, 20),
-                x.mesh.rotation, time, true);
-        });
-    }
-
-    function gameSquareAnimateLose() {
-        gs.squares.forEach(function(x) {
-            x.animateFade(3, true);
-        });
-    }
-
-
-    function gameReset() {
-        lost = false;
-        init();
-        animate();
-    }
-
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.render(scene, camera);
-    }
-
-    function onMouseDown(e) {
-        if (lost) {
-            gameReset();
-        } else if (!active) {
-            onFocus();
-        } else //must be resumed by click before another click can do anything
-        {
-            mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
-            mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
-
-            var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
-
-            raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-            var intersects = raycaster.intersectObjects(scene.children);
-
-            if (intersects[0] && (intersects[0].object.shape !== undefined)) {
-                if (e.button === 0 && e.shiftKey || e.button === 1)
-                    intersects[0].object.shape.requestMerge();
-                else if (e.button === 0)
-                    intersects[0].object.shape.requestSplit();
-                else if (e.button === 2)
-                    intersects[0].object.shape.flip();
-            }
+            //Animations can have a list of successors which activate after an
+            //animation is complete
+            if (nextAnims.length > 0)
+                nextAnims.forEach(function(x) {
+                    animationlist.push(x);
+                }, this);
         }
     }
+}
 
-    function onKeyBoard(e) {
-        e = e || window.event;
-        if (e.keyCode === 27) {
-            if (active)
-                onBlur();
-            else
-                onFocus();
-        } else if (e.keyCode === 32) {
-            multiplier = !multiplier;
+function gameSquareWin(gs, tscore, fscore) {
+    var scores = gs.getSquareStringDetails();
+    tscore.add(scores.t);
+    fscore.add(scores.f);
+}
 
-            tscore.toggleMultiplier();
-            fscore.toggleMultiplier();
-            backdrop.setColor(multiplier ? color2 : color1);
-        } else if (e.keyCode === 107)
-            breathespeed += 0.001;
-        else if (e.keyCode === 109)
-            breathespeed -= 0.001;
-    }
+function gameSquareLose(gs, tscore, fscore) {
+    var scores = gs.getSquareStringDetails();
+    tscore.add(-scores.t);
+    fscore.add(-scores.f);
 
-    function onFocus() {
-        if (!active) //needed on firefox
-        {
-            active = true;
-            document.getElementById("paused").style.display = "none";
-            pausedTime = Date.now() - pausedTime;
-            requestAnimationFrame(animate);
-        }
-    };
+    //game over
+    var gameOverDiv = document.getElementById("gameover");
 
-    function onBlur() {
-        if (active) //just to be safe
-        {
-            active = false;
-            if (!lost)
-                switchToScreen(2);
-            pausedTime = Date.now();
-            cancelAnimationFrame(animationFrameID);
-        }
-    };
+    gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Light Score : " +
+        fscore.count + "</h2><h2>Dark Score: " + tscore.count +
+        "</h2><h2>Difficulty Reached: " + difficulty +
+        "</h2>"; //<h3>Refresh to play again</h3>";
+    switchToScreen(1); //game over 
+    lost = true;
+}
 
-    function switchToScreen(screenNumber) {
-        for (var i = 0; i < screens.length; i++) {
-            document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
-        }
-    }
+function gameSquareAnimateWin() {
+    var time = 0.6;
+    var steps = tps * 5;
+    gs.squares.forEach(function(x) {
+        x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(20, 20),
+                        x.mesh.rotation, time, true);
+    });
+}
 
+function gameSquareAnimateLose() {
+    gs.squares.forEach(function(x) {
+        x.animateFade(3, true);
+    });
+}
+
+
+function gameReset() {
+    lost = false;
     init();
     animate();
 }
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.render(scene, camera);
+}
+
+function onMouseDown(e) {
+    if (lost) {
+        gameReset();
+    } else if (!active) {
+        onFocus();
+    } else //must be resumed by click before another click can do anything
+    {
+        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+
+        var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
+
+        raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        var intersects = raycaster.intersectObjects(scene.children);
+
+        if (intersects[0] && (intersects[0].object.shape !== undefined)) {
+            if (e.button === 0 && e.shiftKey || e.button === 1)
+                intersects[0].object.shape.requestMerge();
+            else if (e.button === 0)
+                intersects[0].object.shape.requestSplit();
+            else if (e.button === 2)
+                intersects[0].object.shape.flip();
+        }
+    }
+}
+
+function onKeyBoard(e) {
+    e = e || window.event;
+    if (e.keyCode === 27) {
+        if (active)
+            onBlur();
+        else
+            onFocus();
+    } else if (e.keyCode === 32) {
+        multiplier = !multiplier;
+
+        tscore.toggleMultiplier();
+        fscore.toggleMultiplier();
+        backdrop.setColor(multiplier ? color2 : color1);
+    } else if (e.keyCode === 107)
+        breathespeed += 0.001;
+    else if (e.keyCode === 109)
+        breathespeed -= 0.001;
+}
+
+function onFocus() {
+    if (!active) //needed on firefox
+    {
+        active = true;
+        document.getElementById("paused").style.display = "none";
+        pausedTime = Date.now() - pausedTime;
+        requestAnimationFrame(animate);
+    }
+};
+
+function onBlur() {
+    if (active) //just to be safe
+    {
+        active = false;
+        if (!lost)
+            switchToScreen(2);
+        pausedTime = Date.now();
+        cancelAnimationFrame(animationFrameID);
+    }
+};
+
+function switchToScreen(screenNumber) {
+    for (var i = 0; i < screens.length; i++) {
+        document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
+    }
+}
+
+init();
+animate();
+

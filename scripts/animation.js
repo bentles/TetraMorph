@@ -15,3 +15,5 @@ Animation.prototype.stop = function() {
 Animation.prototype.getNextAnis = function() {
     return this.nextanis;
 };
+
+module.exports = Animation;
