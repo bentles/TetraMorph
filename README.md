@@ -6,7 +6,6 @@ A WIP game based on my Squares.js repo
 
 Controls
 ----------
-- while game is broken: f5, esc, esc to get past broken menu system (it's a cheat code for a single life)
 - left click to split a square
 - right click to flip a square
 - shift + left click to merge squares
