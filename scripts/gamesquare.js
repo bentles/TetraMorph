@@ -1,7 +1,7 @@
 var THREE = require("./three.min.js");
 
 var Square = require("./square.js");
-var util = require("./util.js");
+var util = require("./utilities.js");
 var Node = require("./treenode.js");
 
 function GameSquare(material, materialmap, difficulty, scene, editable) //0 difficulty is just a single square
@@ -18,7 +18,7 @@ function GameSquare(material, materialmap, difficulty, scene, editable) //0 diff
     this.z = 0;
     this.x = 0;
     //make the parent of the top node the gamesquare
-    this.squares = new Node(null, this);
+    this.squares = new Node(null, this, scene);
 }
 
 GameSquare.prototype.generateSquareString = function() {
@@ -184,10 +184,11 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
 };
 
 GameSquare.prototype.clearSquares = function() {
+    var that = this;
     this.squares.forEach(function(square) {
-        this.scene.remove(square.mesh);
+        that.scene.remove(square.mesh);
     });
-    this.squares = new Node(null, this);
+    this.squares = new Node(null, this, this.scene);
     this.squareString = "";
 };
 
