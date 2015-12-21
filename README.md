@@ -2,8 +2,7 @@ TetraMorph
 ==========
 A WIP game based on my Squares.js repo
 
-~~ You can try it out here:
-http://bentles.github.io/TetraMorph ~~ I broked it. Brb fixing.
+~~You can try it out here: http://bentles.github.io/TetraMorph~~ I broked it. Brb fixing.
 
 Controls
 ----------
