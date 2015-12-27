@@ -1,13 +1,15 @@
 /**
  * Created by Douglas on 2015/12/27.
  */
+module.exports = {
+    //game config
+    tps : 60,             //ticks per second
 
-// game config
-var tps = 60; //ticks per second
-
-//aesthetics config
-var breathespeed = 0.005; //background animation speed
-var gap = 10; //space between squares
-var depth = 5; //how deep the squares are
-
-module.exports = {breathespeed : breathespeed, tps : tps, gap: gap, depth: depth};
+    //aesthetics config
+    breathespeed : 0.005, //background animation speed
+    gap: 10,              //space between squares
+    depth: 5,              //how deep the squares are
+    smallfont : "20pt",   //font sizes of scores
+    largefont : "30pt",
+    score_animation_time : 0.5 //time (s) for the score animation
+};

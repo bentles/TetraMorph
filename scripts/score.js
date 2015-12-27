@@ -8,8 +8,8 @@ function Score(id, multiplier, color, colourableids, bar, animationlist) {
     this.color = color;
     this.animationlist = animationlist;
 
-    this.small = "20pt";
-    this.large = "30pt";
+    this.small = Config.smallfont;
+    this.large = Config.largefont;
     this.barDomElement = document.getElementById(bar);
     this.domElement = document.getElementById(this.id);
     this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
@@ -34,7 +34,7 @@ Score.prototype.add = function(x) {
     this.domElement.innerHTML = this.count;
 
     //animate tongue
-    var time = 0.5; //time for the animation is half a sec
+    var time = Config.score_animation_time; //time for the animation is half a sec
     var target = (Math.log(this.count) / Math.log(10)) * 100 || 0;
     target = target < 0 ? 0 : target;
     var current = parseInt(this.barDomElement.getAttribute("width"));

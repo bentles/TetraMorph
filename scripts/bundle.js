@@ -21138,16 +21138,18 @@ module.exports = Backdrop;
 /**
  * Created by Douglas on 2015/12/27.
  */
+module.exports = {
+    //game config
+    tps : 60,             //ticks per second
 
-// game config
-var tps = 60; //ticks per second
-
-//aesthetics config
-var breathespeed = 0.005; //background animation speed
-var gap = 10; //space between squares
-var depth = 5; //how deep the squares are
-
-module.exports = {breathespeed : breathespeed, tps : tps, gap: gap, depth: depth};
+    //aesthetics config
+    breathespeed : 0.005, //background animation speed
+    gap: 10,              //space between squares
+    depth: 5,              //how deep the squares are
+    smallfont : "20pt",   //font sizes of scores
+    largefont : "30pt",
+    score_animation_time : 0.5 //time (s) for the score animation
+};
 
 },{}],223:[function(require,module,exports){
 var THREE = require("./three.min.js");
@@ -21475,8 +21477,8 @@ function Score(id, multiplier, color, colourableids, bar, animationlist) {
     this.color = color;
     this.animationlist = animationlist;
 
-    this.small = "20pt";
-    this.large = "30pt";
+    this.small = Config.smallfont;
+    this.large = Config.largefont;
     this.barDomElement = document.getElementById(bar);
     this.domElement = document.getElementById(this.id);
     this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
@@ -21501,7 +21503,7 @@ Score.prototype.add = function(x) {
     this.domElement.innerHTML = this.count;
 
     //animate tongue
-    var time = 0.5; //time for the animation is half a sec
+    var time = Config.score_animation_time; //time for the animation is half a sec
     var target = (Math.log(this.count) / Math.log(10)) * 100 || 0;
     target = target < 0 ? 0 : target;
     var current = parseInt(this.barDomElement.getAttribute("width"));
