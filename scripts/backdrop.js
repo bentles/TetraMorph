@@ -1,11 +1,12 @@
 var Animation = require("./animation.js");
 var THREE = require("./three.min.js");
+var Config = require("./config.js");
 
 //need a cleaner way to do this stuff
 
-function Backdrop(dimension, repeats, startcolour, scene, animationlist, tps, breathespeed) {
+function Backdrop(dimension, repeats, startcolour, scene, animationlist) {
     var that = this;
-    this.breathespeed = breathespeed;
+    this.breathespeed = Config.breathespeed;
     this.animationlist = animationlist;
     this.repeats = repeats;
     this.width = dimension;

@@ -1,8 +1,12 @@
-function Score(id, multiplier, color, colourableids, bar) {
+var Config = require("./config.js");
+var Animation = require("./animation.js");
+
+function Score(id, multiplier, color, colourableids, bar, animationlist) {
     this.id = id;
     this.count = 0;
     this.multiplier = multiplier;
     this.color = color;
+    this.animationlist = animationlist;
 
     this.small = "20pt";
     this.large = "30pt";
@@ -34,11 +38,11 @@ Score.prototype.add = function(x) {
     var target = (Math.log(this.count) / Math.log(10)) * 100 || 0;
     target = target < 0 ? 0 : target;
     var current = parseInt(this.barDomElement.getAttribute("width"));
-    var step = (target - current) / (time * tps);
+    var step = (target - current) / (time * Config.tps);
     var count = 0;
-    animationlist.push(new Animation(function() {
+    this.animationlist.push(new Animation(function() {
         count++;
-        if (count <= (time * tps)) {
+        if (count <= (time * Config.tps)) {
             //look into changing this if possible for two to play at once.
             that.barDomElement.setAttribute("width", current + step * count);
             return false;

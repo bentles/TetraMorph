@@ -3,16 +3,20 @@ var THREE = require("./three.min.js");
 var Square = require("./square.js");
 var util = require("./utilities.js");
 var Node = require("./treenode.js");
+var Config = require("./config.js");
 
-function GameSquare(material, materialmap, difficulty, scene, editable) //0 difficulty is just a single square
+function GameSquare(material, materialmap, difficulty, scene, animationlist, editable) //0 difficulty is just a single square
 {
-    this.materialmap = materialmap;
-    this.scene = scene;
-    this.depth = 5;
-    this.gap = 10;
-    this.difficulty = (difficulty === undefined) ? 10 : difficulty;
-    this.editable = (editable === undefined) ? true : editable;
     this.material = material.clone();
+    this.materialmap = materialmap;
+    this.difficulty = difficulty;
+    this.scene = scene;
+    this.animationlist = animationlist;
+    this.editable = (editable === undefined) ? true : editable;
+
+    this.gap = Config.gap;
+    this.depth = Config.depth;
+
     this.squareString = "";
     this.numletters = 0;
     this.z = 0;
@@ -180,7 +184,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     if (flipped)
         mesh.rotation.x = Math.PI;
 
-    return new Square(mesh, flipped, this.editable);
+    return new Square(mesh, flipped, this.editable, this.scene, this.animationlist);
 };
 
 GameSquare.prototype.clearSquares = function() {

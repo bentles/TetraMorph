@@ -1,17 +1,21 @@
 var THREE = require("./three.min.js");
 var Animation = require("./animation.js");
+var Config = require("./config.js");
 
 function Shape(mesh) {
     this.mesh = mesh;
     mesh.shape = this;
 }
 
-function Square(mesh, flipped, editable) {
+function Square(mesh, flipped, editable, scene, animationlist) {
     Shape.call(this, mesh);
+    this.scene = scene;
+    this.animationlist = animationlist;
     this.flipped = (flipped === undefined) ? false : flipped;
     this.editable = (editable === undefined) ? true : editable;
     this.node = null;
-};
+}
+
 Square.prototype = Object.create(Shape.prototype);
 Square.prototype.requestSplit = function() {
     if (this.editable) {
@@ -43,7 +47,7 @@ Square.prototype.animateFlip = function(pifractions) {
     var count = 0;
 
     //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
-    animationlist.push(new Animation(
+    this.animationlist.push(new Animation(
         function() {
             if (count < pifractions) {
                 mesh.rotation.x += step;
@@ -68,12 +72,12 @@ Square.prototype.animateFlip = function(pifractions) {
  *the first is the square we manipulate, the last two are an optional flag and a callback
  */
 Square.prototype.animate = function(funcgen, destroy, callback) {
-    animationlist.push(new Animation(funcgen(this, destroy, callback)));
+    this.animationlist.push(new Animation(funcgen(this, destroy, callback)));
 };
 Square.prototype.animateFade = function(steps, kill, callback) {
     this.animate(
         function(square, destroy, callback) {
-            var totalsteps = steps * tps;
+            var totalsteps = steps * Config.tps;
             var decrease = 1 / totalsteps;
             return function() {
                 square.mesh.material.materials.forEach(function(x) {
@@ -93,7 +97,7 @@ Square.prototype.animateFade = function(steps, kill, callback) {
 Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEuler, steps, kill, callback) {
     this.animate(
         function(square, destroy, callback) {
-            var totalsteps = steps * tps;
+            var totalsteps = steps * Config.tps;
             var mesh = square.mesh;
             var posdiff = new THREE.Vector3();
             posdiff.subVectors(posVect3, mesh.position);
@@ -134,10 +138,10 @@ Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEul
 
 Square.prototype.killOrCallback = function(destroy, callback) {
     if (destroy)
-        scene.remove(this.mesh);
+        this.scene.remove(this.mesh);
     if (callback)
         callback();
 };
 
 
-module.exports = Shape ;
+module.exports = Square ;

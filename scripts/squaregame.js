@@ -4,6 +4,8 @@ require("./seedrandom.min.js");
 //the threejs library object
 var THREE = require("./three.min.js");
 
+var Config = require("./config.js");
+
 //internal dependencies
 var materials = require("./materials");
 var Backdrop = require("./backdrop.js");
@@ -12,9 +14,9 @@ var Animation = require("./animation.js");
 var Score = require("./score.js");
 
 var scene, camera, renderer, raycaster, mouseVector;
-var startpos, animationlist, backdrop;
+var startpos, backdrop;
+var animationlist = [];
 var animationFrameID;
-var breathespeed = 0.005;
 
 var screens = ["gamestart", "gameover", "paused", "seed"];
 
@@ -26,8 +28,8 @@ var pausedTime = 0;
 var active = true;
 
 //physics at 60fps
-var tps = 60; //ticks per second
-var dt = 1000 / tps;
+
+var dt = 1000 / Config.tps;
 var currentTime = 0,
     newTime = 0;
 var accumulator = 0;
@@ -55,15 +57,12 @@ function init() {
     light.position.set(0.3, 0.2, 1).normalize();
     scene.add(light);
 
-    //keep track of what's being animated
-    animationlist = [];
-
     //create the backdrop
-    backdrop = new Backdrop(4, 4, 0x00CC00, scene, animationlist, tps, breathespeed);
+    backdrop = new Backdrop(4, 4, 0x00CC00, scene, animationlist);
     backdrop.animateBreathe();
 
     //player
-    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0, scene);
+    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0, scene, animationlist);
     playerGameSquare.generateSquares();
     playerGameSquare.addX(-550);
     playerGameSquare.playerReset();
@@ -116,8 +115,8 @@ function animate(time) {
 //score setup
 var color1 = 0x145214;
 var color2 = 0x33CC33;
-var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue");
-var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue");
+var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue", animationlist);
+var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue", animationlist);
 
 //start states for game variables
 var timeForShape = 10; //seconds
@@ -137,7 +136,7 @@ function gameLogic() {
             gameSquareWin(gs, tscore, fscore);
             difficulty += 2;
             gameSquareAnimateWin();
-            countDownToNextShape = 0.3 * tps;
+            countDownToNextShape = 0.3 * Config.tps;
             gs = null; //marker for having won
         }
 
@@ -153,7 +152,7 @@ function gameLogic() {
             playerGameSquare.playerReset();
 
             //make an uneditable gamesquare
-            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), scene, false);
+            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), scene, animationlist, false);
             gs.generateSquares();
 
             //position the gamesquare
@@ -162,14 +161,14 @@ function gameLogic() {
 
             //animate the gamesquare
             movingForwardAnimation = new Animation(function() {
-                var step = Math.abs(playerGameSquare.getZ() - startpos) / (timeForShape * tps);
+                var step = Math.abs(playerGameSquare.getZ() - startpos) / (timeForShape * Config.tps);
                 gs.addZ(step);
                 return false;
             });
 
             animationlist.push(movingForwardAnimation);
 
-            countDownToNextShape = timeForShape * tps;
+            countDownToNextShape = timeForShape * Config.tps;
         } else if (countDownToNextShape > 0) {
             //if they win before the end move on to the next animation
             //continue counting down
@@ -225,7 +224,7 @@ function gameSquareLose(gs, tscore, fscore) {
 
 function gameSquareAnimateWin() {
     var time = 0.6;
-    var steps = tps * 5;
+    var steps = Config.tps * 5;
     gs.squares.forEach(function(x) {
         x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(20, 20),
                         x.mesh.rotation, time, true);
@@ -293,9 +292,9 @@ function onKeyBoard(e) {
         fscore.toggleMultiplier();
         backdrop.setColor(multiplier ? color2 : color1);
     } else if (e.keyCode === 107)
-        breathespeed += 0.001;
+        Config.breathespeed += 0.001;
     else if (e.keyCode === 109)
-        breathespeed -= 0.001;
+        Config.breathespeed -= 0.001;
 }
 
 function onFocus() {
