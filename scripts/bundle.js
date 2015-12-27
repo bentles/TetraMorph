@@ -21029,10 +21029,18 @@ function Backdrop(dimension, repeats, startcolour, scene, animationlist) {
     //create materials
     this.mat1 = new THREE.MeshPhongMaterial({
         map: this.text1,
+        emissive: new THREE.Color(0x333333),
+        emissiveMap: this.text1,
+        specular: new THREE.Color(0xFFFFFF),
+        specularMap: this.text1,
         vertexColors: THREE.FaceColors,
         side: THREE.BackSide
     });
     this.mat2 = new THREE.MeshPhongMaterial({
+        emissive: new THREE.Color(0x222222),
+        emissiveMap: this.text2,
+        specular: new THREE.Color(0xFFFFFF),
+        specularMap: this.text2,
         map: this.text2,
         vertexColors: THREE.FaceColors,
         side: THREE.BackSide
@@ -21057,10 +21065,12 @@ function Backdrop(dimension, repeats, startcolour, scene, animationlist) {
 Backdrop.prototype.animateBreathe = function() {
     var step = 0;
     var mesh = this.mesh;
+    var breathespeed = this.breathespeed;
     this.animationlist.push(new Animation(function() {
-        step += Math.PI * this.breathespeed;
+        step += Math.PI * breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
+        mesh.rotateZ(Math.cos(step)/ 500);
         return false;
     }));
 };
@@ -22861,16 +22871,16 @@ Node.prototype.getGameSquare = function() {
 Node.prototype.setValue = function(square) {
     this.value = square;
     square.node = this;
-    this.scene.add(square.mesh);
+    var scene = this.scene;
+    scene.add(square.mesh);
 
-    //this just looks cool
     this.children.forEach(
         function(child) {
             child.forEach(
                 function(square) {
-                    this.scene.remove(square.mesh);
-                }, this);
-        }, this);
+                    scene.remove(square.mesh);
+                });
+        });
 
     this.children = [];
 };

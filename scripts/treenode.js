@@ -42,16 +42,16 @@ Node.prototype.getGameSquare = function() {
 Node.prototype.setValue = function(square) {
     this.value = square;
     square.node = this;
-    this.scene.add(square.mesh);
+    var scene = this.scene;
+    scene.add(square.mesh);
 
-    //this just looks cool
     this.children.forEach(
         function(child) {
             child.forEach(
                 function(square) {
-                    this.scene.remove(square.mesh);
-                }, this);
-        }, this);
+                    scene.remove(square.mesh);
+                });
+        });
 
     this.children = [];
 };
