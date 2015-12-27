@@ -1,16 +1,15 @@
 var THREE = require("./three.min.js");
 var Animation = require("./animation.js");
 var Config = require("./config.js");
+var GameState = require("./gamestate.js");
 
 function Shape(mesh) {
     this.mesh = mesh;
     mesh.shape = this;
 }
 
-function Square(mesh, flipped, editable, scene, animationlist) {
+function Square(mesh, flipped, editable) {
     Shape.call(this, mesh);
-    this.scene = scene;
-    this.animationlist = animationlist;
     this.flipped = (flipped === undefined) ? false : flipped;
     this.editable = (editable === undefined) ? true : editable;
     this.node = null;
@@ -47,7 +46,7 @@ Square.prototype.animateFlip = function(pifractions) {
     var count = 0;
 
     //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
-    this.animationlist.push(new Animation(
+    GameState.animationlist.push(new Animation(
         function() {
             if (count < pifractions) {
                 mesh.rotation.x += step;
@@ -72,7 +71,7 @@ Square.prototype.animateFlip = function(pifractions) {
  *the first is the square we manipulate, the last two are an optional flag and a callback
  */
 Square.prototype.animate = function(funcgen, destroy, callback) {
-    this.animationlist.push(new Animation(funcgen(this, destroy, callback)));
+    GameState.animationlist.push(new Animation(funcgen(this, destroy, callback)));
 };
 Square.prototype.animateFade = function(steps, kill, callback) {
     this.animate(
@@ -138,7 +137,7 @@ Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEul
 
 Square.prototype.killOrCallback = function(destroy, callback) {
     if (destroy)
-        this.scene.remove(this.mesh);
+        GameState.scene.remove(this.mesh);
     if (callback)
         callback();
 };

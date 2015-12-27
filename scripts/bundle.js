@@ -20990,13 +20990,13 @@ module.exports = Animation;
 var Animation = require("./animation.js");
 var THREE = require("./three.min.js");
 var Config = require("./config.js");
+var GameState = require("./gamestate.js");
 
 //need a cleaner way to do this stuff
 
-function Backdrop(dimension, repeats, startcolour, scene, animationlist) {
+function Backdrop(dimension, repeats, startcolour) {
     var that = this;
     this.breathespeed = Config.breathespeed;
-    this.animationlist = animationlist;
     this.repeats = repeats;
     this.width = dimension;
     this.height = dimension;
@@ -21059,14 +21059,14 @@ function Backdrop(dimension, repeats, startcolour, scene, animationlist) {
 
     this.mesh = new THREE.Mesh(this.geom, this.backdrop);
 
-    scene.add(this.mesh);
+    GameState.scene.add(this.mesh);
 }
 
 Backdrop.prototype.animateBreathe = function() {
     var step = 0;
     var mesh = this.mesh;
     var breathespeed = this.breathespeed;
-    this.animationlist.push(new Animation(function() {
+    GameState.animationlist.push(new Animation(function() {
         step += Math.PI * breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
@@ -21134,38 +21134,369 @@ Backdrop.prototype.addColorUints = function(color, alpha, array, i) {
 
 module.exports = Backdrop;
 
-},{"./animation.js":220,"./config.js":222,"./three.min.js":229}],222:[function(require,module,exports){
+},{"./animation.js":220,"./config.js":222,"./gamestate.js":225,"./three.min.js":230}],222:[function(require,module,exports){
 /**
  * Created by Douglas on 2015/12/27.
  */
 module.exports = {
     //game config
     tps : 60,             //ticks per second
+    time_for_shape : 10,
+    init_difficulty : 30,
 
     //aesthetics config
-    breathespeed : 0.005, //background animation speed
-    gap: 10,              //space between squares
+    breathespeed : 0.005,  //background animation speed
+    start_pos : -10000,
+    gap: 10,               //space between squares
     depth: 5,              //how deep the squares are
-    smallfont : "20pt",   //font sizes of scores
+    smallfont : "20pt",    //font sizes of scores
     largefont : "30pt",
     score_animation_time : 0.5 //time (s) for the score animation
 };
 
 },{}],223:[function(require,module,exports){
+//add ability to seed RNG to the math object
+require("./seedrandom.min.js");
+
+//the threejs library object
+var THREE = require("./three.min.js");
+
+//internal dependencies
+var materials = require("./materials");
+var Config = require("./config.js");
+var Backdrop = require("./backdrop.js");
+var GameSquare = require("./gamesquare.js");
+var Animation = require("./animation.js");
+var Score = require("./score.js");
+var GameState = require("./gamestate.js");
+
+var camera, renderer, raycaster, mouseVector;
+var backdrop;
+var animationFrameID;
+
+var screens = ["gamestart", "gameover", "paused", "seed"];
+
+//player's GameSquare
+var playerGameSquare;
+
+//pausing and resuming
+var pausedTime = 0;
+var active = true;
+
+//physics at 60fps
+
+var dt = 1000 / Config.tps;
+var currentTime = 0,
+    newTime = 0;
+var accumulator = 0;
+
+//game state
+var lost = false;
+
+function init() {
+    //not sure why but if i start off with none in css it never appears :/
+    switchToScreen(0);
+
+    //set up seed
+    var seed = Math.random();
+    Math.seedrandom(seed);
+
+    //scene and camera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
+    camera.position.z = 1000;
+
+    mouseVector = new THREE.Vector3();
+
+    //lighting
+    var light = new THREE.PointLight(0xffffff, 0.8);
+    light.position.set(0.3, 0.2, 1).normalize();
+    GameState.scene.add(light);
+
+    //create the backdrop
+    backdrop = new Backdrop(4, 4, 0x00CC00);
+    backdrop.animateBreathe();
+
+    //player
+    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0);
+    playerGameSquare.generateSquares();
+    playerGameSquare.addX(-550);
+    playerGameSquare.playerReset();
+
+    //set up renderer
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        canvas: document.getElementById("canvas")
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    //add event listeners for mouse
+    document.addEventListener('mousedown', onMouseDown, false);
+    window.addEventListener('resize', onWindowResize, false);
+    window.addEventListener('keydown', onKeyBoard, false);
+    window.addEventListener('blur', onBlur, false);
+    window.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    }, false);
+}
+
+function animate(time) {
+    animationFrameID = requestAnimationFrame(animate);
+
+    newTime = time || 0;
+
+    var elapsedTime = newTime - currentTime;
+
+    if (pausedTime > 0) //game has recently been paused
+    {
+        elapsedTime -= pausedTime;
+        pausedTime = 0;
+    }
+    currentTime = newTime;
+
+    accumulator += elapsedTime;
+
+    //loop if we can do more physics per render
+    //don't do physics at all if not enough time has passed for another step
+    //instead, render again
+    while (accumulator >= dt) {
+        gameLogic();
+        accumulator -= dt;
+    }
+
+    //TODO add interpolation somehow
+    renderer.render(GameState.scene, camera);
+}
+
+//score setup
+var color1 = 0x145214;
+var color2 = 0x33CC33;
+var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue");
+var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue");
+
+//start states for game variables
+var timeForShape = Config.time_for_shape; //seconds
+var countDownToNextShape = 0;
+var start_pos = Config.start_pos;
+var difficulty = Config.init_difficulty;
+var multiplier = true;
+var gs = null;
+var movingForwardAnimation;
+
+function gameLogic() {
+    if (!lost) //while you are still alive the game goes on
+    {
+        var roundWon = (gs !== null) && (playerGameSquare.squareString === gs.squareString);
+        if (roundWon) {
+            movingForwardAnimation.stop();
+            gameSquareWin(gs, tscore, fscore);
+            difficulty += 2;
+            gameSquareAnimateWin();
+            countDownToNextShape = 0.3 * Config.tps;
+            gs = null; //marker for having won
+        }
+
+        if (countDownToNextShape === 0) {
+            //need to play animation for losing if gs is not null by this point
+            if (gs !== null) {
+                movingForwardAnimation.stop();
+                gameSquareLose(gs, tscore, fscore);
+                gameSquareAnimateLose();
+            }
+
+            //reset player square
+            playerGameSquare.playerReset();
+
+            //make an uneditable gamesquare
+            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), false);
+            gs.generateSquares();
+
+            //position the gamesquare
+            gs.addX(550);
+            gs.setZ(start_pos);
+
+            //animate the gamesquare
+            movingForwardAnimation = new Animation(function() {
+                var step = Math.abs(playerGameSquare.getZ() - start_pos) / (timeForShape * Config.tps);
+                gs.addZ(step);
+                return false;
+            });
+
+            GameState.animationlist.push(movingForwardAnimation);
+
+            countDownToNextShape = timeForShape * Config.tps;
+        } else if (countDownToNextShape > 0) {
+            //if they win before the end move on to the next animation
+            //continue counting down
+            countDownToNextShape--;
+        }
+    }
+
+
+    /* Execute animations:
+     * ===================
+     * animationlist is a list of Animations whose play method returns true if complete
+     * call each Animation's play method in turn and remove those that return true
+     * this may or may not be a terrible way to do this that I regret later lol
+     */
+    var len = GameState.animationlist.length;
+    while (len--) {
+        var done = GameState.animationlist[len].playStep();
+        if (done) {
+            var nextAnims = GameState.animationlist[len].getNextAnis();
+            GameState.animationlist.splice(len, 1);
+
+            //Animations can have a list of successors which activate after an
+            //animation is complete
+            if (nextAnims.length > 0)
+                nextAnims.forEach(function(x) {
+                    GameState.animationlist.push(x);
+                }, this);
+        }
+    }
+}
+
+function gameSquareWin(gs, tscore, fscore) {
+    var scores = gs.getSquareStringDetails();
+    tscore.add(scores.t);
+    fscore.add(scores.f);
+}
+
+function gameSquareLose(gs, tscore, fscore) {
+    var scores = gs.getSquareStringDetails();
+    tscore.add(-scores.t);
+    fscore.add(-scores.f);
+
+    //game over
+    var gameOverDiv = document.getElementById("gameover");
+
+    gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Light Score : " +
+        fscore.count + "</h2><h2>Dark Score: " + tscore.count +
+        "</h2><h2>Difficulty Reached: " + difficulty +
+        "</h2>"; //<h3>Refresh to play again</h3>";
+    switchToScreen(1); //game over 
+    lost = true;
+}
+
+function gameSquareAnimateWin() {
+    var time = 0.6;
+    var steps = Config.tps * 5;
+    gs.squares.forEach(function(x) {
+        x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(20, 20),
+                        x.mesh.rotation, time, true);
+    });
+}
+
+function gameSquareAnimateLose() {
+    gs.squares.forEach(function(x) {
+        x.animateFade(3, true);
+    });
+}
+
+
+function gameReset() {
+    lost = false;
+    init();
+    animate();
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.render(GameState.scene, camera);
+}
+
+function onMouseDown(e) {
+    if (lost) {
+        gameReset();
+    } else if (!active) {
+        onFocus();
+    } else //must be resumed by click before another click can do anything
+    {
+        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+
+        var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
+
+        raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        var intersects = raycaster.intersectObjects(GameState.scene.children);
+
+        if (intersects[0] && (intersects[0].object.shape !== undefined)) {
+            if (e.button === 0 && e.shiftKey || e.button === 1)
+                intersects[0].object.shape.requestMerge();
+            else if (e.button === 0)
+                intersects[0].object.shape.requestSplit();
+            else if (e.button === 2)
+                intersects[0].object.shape.flip();
+        }
+    }
+}
+
+function onKeyBoard(e) {
+    e = e || window.event;
+    if (e.keyCode === 27) {
+        if (active)
+            onBlur();
+        else
+            onFocus();
+    } else if (e.keyCode === 32) {
+        multiplier = !multiplier;
+
+        tscore.toggleMultiplier();
+        fscore.toggleMultiplier();
+        backdrop.setColor(multiplier ? color2 : color1);
+    } else if (e.keyCode === 107)
+        Config.breathespeed += 0.001;
+    else if (e.keyCode === 109)
+        Config.breathespeed -= 0.001;
+}
+
+function onFocus() {
+    if (!active) //needed on firefox
+    {
+        active = true;
+        document.getElementById("paused").style.display = "none";
+        pausedTime = Date.now() - pausedTime;
+        requestAnimationFrame(animate);
+    }
+};
+
+function onBlur() {
+    if (active) //just to be safe
+    {
+        active = false;
+        if (!lost)
+            switchToScreen(2);
+        pausedTime = Date.now();
+        cancelAnimationFrame(animationFrameID);
+    }
+};
+
+function switchToScreen(screenNumber) {
+    for (var i = 0; i < screens.length; i++) {
+        document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
+    }
+}
+
+init();
+animate();
+
+
+},{"./animation.js":220,"./backdrop.js":221,"./config.js":222,"./gamesquare.js":224,"./gamestate.js":225,"./materials":226,"./score.js":227,"./seedrandom.min.js":228,"./three.min.js":230}],224:[function(require,module,exports){
 var THREE = require("./three.min.js");
 
 var Square = require("./square.js");
 var util = require("./utilities.js");
 var Node = require("./treenode.js");
 var Config = require("./config.js");
+var GameState = require("./gamestate.js");
 
-function GameSquare(material, materialmap, difficulty, scene, animationlist, editable) //0 difficulty is just a single square
+function GameSquare(material, materialmap, difficulty, editable) //0 difficulty is just a single square
 {
     this.material = material.clone();
     this.materialmap = materialmap;
     this.difficulty = difficulty;
-    this.scene = scene;
-    this.animationlist = animationlist;
     this.editable = (editable === undefined) ? true : editable;
 
     this.gap = Config.gap;
@@ -21176,7 +21507,7 @@ function GameSquare(material, materialmap, difficulty, scene, animationlist, edi
     this.z = 0;
     this.x = 0;
     //make the parent of the top node the gamesquare
-    this.squares = new Node(null, this, scene);
+    this.squares = new Node(null, this);
 }
 
 GameSquare.prototype.generateSquareString = function() {
@@ -21338,15 +21669,15 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     if (flipped)
         mesh.rotation.x = Math.PI;
 
-    return new Square(mesh, flipped, this.editable, this.scene, this.animationlist);
+    return new Square(mesh, flipped, this.editable);
 };
 
 GameSquare.prototype.clearSquares = function() {
     var that = this;
     this.squares.forEach(function(square) {
-        that.scene.remove(square.mesh);
+        GameState.scene.remove(square.mesh);
     });
-    this.squares = new Node(null, this, this.scene);
+    this.squares = new Node(null, this);
     this.squareString = "";
 };
 
@@ -21436,7 +21767,17 @@ GameSquare.prototype.addX = function(num) {
 
 module.exports = GameSquare;
 
-},{"./config.js":222,"./square.js":227,"./three.min.js":229,"./treenode.js":230,"./utilities.js":231}],224:[function(require,module,exports){
+},{"./config.js":222,"./gamestate.js":225,"./square.js":229,"./three.min.js":230,"./treenode.js":231,"./utilities.js":232}],225:[function(require,module,exports){
+/**
+ * Created by Douglas on 2015/12/27.
+ */
+var THREE = require("./three.min.js");
+
+module.exports = {
+    scene : new THREE.Scene(),
+    animationlist : []
+};
+},{"./three.min.js":230}],226:[function(require,module,exports){
 var THREE = require("./three.min.js");
 
 //work out shapes and materials
@@ -21466,16 +21807,16 @@ var material = new THREE.MeshFaceMaterial(materials);
 module.exports.materialmap = materialmap;
 module.exports.material = material;
 
-},{"./three.min.js":229}],225:[function(require,module,exports){
+},{"./three.min.js":230}],227:[function(require,module,exports){
 var Config = require("./config.js");
 var Animation = require("./animation.js");
+var GameState = require("./gamestate.js");
 
-function Score(id, multiplier, color, colourableids, bar, animationlist) {
+function Score(id, multiplier, color, colourableids, bar) {
     this.id = id;
     this.count = 0;
     this.multiplier = multiplier;
     this.color = color;
-    this.animationlist = animationlist;
 
     this.small = Config.smallfont;
     this.large = Config.largefont;
@@ -21509,7 +21850,7 @@ Score.prototype.add = function(x) {
     var current = parseInt(this.barDomElement.getAttribute("width"));
     var step = (target - current) / (time * Config.tps);
     var count = 0;
-    this.animationlist.push(new Animation(function() {
+    GameState.animationlist.push(new Animation(function() {
         count++;
         if (count <= (time * Config.tps)) {
             //look into changing this if possible for two to play at once.
@@ -21527,23 +21868,22 @@ Score.prototype.lost = function() {
 
 module.exports = Score;
 
-},{"./animation.js":220,"./config.js":222}],226:[function(require,module,exports){
+},{"./animation.js":220,"./config.js":222,"./gamestate.js":225}],228:[function(require,module,exports){
 !function(a,b,c,d,e,f,g,h,i){function j(a){var b,c=a.length,e=this,f=0,g=e.i=e.j=0,h=e.S=[];for(c||(a=[c++]);d>f;)h[f]=f++;for(f=0;d>f;f++)h[f]=h[g=t&g+a[f%c]+(b=h[f])],h[g]=b;(e.g=function(a){for(var b,c=0,f=e.i,g=e.j,h=e.S;a--;)b=h[f=t&f+1],c=c*d+h[t&(h[f]=h[g=t&g+b])+(h[g]=b)];return e.i=f,e.j=g,c})(d)}function k(a,b){return b.i=a.i,b.j=a.j,b.S=a.S.slice(),b}function l(a,b){var c,d=[],e=typeof a;if(b&&"object"==e)for(c in a)try{d.push(l(a[c],b-1))}catch(f){}return d.length?d:"string"==e?a:a+"\0"}function m(a,b){for(var c,d=a+"",e=0;e<d.length;)b[t&e]=t&(c^=19*b[t&e])+d.charCodeAt(e++);return o(b)}function n(c){try{return p?o(p.randomBytes(d)):(a.crypto.getRandomValues(c=new Uint8Array(d)),o(c))}catch(e){return[+new Date,a,(c=a.navigator)&&c.plugins,a.screen,o(b)]}}function o(a){return String.fromCharCode.apply(0,a)}var p,q=c.pow(d,e),r=c.pow(2,f),s=2*r,t=d-1,u=c["seed"+i]=function(a,f,g){var h=[];f=1==f?{entropy:!0}:f||{};var p=m(l(f.entropy?[a,o(b)]:null==a?n():a,3),h),t=new j(h);return m(o(t.S),b),(f.pass||g||function(a,b,d,e){return e&&(e.S&&k(e,t),a.state=function(){return k(t,{})}),d?(c[i]=a,b):a})(function(){for(var a=t.g(e),b=q,c=0;r>a;)a=(a+c)*d,b*=d,c=t.g(1);for(;a>=s;)a/=2,b/=2,c>>>=1;return(a+c)/b},p,"global"in f?f.global:this==c,f.state)};if(m(c[i](),b),g&&g.exports){g.exports=u;try{p=require("crypto")}catch(v){}}else h&&h.amd&&h(function(){return u})}(this,[],Math,256,6,52,"object"==typeof module&&module,"function"==typeof define&&define,"random");
 
-},{"crypto":6}],227:[function(require,module,exports){
+},{"crypto":6}],229:[function(require,module,exports){
 var THREE = require("./three.min.js");
 var Animation = require("./animation.js");
 var Config = require("./config.js");
+var GameState = require("./gamestate.js");
 
 function Shape(mesh) {
     this.mesh = mesh;
     mesh.shape = this;
 }
 
-function Square(mesh, flipped, editable, scene, animationlist) {
+function Square(mesh, flipped, editable) {
     Shape.call(this, mesh);
-    this.scene = scene;
-    this.animationlist = animationlist;
     this.flipped = (flipped === undefined) ? false : flipped;
     this.editable = (editable === undefined) ? true : editable;
     this.node = null;
@@ -21580,7 +21920,7 @@ Square.prototype.animateFlip = function(pifractions) {
     var count = 0;
 
     //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
-    this.animationlist.push(new Animation(
+    GameState.animationlist.push(new Animation(
         function() {
             if (count < pifractions) {
                 mesh.rotation.x += step;
@@ -21605,7 +21945,7 @@ Square.prototype.animateFlip = function(pifractions) {
  *the first is the square we manipulate, the last two are an optional flag and a callback
  */
 Square.prototype.animate = function(funcgen, destroy, callback) {
-    this.animationlist.push(new Animation(funcgen(this, destroy, callback)));
+    GameState.animationlist.push(new Animation(funcgen(this, destroy, callback)));
 };
 Square.prototype.animateFade = function(steps, kill, callback) {
     this.animate(
@@ -21671,7 +22011,7 @@ Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEul
 
 Square.prototype.killOrCallback = function(destroy, callback) {
     if (destroy)
-        this.scene.remove(this.mesh);
+        GameState.scene.remove(this.mesh);
     if (callback)
         callback();
 };
@@ -21679,338 +22019,7 @@ Square.prototype.killOrCallback = function(destroy, callback) {
 
 module.exports = Square ;
 
-},{"./animation.js":220,"./config.js":222,"./three.min.js":229}],228:[function(require,module,exports){
-//add ability to seed RNG to the math object
-require("./seedrandom.min.js");
-
-//the threejs library object
-var THREE = require("./three.min.js");
-
-var Config = require("./config.js");
-
-//internal dependencies
-var materials = require("./materials");
-var Backdrop = require("./backdrop.js");
-var GameSquare = require("./gamesquare.js");
-var Animation = require("./animation.js");
-var Score = require("./score.js");
-
-var scene, camera, renderer, raycaster, mouseVector;
-var startpos, backdrop;
-var animationlist = [];
-var animationFrameID;
-
-var screens = ["gamestart", "gameover", "paused", "seed"];
-
-//player's GameSquare
-var playerGameSquare;
-
-//pausing and resuming
-var pausedTime = 0;
-var active = true;
-
-//physics at 60fps
-
-var dt = 1000 / Config.tps;
-var currentTime = 0,
-    newTime = 0;
-var accumulator = 0;
-
-//game state
-var lost = false;
-
-function init() {
-    //not sure why but if i start off with none in css it never appears :/
-    switchToScreen(0);
-
-    //set up seed
-    var seed = Math.random();
-    Math.seedrandom(seed);
-
-    //scene and camera
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
-    camera.position.z = 1000;
-
-    mouseVector = new THREE.Vector3();
-
-    //lighting
-    var light = new THREE.PointLight(0xffffff, 0.8);
-    light.position.set(0.3, 0.2, 1).normalize();
-    scene.add(light);
-
-    //create the backdrop
-    backdrop = new Backdrop(4, 4, 0x00CC00, scene, animationlist);
-    backdrop.animateBreathe();
-
-    //player
-    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0, scene, animationlist);
-    playerGameSquare.generateSquares();
-    playerGameSquare.addX(-550);
-    playerGameSquare.playerReset();
-
-    //set up renderer
-    renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        canvas: document.getElementById("canvas")
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    //add event listeners for mouse
-    document.addEventListener('mousedown', onMouseDown, false);
-    window.addEventListener('resize', onWindowResize, false);
-    window.addEventListener('keydown', onKeyBoard, false);
-    window.addEventListener('blur', onBlur, false);
-    window.addEventListener('contextmenu', function(event) {
-        event.preventDefault();
-    }, false);
-}
-
-function animate(time) {
-    animationFrameID = requestAnimationFrame(animate);
-
-    newTime = time || 0;
-
-    var elapsedTime = newTime - currentTime;
-
-    if (pausedTime > 0) //game has recently been paused
-    {
-        elapsedTime -= pausedTime;
-        pausedTime = 0;
-    }
-    currentTime = newTime;
-
-    accumulator += elapsedTime;
-
-    //loop if we can do more physics per render
-    //don't do physics at all if not enough time has passed for another step
-    //instead, render again
-    while (accumulator >= dt) {
-        gameLogic();
-        accumulator -= dt;
-    }
-
-    //TODO add interpolation somehow
-    renderer.render(scene, camera);
-}
-
-//score setup
-var color1 = 0x145214;
-var color2 = 0x33CC33;
-var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue", animationlist);
-var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue", animationlist);
-
-//start states for game variables
-var timeForShape = 10; //seconds
-var countDownToNextShape = 0;
-var startpos = -10000;
-var difficulty = 30;
-var multiplier = true;
-var gs = null;
-var movingForwardAnimation;
-
-function gameLogic() {
-    if (!lost) //while you are still alive the game goes on
-    {
-        var roundWon = (gs !== null) && (playerGameSquare.squareString === gs.squareString);
-        if (roundWon) {
-            movingForwardAnimation.stop();
-            gameSquareWin(gs, tscore, fscore);
-            difficulty += 2;
-            gameSquareAnimateWin();
-            countDownToNextShape = 0.3 * Config.tps;
-            gs = null; //marker for having won
-        }
-
-        if (countDownToNextShape === 0) {
-            //need to play animation for losing if gs is not null by this point
-            if (gs !== null) {
-                movingForwardAnimation.stop();
-                gameSquareLose(gs, tscore, fscore);
-                gameSquareAnimateLose();
-            }
-
-            //reset player square
-            playerGameSquare.playerReset();
-
-            //make an uneditable gamesquare
-            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), scene, animationlist, false);
-            gs.generateSquares();
-
-            //position the gamesquare
-            gs.addX(550);
-            gs.setZ(startpos);
-
-            //animate the gamesquare
-            movingForwardAnimation = new Animation(function() {
-                var step = Math.abs(playerGameSquare.getZ() - startpos) / (timeForShape * Config.tps);
-                gs.addZ(step);
-                return false;
-            });
-
-            animationlist.push(movingForwardAnimation);
-
-            countDownToNextShape = timeForShape * Config.tps;
-        } else if (countDownToNextShape > 0) {
-            //if they win before the end move on to the next animation
-            //continue counting down
-            countDownToNextShape--;
-        }
-    }
-
-
-    /* Execute animations:
-     * ===================
-     * animationlist is a list of Animations whose play method returns true if complete
-     * call each Animation's play method in turn and remove those that return true
-     * this may or may not be a terrible way to do this that I regret later lol
-     */
-    var len = animationlist.length;
-    while (len--) {
-        var done = animationlist[len].playStep();
-        if (done) {
-            var nextAnims = animationlist[len].getNextAnis();
-            animationlist.splice(len, 1);
-
-            //Animations can have a list of successors which activate after an
-            //animation is complete
-            if (nextAnims.length > 0)
-                nextAnims.forEach(function(x) {
-                    animationlist.push(x);
-                }, this);
-        }
-    }
-}
-
-function gameSquareWin(gs, tscore, fscore) {
-    var scores = gs.getSquareStringDetails();
-    tscore.add(scores.t);
-    fscore.add(scores.f);
-}
-
-function gameSquareLose(gs, tscore, fscore) {
-    var scores = gs.getSquareStringDetails();
-    tscore.add(-scores.t);
-    fscore.add(-scores.f);
-
-    //game over
-    var gameOverDiv = document.getElementById("gameover");
-
-    gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Light Score : " +
-        fscore.count + "</h2><h2>Dark Score: " + tscore.count +
-        "</h2><h2>Difficulty Reached: " + difficulty +
-        "</h2>"; //<h3>Refresh to play again</h3>";
-    switchToScreen(1); //game over 
-    lost = true;
-}
-
-function gameSquareAnimateWin() {
-    var time = 0.6;
-    var steps = Config.tps * 5;
-    gs.squares.forEach(function(x) {
-        x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(20, 20),
-                        x.mesh.rotation, time, true);
-    });
-}
-
-function gameSquareAnimateLose() {
-    gs.squares.forEach(function(x) {
-        x.animateFade(3, true);
-    });
-}
-
-
-function gameReset() {
-    lost = false;
-    init();
-    animate();
-}
-
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(scene, camera);
-}
-
-function onMouseDown(e) {
-    if (lost) {
-        gameReset();
-    } else if (!active) {
-        onFocus();
-    } else //must be resumed by click before another click can do anything
-    {
-        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
-        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
-
-        var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
-
-        raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-        var intersects = raycaster.intersectObjects(scene.children);
-
-        if (intersects[0] && (intersects[0].object.shape !== undefined)) {
-            if (e.button === 0 && e.shiftKey || e.button === 1)
-                intersects[0].object.shape.requestMerge();
-            else if (e.button === 0)
-                intersects[0].object.shape.requestSplit();
-            else if (e.button === 2)
-                intersects[0].object.shape.flip();
-        }
-    }
-}
-
-function onKeyBoard(e) {
-    e = e || window.event;
-    if (e.keyCode === 27) {
-        if (active)
-            onBlur();
-        else
-            onFocus();
-    } else if (e.keyCode === 32) {
-        multiplier = !multiplier;
-
-        tscore.toggleMultiplier();
-        fscore.toggleMultiplier();
-        backdrop.setColor(multiplier ? color2 : color1);
-    } else if (e.keyCode === 107)
-        Config.breathespeed += 0.001;
-    else if (e.keyCode === 109)
-        Config.breathespeed -= 0.001;
-}
-
-function onFocus() {
-    if (!active) //needed on firefox
-    {
-        active = true;
-        document.getElementById("paused").style.display = "none";
-        pausedTime = Date.now() - pausedTime;
-        requestAnimationFrame(animate);
-    }
-};
-
-function onBlur() {
-    if (active) //just to be safe
-    {
-        active = false;
-        if (!lost)
-            switchToScreen(2);
-        pausedTime = Date.now();
-        cancelAnimationFrame(animationFrameID);
-    }
-};
-
-function switchToScreen(screenNumber) {
-    for (var i = 0; i < screens.length; i++) {
-        document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
-    }
-}
-
-init();
-animate();
-
-
-},{"./animation.js":220,"./backdrop.js":221,"./config.js":222,"./gamesquare.js":223,"./materials":224,"./score.js":225,"./seedrandom.min.js":226,"./three.min.js":229}],229:[function(require,module,exports){
+},{"./animation.js":220,"./config.js":222,"./gamestate.js":225,"./three.min.js":230}],230:[function(require,module,exports){
 // threejs.org/license
 'use strict';var THREE={REVISION:"69"};"object"===typeof module&&(module.exports=THREE);void 0===Math.sign&&(Math.sign=function(a){return 0>a?-1:0<a?1:0});THREE.MOUSE={LEFT:0,MIDDLE:1,RIGHT:2};THREE.CullFaceNone=0;THREE.CullFaceBack=1;THREE.CullFaceFront=2;THREE.CullFaceFrontBack=3;THREE.FrontFaceDirectionCW=0;THREE.FrontFaceDirectionCCW=1;THREE.BasicShadowMap=0;THREE.PCFShadowMap=1;THREE.PCFSoftShadowMap=2;THREE.FrontSide=0;THREE.BackSide=1;THREE.DoubleSide=2;THREE.NoShading=0;
 THREE.FlatShading=1;THREE.SmoothShading=2;THREE.NoColors=0;THREE.FaceColors=1;THREE.VertexColors=2;THREE.NoBlending=0;THREE.NormalBlending=1;THREE.AdditiveBlending=2;THREE.SubtractiveBlending=3;THREE.MultiplyBlending=4;THREE.CustomBlending=5;THREE.AddEquation=100;THREE.SubtractEquation=101;THREE.ReverseSubtractEquation=102;THREE.MinEquation=103;THREE.MaxEquation=104;THREE.ZeroFactor=200;THREE.OneFactor=201;THREE.SrcColorFactor=202;THREE.OneMinusSrcColorFactor=203;THREE.SrcAlphaFactor=204;
@@ -22828,11 +22837,11 @@ f!==d.currentFrame&&(this.morphTargetInfluences[d.lastFrame]=0,this.morphTargetI
 
 module.exports = THREE;
 
-},{}],230:[function(require,module,exports){
+},{}],231:[function(require,module,exports){
 var GameSquare = require("./gamesquare.js");
+var GameState = require("./gamestate.js");
 
-function Node(value, parent, scene, children) {
-    this.scene = scene;
+function Node(value, parent, children) {
     this.value = (value === undefined) ? null : value;
     this.parent = (parent === undefined) ? null : parent;
     this.children = (children === undefined) ? [] : children;
@@ -22843,12 +22852,12 @@ function Node(value, parent, scene, children) {
 }
 Node.prototype.initChildren = function() {
     if (this.value)
-        this.scene.remove(this.value.mesh);
+        GameState.scene.remove(this.value.mesh);
 
     this.value = null;
     this.children = [];
     for (var i = 0; i < 4; i++) {
-        var a = new Node(null, this, this.scene);
+        var a = new Node(null, this);
         this.children.push(a);
     }
 };
@@ -22873,8 +22882,11 @@ Node.prototype.getGameSquare = function() {
 Node.prototype.setValue = function(square) {
     this.value = square;
     square.node = this;
-    var scene = this.scene;
+    var scene = GameState.scene;
     scene.add(square.mesh);
+
+    if (!this.children.forEach)
+        var a = 12;
 
     this.children.forEach(
         function(child) {
@@ -22890,7 +22902,7 @@ Node.prototype.setValue = function(square) {
 
 module.exports = Node;
 
-},{"./gamesquare.js":223}],231:[function(require,module,exports){
+},{"./gamesquare.js":224,"./gamestate.js":225}],232:[function(require,module,exports){
 //a is start
 //r is the multiplication factor
 //n is the term number
@@ -22948,4 +22960,4 @@ function singleTreeRecursion(node, tlist, flist) {
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
 module.exports.geometricSeriesSum = geometricSeriesSum ;
 
-},{}]},{},[228]);
+},{}]},{},[223]);

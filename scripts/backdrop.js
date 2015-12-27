@@ -1,13 +1,13 @@
 var Animation = require("./animation.js");
 var THREE = require("./three.min.js");
 var Config = require("./config.js");
+var GameState = require("./gamestate.js");
 
 //need a cleaner way to do this stuff
 
-function Backdrop(dimension, repeats, startcolour, scene, animationlist) {
+function Backdrop(dimension, repeats, startcolour) {
     var that = this;
     this.breathespeed = Config.breathespeed;
-    this.animationlist = animationlist;
     this.repeats = repeats;
     this.width = dimension;
     this.height = dimension;
@@ -70,14 +70,14 @@ function Backdrop(dimension, repeats, startcolour, scene, animationlist) {
 
     this.mesh = new THREE.Mesh(this.geom, this.backdrop);
 
-    scene.add(this.mesh);
+    GameState.scene.add(this.mesh);
 }
 
 Backdrop.prototype.animateBreathe = function() {
     var step = 0;
     var mesh = this.mesh;
     var breathespeed = this.breathespeed;
-    this.animationlist.push(new Animation(function() {
+    GameState.animationlist.push(new Animation(function() {
         step += Math.PI * breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);

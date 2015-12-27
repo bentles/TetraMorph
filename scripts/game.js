@@ -4,18 +4,17 @@ require("./seedrandom.min.js");
 //the threejs library object
 var THREE = require("./three.min.js");
 
-var Config = require("./config.js");
-
 //internal dependencies
 var materials = require("./materials");
+var Config = require("./config.js");
 var Backdrop = require("./backdrop.js");
 var GameSquare = require("./gamesquare.js");
 var Animation = require("./animation.js");
 var Score = require("./score.js");
+var GameState = require("./gamestate.js");
 
-var scene, camera, renderer, raycaster, mouseVector;
-var startpos, backdrop;
-var animationlist = [];
+var camera, renderer, raycaster, mouseVector;
+var backdrop;
 var animationFrameID;
 
 var screens = ["gamestart", "gameover", "paused", "seed"];
@@ -46,7 +45,6 @@ function init() {
     Math.seedrandom(seed);
 
     //scene and camera
-    scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = 1000;
 
@@ -55,14 +53,14 @@ function init() {
     //lighting
     var light = new THREE.PointLight(0xffffff, 0.8);
     light.position.set(0.3, 0.2, 1).normalize();
-    scene.add(light);
+    GameState.scene.add(light);
 
     //create the backdrop
-    backdrop = new Backdrop(4, 4, 0x00CC00, scene, animationlist);
+    backdrop = new Backdrop(4, 4, 0x00CC00);
     backdrop.animateBreathe();
 
     //player
-    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0, scene, animationlist);
+    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0);
     playerGameSquare.generateSquares();
     playerGameSquare.addX(-550);
     playerGameSquare.playerReset();
@@ -109,20 +107,20 @@ function animate(time) {
     }
 
     //TODO add interpolation somehow
-    renderer.render(scene, camera);
+    renderer.render(GameState.scene, camera);
 }
 
 //score setup
 var color1 = 0x145214;
 var color2 = 0x33CC33;
-var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue", animationlist);
-var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue", animationlist);
+var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue");
+var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue");
 
 //start states for game variables
-var timeForShape = 10; //seconds
+var timeForShape = Config.time_for_shape; //seconds
 var countDownToNextShape = 0;
-var startpos = -10000;
-var difficulty = 30;
+var start_pos = Config.start_pos;
+var difficulty = Config.init_difficulty;
 var multiplier = true;
 var gs = null;
 var movingForwardAnimation;
@@ -152,21 +150,21 @@ function gameLogic() {
             playerGameSquare.playerReset();
 
             //make an uneditable gamesquare
-            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), scene, animationlist, false);
+            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), false);
             gs.generateSquares();
 
             //position the gamesquare
             gs.addX(550);
-            gs.setZ(startpos);
+            gs.setZ(start_pos);
 
             //animate the gamesquare
             movingForwardAnimation = new Animation(function() {
-                var step = Math.abs(playerGameSquare.getZ() - startpos) / (timeForShape * Config.tps);
+                var step = Math.abs(playerGameSquare.getZ() - start_pos) / (timeForShape * Config.tps);
                 gs.addZ(step);
                 return false;
             });
 
-            animationlist.push(movingForwardAnimation);
+            GameState.animationlist.push(movingForwardAnimation);
 
             countDownToNextShape = timeForShape * Config.tps;
         } else if (countDownToNextShape > 0) {
@@ -183,18 +181,18 @@ function gameLogic() {
      * call each Animation's play method in turn and remove those that return true
      * this may or may not be a terrible way to do this that I regret later lol
      */
-    var len = animationlist.length;
+    var len = GameState.animationlist.length;
     while (len--) {
-        var done = animationlist[len].playStep();
+        var done = GameState.animationlist[len].playStep();
         if (done) {
-            var nextAnims = animationlist[len].getNextAnis();
-            animationlist.splice(len, 1);
+            var nextAnims = GameState.animationlist[len].getNextAnis();
+            GameState.animationlist.splice(len, 1);
 
             //Animations can have a list of successors which activate after an
             //animation is complete
             if (nextAnims.length > 0)
                 nextAnims.forEach(function(x) {
-                    animationlist.push(x);
+                    GameState.animationlist.push(x);
                 }, this);
         }
     }
@@ -249,7 +247,7 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(scene, camera);
+    renderer.render(GameState.scene, camera);
 }
 
 function onMouseDown(e) {
@@ -265,7 +263,7 @@ function onMouseDown(e) {
         var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
 
         raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-        var intersects = raycaster.intersectObjects(scene.children);
+        var intersects = raycaster.intersectObjects(GameState.scene.children);
 
         if (intersects[0] && (intersects[0].object.shape !== undefined)) {
             if (e.button === 0 && e.shiftKey || e.button === 1)

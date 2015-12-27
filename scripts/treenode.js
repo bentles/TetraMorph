@@ -1,7 +1,7 @@
 var GameSquare = require("./gamesquare.js");
+var GameState = require("./gamestate.js");
 
-function Node(value, parent, scene, children) {
-    this.scene = scene;
+function Node(value, parent, children) {
     this.value = (value === undefined) ? null : value;
     this.parent = (parent === undefined) ? null : parent;
     this.children = (children === undefined) ? [] : children;
@@ -12,12 +12,12 @@ function Node(value, parent, scene, children) {
 }
 Node.prototype.initChildren = function() {
     if (this.value)
-        this.scene.remove(this.value.mesh);
+        GameState.scene.remove(this.value.mesh);
 
     this.value = null;
     this.children = [];
     for (var i = 0; i < 4; i++) {
-        var a = new Node(null, this, this.scene);
+        var a = new Node(null, this);
         this.children.push(a);
     }
 };
@@ -42,8 +42,11 @@ Node.prototype.getGameSquare = function() {
 Node.prototype.setValue = function(square) {
     this.value = square;
     square.node = this;
-    var scene = this.scene;
+    var scene = GameState.scene;
     scene.add(square.mesh);
+
+    if (!this.children.forEach)
+        var a = 12;
 
     this.children.forEach(
         function(child) {

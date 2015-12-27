@@ -4,14 +4,13 @@ var Square = require("./square.js");
 var util = require("./utilities.js");
 var Node = require("./treenode.js");
 var Config = require("./config.js");
+var GameState = require("./gamestate.js");
 
-function GameSquare(material, materialmap, difficulty, scene, animationlist, editable) //0 difficulty is just a single square
+function GameSquare(material, materialmap, difficulty, editable) //0 difficulty is just a single square
 {
     this.material = material.clone();
     this.materialmap = materialmap;
     this.difficulty = difficulty;
-    this.scene = scene;
-    this.animationlist = animationlist;
     this.editable = (editable === undefined) ? true : editable;
 
     this.gap = Config.gap;
@@ -22,7 +21,7 @@ function GameSquare(material, materialmap, difficulty, scene, animationlist, edi
     this.z = 0;
     this.x = 0;
     //make the parent of the top node the gamesquare
-    this.squares = new Node(null, this, scene);
+    this.squares = new Node(null, this);
 }
 
 GameSquare.prototype.generateSquareString = function() {
@@ -184,15 +183,15 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     if (flipped)
         mesh.rotation.x = Math.PI;
 
-    return new Square(mesh, flipped, this.editable, this.scene, this.animationlist);
+    return new Square(mesh, flipped, this.editable);
 };
 
 GameSquare.prototype.clearSquares = function() {
     var that = this;
     this.squares.forEach(function(square) {
-        that.scene.remove(square.mesh);
+        GameState.scene.remove(square.mesh);
     });
-    this.squares = new Node(null, this, this.scene);
+    this.squares = new Node(null, this);
     this.squareString = "";
 };
 

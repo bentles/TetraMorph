@@ -1,12 +1,12 @@
 var Config = require("./config.js");
 var Animation = require("./animation.js");
+var GameState = require("./gamestate.js");
 
-function Score(id, multiplier, color, colourableids, bar, animationlist) {
+function Score(id, multiplier, color, colourableids, bar) {
     this.id = id;
     this.count = 0;
     this.multiplier = multiplier;
     this.color = color;
-    this.animationlist = animationlist;
 
     this.small = Config.smallfont;
     this.large = Config.largefont;
@@ -40,7 +40,7 @@ Score.prototype.add = function(x) {
     var current = parseInt(this.barDomElement.getAttribute("width"));
     var step = (target - current) / (time * Config.tps);
     var count = 0;
-    this.animationlist.push(new Animation(function() {
+    GameState.animationlist.push(new Animation(function() {
         count++;
         if (count <= (time * Config.tps)) {
             //look into changing this if possible for two to play at once.
