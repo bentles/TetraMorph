@@ -60,7 +60,7 @@ svg
     z-index: -1;
 }
 
-.game h1,h2,input
+.game h1,h2,h3,input
 {
     text-align: center;
     margin: 0 auto;
@@ -91,7 +91,7 @@ svg
 .selectable:hover {
     color: #0099CC;
     cursor: pointer;
-    text-shadow: -2px 2px #ffffff;
+    /*text-shadow: -2px 2px #ffffff;*/
 }
 
 

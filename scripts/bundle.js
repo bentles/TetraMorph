@@ -400,12 +400,12 @@ function gameSquareLose(gs, tscore, fscore) {
     fscore.add(-scores.f);
 
     //game over
-    var gameOverDiv = document.getElementById("gameover");
+    var stats_div = document.getElementById("stats");
 
-    gameOverDiv.innerHTML = "<h1>Game Over</h1><h2>Light Score : " +
-        fscore.count + "</h2><h2>Dark Score: " + tscore.count +
-        "</h2><h2>Difficulty Reached: " + difficulty +
-        "</h2>"; //<h3>Refresh to play again</h3>";
+    stats_div.innerHTML = "<h3>Light Score : " +
+        fscore.count + "</h3><h3>Dark Score: " + tscore.count +
+        "</h3><h3>Difficulty Reached: " + difficulty +
+        "</h3>"; //<h3>Refresh to play again</h3>";
     switchToScreen(1); //game over 
     lost = true;
 }
@@ -512,13 +512,17 @@ function switchToScreen(screenNumber) {
     }
 }
 
-init();
-document.getElementById("new_game").addEventListener("click", function(){
+function startGame()
+{
     switchToScreen(-1);
     requestAnimationFrame(animate());
+}
 
-});
+document.getElementById("new_game").addEventListener("click", startGame);
+document.getElementById("retry").addEventListener("click", startGame);
 
+
+init();
 
 
 },{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials":9,"./score.js":10}],5:[function(require,module,exports){
