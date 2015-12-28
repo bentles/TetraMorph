@@ -83,8 +83,6 @@ function init() {
 }
 
 function animate(time) {
-    animationFrameID = requestAnimationFrame(animate);
-
     newTime = time || 0;
 
     var elapsedTime = newTime - currentTime;
@@ -108,6 +106,8 @@ function animate(time) {
 
     //TODO add interpolation somehow
     renderer.render(GameState.scene, camera);
+
+    animationFrameID = requestAnimationFrame(animate);
 }
 
 //score setup
@@ -239,7 +239,7 @@ function gameSquareAnimateLose() {
 function gameReset() {
     lost = false;
     init();
-    animate();
+    requestAnimationFrame(animate());
 }
 
 function onWindowResize() {
@@ -323,5 +323,10 @@ function switchToScreen(screenNumber) {
 }
 
 init();
-animate();
+document.getElementById("new_game").addEventListener("click", function(){
+    switchToScreen(-1);
+    requestAnimationFrame(animate());
+
+});
+
 

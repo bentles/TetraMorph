@@ -273,8 +273,6 @@ function init() {
 }
 
 function animate(time) {
-    animationFrameID = requestAnimationFrame(animate);
-
     newTime = time || 0;
 
     var elapsedTime = newTime - currentTime;
@@ -298,6 +296,8 @@ function animate(time) {
 
     //TODO add interpolation somehow
     renderer.render(GameState.scene, camera);
+
+    animationFrameID = requestAnimationFrame(animate);
 }
 
 //score setup
@@ -429,7 +429,7 @@ function gameSquareAnimateLose() {
 function gameReset() {
     lost = false;
     init();
-    animate();
+    requestAnimationFrame(animate());
 }
 
 function onWindowResize() {
@@ -513,7 +513,12 @@ function switchToScreen(screenNumber) {
 }
 
 init();
-animate();
+document.getElementById("new_game").addEventListener("click", function(){
+    switchToScreen(-1);
+    requestAnimationFrame(animate());
+
+});
+
 
 
 },{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials":9,"./score.js":10}],5:[function(require,module,exports){
