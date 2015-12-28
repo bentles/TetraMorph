@@ -21134,22 +21134,22 @@ Backdrop.prototype.addColorUints = function(color, alpha, array, i) {
 
 module.exports = Backdrop;
 
-},{"./animation.js":220,"./config.js":222,"./gamestate.js":225,"./three.min.js":230}],222:[function(require,module,exports){
+},{"./animation.js":220,"./config.js":222,"./gamestate.js":225,"./lib/three.min.js":227}],222:[function(require,module,exports){
 /**
  * Created by Douglas on 2015/12/27.
  */
 module.exports = {
     //game config
-    tps : 60,             //ticks per second
+    tps : 60,                  //ticks per second
     time_for_shape : 10,
     init_difficulty : 30,
 
     //aesthetics config
-    breathespeed : 0.005,  //background animation speed
-    start_pos : -10000,
-    gap: 10,               //space between squares
-    depth: 5,              //how deep the squares are
-    smallfont : "20pt",    //font sizes of scores
+    breathespeed : 0.005,      //background animation speed
+    start_pos : -10000,        //how far away the square starts
+    gap: 10,                   //space between squares
+    depth: 5,                  //how deep the squares are
+    smallfont : "20pt",        //font sizes of scores
     largefont : "30pt",
     score_animation_time : 0.5 //time (s) for the score animation
 };
@@ -21483,7 +21483,7 @@ init();
 animate();
 
 
-},{"./animation.js":220,"./backdrop.js":221,"./config.js":222,"./gamesquare.js":224,"./gamestate.js":225,"./materials":226,"./score.js":227,"./seedrandom.min.js":228,"./three.min.js":230}],224:[function(require,module,exports){
+},{"./animation.js":220,"./backdrop.js":221,"./config.js":222,"./gamesquare.js":224,"./gamestate.js":225,"./lib/seedrandom.min.js":226,"./lib/three.min.js":227,"./materials":228,"./score.js":229}],224:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 
 var Square = require("./square.js");
@@ -21767,7 +21767,7 @@ GameSquare.prototype.addX = function(num) {
 
 module.exports = GameSquare;
 
-},{"./config.js":222,"./gamestate.js":225,"./square.js":229,"./three.min.js":230,"./treenode.js":231,"./utilities.js":232}],225:[function(require,module,exports){
+},{"./config.js":222,"./gamestate.js":225,"./lib/three.min.js":227,"./square.js":230,"./treenode.js":231,"./utilities.js":232}],225:[function(require,module,exports){
 /**
  * Created by Douglas on 2015/12/27.
  */
@@ -21777,249 +21777,10 @@ module.exports = {
     scene : new THREE.Scene(),
     animationlist : []
 };
-},{"./three.min.js":230}],226:[function(require,module,exports){
-var THREE = require("./lib/three.min.js");
-
-//work out shapes and materials
-var frontmaterial = new THREE.MeshBasicMaterial({
-    transparent: true,
-    color: 0x33CC33,
-    shininess: 50,
-    vertexColors: THREE.FaceColors
-});
-var sidematerial = new THREE.MeshBasicMaterial({
-    transparent: true,
-    color: 0x123123,
-    shininess: 50,
-    vertexColors: THREE.FaceColors
-});
-var backmaterial = new THREE.MeshBasicMaterial({
-    transparent: true,
-    color: 0x145214,
-    shininess: 50,
-    vertexColors: THREE.FaceColors
-});
-var materials = [frontmaterial, sidematerial, backmaterial];
-
-var materialmap = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2];
-var material = new THREE.MeshFaceMaterial(materials);
-
-module.exports.materialmap = materialmap;
-module.exports.material = material;
-
-},{"./three.min.js":230}],227:[function(require,module,exports){
-var Config = require("./config.js");
-var Animation = require("./animation.js");
-var GameState = require("./gamestate.js");
-
-function Score(id, multiplier, color, colourableids, bar) {
-    this.id = id;
-    this.count = 0;
-    this.multiplier = multiplier;
-    this.color = color;
-
-    this.small = Config.smallfont;
-    this.large = Config.largefont;
-    this.barDomElement = document.getElementById(bar);
-    this.domElement = document.getElementById(this.id);
-    this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
-
-    this.colourables = [];
-    for (var i = 0; i < colourableids.length; i++) {
-        this.colourables.push(document.getElementById(colourableids[i]));
-        this.colourables[i].style.fill = "#" + this.color.toString(16);
-    }
-
-}
-
-Score.prototype.toggleMultiplier = function() {
-    this.multiplier = !this.multiplier;
-    this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
-};
-
-Score.prototype.add = function(x) {
-    var that = this;
-    this.count += x;
-    this.count = this.count < 0 ? 0 : this.count;
-    this.domElement.innerHTML = this.count;
-
-    //animate tongue
-    var time = Config.score_animation_time; //time for the animation is half a sec
-    var target = (Math.log(this.count) / Math.log(10)) * 100 || 0;
-    target = target < 0 ? 0 : target;
-    var current = parseInt(this.barDomElement.getAttribute("width"));
-    var step = (target - current) / (time * Config.tps);
-    var count = 0;
-    GameState.animationlist.push(new Animation(function() {
-        count++;
-        if (count <= (time * Config.tps)) {
-            //look into changing this if possible for two to play at once.
-            that.barDomElement.setAttribute("width", current + step * count);
-            return false;
-        } else
-            return true;
-
-    }));
-};
-
-Score.prototype.lost = function() {
-    return this.count < 0;
-};
-
-module.exports = Score;
-
-},{"./animation.js":220,"./config.js":222,"./gamestate.js":225}],228:[function(require,module,exports){
+},{"./lib/three.min.js":227}],226:[function(require,module,exports){
 !function(a,b,c,d,e,f,g,h,i){function j(a){var b,c=a.length,e=this,f=0,g=e.i=e.j=0,h=e.S=[];for(c||(a=[c++]);d>f;)h[f]=f++;for(f=0;d>f;f++)h[f]=h[g=t&g+a[f%c]+(b=h[f])],h[g]=b;(e.g=function(a){for(var b,c=0,f=e.i,g=e.j,h=e.S;a--;)b=h[f=t&f+1],c=c*d+h[t&(h[f]=h[g=t&g+b])+(h[g]=b)];return e.i=f,e.j=g,c})(d)}function k(a,b){return b.i=a.i,b.j=a.j,b.S=a.S.slice(),b}function l(a,b){var c,d=[],e=typeof a;if(b&&"object"==e)for(c in a)try{d.push(l(a[c],b-1))}catch(f){}return d.length?d:"string"==e?a:a+"\0"}function m(a,b){for(var c,d=a+"",e=0;e<d.length;)b[t&e]=t&(c^=19*b[t&e])+d.charCodeAt(e++);return o(b)}function n(c){try{return p?o(p.randomBytes(d)):(a.crypto.getRandomValues(c=new Uint8Array(d)),o(c))}catch(e){return[+new Date,a,(c=a.navigator)&&c.plugins,a.screen,o(b)]}}function o(a){return String.fromCharCode.apply(0,a)}var p,q=c.pow(d,e),r=c.pow(2,f),s=2*r,t=d-1,u=c["seed"+i]=function(a,f,g){var h=[];f=1==f?{entropy:!0}:f||{};var p=m(l(f.entropy?[a,o(b)]:null==a?n():a,3),h),t=new j(h);return m(o(t.S),b),(f.pass||g||function(a,b,d,e){return e&&(e.S&&k(e,t),a.state=function(){return k(t,{})}),d?(c[i]=a,b):a})(function(){for(var a=t.g(e),b=q,c=0;r>a;)a=(a+c)*d,b*=d,c=t.g(1);for(;a>=s;)a/=2,b/=2,c>>>=1;return(a+c)/b},p,"global"in f?f.global:this==c,f.state)};if(m(c[i](),b),g&&g.exports){g.exports=u;try{p=require("crypto")}catch(v){}}else h&&h.amd&&h(function(){return u})}(this,[],Math,256,6,52,"object"==typeof module&&module,"function"==typeof define&&define,"random");
 
-},{"crypto":6}],229:[function(require,module,exports){
-var THREE = require("./lib/three.min.js");
-var Animation = require("./animation.js");
-var Config = require("./config.js");
-var GameState = require("./gamestate.js");
-
-function Shape(mesh) {
-    this.mesh = mesh;
-    mesh.shape = this;
-}
-
-function Square(mesh, flipped, editable) {
-    Shape.call(this, mesh);
-    this.flipped = (flipped === undefined) ? false : flipped;
-    this.editable = (editable === undefined) ? true : editable;
-    this.node = null;
-}
-
-Square.prototype = Object.create(Shape.prototype);
-Square.prototype.requestSplit = function() {
-    if (this.editable) {
-        var gs = this.node.getGameSquare();
-        this.node.initChildren();
-        for (var i = 0; i < 4; i++)
-            gs.addPositionedSquareAtNode(this.node.children[i], this.flipped);
-        gs.updateSquareString();
-    }
-};
-Square.prototype.flip = function() {
-    if (this.editable) {
-        this.flipped = !this.flipped;
-        this.animateFlip(15);
-        var gs = this.node.getGameSquare();
-        gs.updateSquareString();
-    }
-};
-Square.prototype.requestMerge = function() {
-    if (this.editable) {
-        var gs = this.node.getGameSquare();
-        gs.addPositionedSquareAtNode(this.node.parent, this.flipped);
-        gs.updateSquareString();
-    }
-};
-Square.prototype.animateFlip = function(pifractions) {
-    var mesh = this.mesh;
-    var step = (1 / pifractions) * Math.PI;
-    var count = 0;
-
-    //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
-    GameState.animationlist.push(new Animation(
-        function() {
-            if (count < pifractions) {
-                mesh.rotation.x += step;
-                count++;
-
-                if (mesh.rotation.x >= Math.PI * 2)
-                    mesh.rotation.x = mesh.rotation.x - Math.PI * 2;
-                return false;
-            } else {
-                if (this.node != null) {
-                    this.node.getGameSquare().updateSquareString();
-                    console.log(this.node.getGameSquare().squareString);
-                }
-
-                return true;
-            }
-        }));
-};
-
-/*
- *Takes a function that generates an animation, this function takes 3 paramaters
- *the first is the square we manipulate, the last two are an optional flag and a callback
- */
-Square.prototype.animate = function(funcgen, destroy, callback) {
-    GameState.animationlist.push(new Animation(funcgen(this, destroy, callback)));
-};
-Square.prototype.animateFade = function(steps, kill, callback) {
-    this.animate(
-        function(square, destroy, callback) {
-            var totalsteps = steps * Config.tps;
-            var decrease = 1 / totalsteps;
-            return function() {
-                square.mesh.material.materials.forEach(function(x) {
-                    x.opacity -= decrease;
-                });
-                totalsteps--;
-
-                if (!totalsteps) {
-                    square.killOrCallback(destroy, callback);
-                    return true;
-                }
-                return false;
-            };
-        }, kill, callback);
-};
-
-Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEuler, steps, kill, callback) {
-    this.animate(
-        function(square, destroy, callback) {
-            var totalsteps = steps * Config.tps;
-            var mesh = square.mesh;
-            var posdiff = new THREE.Vector3();
-            posdiff.subVectors(posVect3, mesh.position);
-            posdiff.divideScalar(totalsteps);
-
-            var thisdimens = new THREE.Vector2(mesh.geometry.parameters.width, mesh.geometry.parameters.height);
-            var thatdimens = thisdimens.clone();
-            var dimensiondiff = new THREE.Vector2();
-            dimensiondiff.subVectors(thisdimens, dimensionsVect2);
-            dimensiondiff.divideScalar(totalsteps);
-
-            var rotxdiff = rotationEuler.x - mesh.rotation.x;
-            rotxdiff /= totalsteps;
-            var rotydiff = rotationEuler.y - mesh.rotation.y;
-            rotydiff /= totalsteps;
-            var rotzdiff = rotationEuler.z - mesh.rotation.z;
-            rotzdiff /= totalsteps;
-
-            return function() {
-
-                mesh.position.add(posdiff);
-                thatdimens.sub(dimensiondiff);
-                mesh.scale.x = thatdimens.x / thisdimens.x;
-                mesh.scale.y = thatdimens.y / thisdimens.y;
-                mesh.rotation.x += rotxdiff;
-                mesh.rotation.y += rotydiff;
-                mesh.rotation.z += rotzdiff;
-
-                totalsteps--;
-                if (!totalsteps) {
-                    square.killOrCallback(destroy, callback);
-                    return true;
-                }
-                return false;
-            };
-        }, true, callback);
-};
-
-Square.prototype.killOrCallback = function(destroy, callback) {
-    if (destroy)
-        GameState.scene.remove(this.mesh);
-    if (callback)
-        callback();
-};
-
-
-module.exports = Square ;
-
-},{"./animation.js":220,"./config.js":222,"./gamestate.js":225,"./three.min.js":230}],230:[function(require,module,exports){
+},{"crypto":6}],227:[function(require,module,exports){
 // threejs.org/license
 'use strict';var THREE={REVISION:"69"};"object"===typeof module&&(module.exports=THREE);void 0===Math.sign&&(Math.sign=function(a){return 0>a?-1:0<a?1:0});THREE.MOUSE={LEFT:0,MIDDLE:1,RIGHT:2};THREE.CullFaceNone=0;THREE.CullFaceBack=1;THREE.CullFaceFront=2;THREE.CullFaceFrontBack=3;THREE.FrontFaceDirectionCW=0;THREE.FrontFaceDirectionCCW=1;THREE.BasicShadowMap=0;THREE.PCFShadowMap=1;THREE.PCFSoftShadowMap=2;THREE.FrontSide=0;THREE.BackSide=1;THREE.DoubleSide=2;THREE.NoShading=0;
 THREE.FlatShading=1;THREE.SmoothShading=2;THREE.NoColors=0;THREE.FaceColors=1;THREE.VertexColors=2;THREE.NoBlending=0;THREE.NormalBlending=1;THREE.AdditiveBlending=2;THREE.SubtractiveBlending=3;THREE.MultiplyBlending=4;THREE.CustomBlending=5;THREE.AddEquation=100;THREE.SubtractEquation=101;THREE.ReverseSubtractEquation=102;THREE.MinEquation=103;THREE.MaxEquation=104;THREE.ZeroFactor=200;THREE.OneFactor=201;THREE.SrcColorFactor=202;THREE.OneMinusSrcColorFactor=203;THREE.SrcAlphaFactor=204;
@@ -22837,7 +22598,246 @@ f!==d.currentFrame&&(this.morphTargetInfluences[d.lastFrame]=0,this.morphTargetI
 
 module.exports = THREE;
 
-},{}],231:[function(require,module,exports){
+},{}],228:[function(require,module,exports){
+var THREE = require("./lib/three.min.js");
+
+//work out shapes and materials
+var frontmaterial = new THREE.MeshBasicMaterial({
+    transparent: true,
+    color: 0x33CC33,
+    shininess: 50,
+    vertexColors: THREE.FaceColors
+});
+var sidematerial = new THREE.MeshBasicMaterial({
+    transparent: true,
+    color: 0x123123,
+    shininess: 50,
+    vertexColors: THREE.FaceColors
+});
+var backmaterial = new THREE.MeshBasicMaterial({
+    transparent: true,
+    color: 0x145214,
+    shininess: 50,
+    vertexColors: THREE.FaceColors
+});
+var materials = [frontmaterial, sidematerial, backmaterial];
+
+var materialmap = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2];
+var material = new THREE.MeshFaceMaterial(materials);
+
+module.exports.materialmap = materialmap;
+module.exports.material = material;
+
+},{"./lib/three.min.js":227}],229:[function(require,module,exports){
+var Config = require("./config.js");
+var Animation = require("./animation.js");
+var GameState = require("./gamestate.js");
+
+function Score(id, multiplier, color, colourableids, bar) {
+    this.id = id;
+    this.count = 0;
+    this.multiplier = multiplier;
+    this.color = color;
+
+    this.small = Config.smallfont;
+    this.large = Config.largefont;
+    this.barDomElement = document.getElementById(bar);
+    this.domElement = document.getElementById(this.id);
+    this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
+
+    this.colourables = [];
+    for (var i = 0; i < colourableids.length; i++) {
+        this.colourables.push(document.getElementById(colourableids[i]));
+        this.colourables[i].style.fill = "#" + this.color.toString(16);
+    }
+
+}
+
+Score.prototype.toggleMultiplier = function() {
+    this.multiplier = !this.multiplier;
+    this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
+};
+
+Score.prototype.add = function(x) {
+    var that = this;
+    this.count += x;
+    this.count = this.count < 0 ? 0 : this.count;
+    this.domElement.innerHTML = this.count;
+
+    //animate tongue
+    var time = Config.score_animation_time; //time for the animation is half a sec
+    var target = (Math.log(this.count) / Math.log(10)) * 100 || 0;
+    target = target < 0 ? 0 : target;
+    var current = parseInt(this.barDomElement.getAttribute("width"));
+    var step = (target - current) / (time * Config.tps);
+    var count = 0;
+    GameState.animationlist.push(new Animation(function() {
+        count++;
+        if (count <= (time * Config.tps)) {
+            //look into changing this if possible for two to play at once.
+            that.barDomElement.setAttribute("width", current + step * count);
+            return false;
+        } else
+            return true;
+
+    }));
+};
+
+Score.prototype.lost = function() {
+    return this.count < 0;
+};
+
+module.exports = Score;
+
+},{"./animation.js":220,"./config.js":222,"./gamestate.js":225}],230:[function(require,module,exports){
+var THREE = require("./lib/three.min.js");
+var Animation = require("./animation.js");
+var Config = require("./config.js");
+var GameState = require("./gamestate.js");
+
+function Shape(mesh) {
+    this.mesh = mesh;
+    mesh.shape = this;
+}
+
+function Square(mesh, flipped, editable) {
+    Shape.call(this, mesh);
+    this.flipped = (flipped === undefined) ? false : flipped;
+    this.editable = (editable === undefined) ? true : editable;
+    this.node = null;
+}
+
+Square.prototype = Object.create(Shape.prototype);
+Square.prototype.requestSplit = function() {
+    if (this.editable) {
+        var gs = this.node.getGameSquare();
+        this.node.initChildren();
+        for (var i = 0; i < 4; i++)
+            gs.addPositionedSquareAtNode(this.node.children[i], this.flipped);
+        gs.updateSquareString();
+    }
+};
+Square.prototype.flip = function() {
+    if (this.editable) {
+        this.flipped = !this.flipped;
+        this.animateFlip(15);
+        var gs = this.node.getGameSquare();
+        gs.updateSquareString();
+    }
+};
+Square.prototype.requestMerge = function() {
+    if (this.editable) {
+        var gs = this.node.getGameSquare();
+        gs.addPositionedSquareAtNode(this.node.parent, this.flipped);
+        gs.updateSquareString();
+    }
+};
+Square.prototype.animateFlip = function(pifractions) {
+    var mesh = this.mesh;
+    var step = (1 / pifractions) * Math.PI;
+    var count = 0;
+
+    //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
+    GameState.animationlist.push(new Animation(
+        function() {
+            if (count < pifractions) {
+                mesh.rotation.x += step;
+                count++;
+
+                if (mesh.rotation.x >= Math.PI * 2)
+                    mesh.rotation.x = mesh.rotation.x - Math.PI * 2;
+                return false;
+            } else {
+                if (this.node != null) {
+                    this.node.getGameSquare().updateSquareString();
+                    console.log(this.node.getGameSquare().squareString);
+                }
+
+                return true;
+            }
+        }));
+};
+
+/*
+ *Takes a function that generates an animation, this function takes 3 paramaters
+ *the first is the square we manipulate, the last two are an optional flag and a callback
+ */
+Square.prototype.animate = function(funcgen, destroy, callback) {
+    GameState.animationlist.push(new Animation(funcgen(this, destroy, callback)));
+};
+Square.prototype.animateFade = function(steps, kill, callback) {
+    this.animate(
+        function(square, destroy, callback) {
+            var totalsteps = steps * Config.tps;
+            var decrease = 1 / totalsteps;
+            return function() {
+                square.mesh.material.materials.forEach(function(x) {
+                    x.opacity -= decrease;
+                });
+                totalsteps--;
+
+                if (!totalsteps) {
+                    square.killOrCallback(destroy, callback);
+                    return true;
+                }
+                return false;
+            };
+        }, kill, callback);
+};
+
+Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEuler, steps, kill, callback) {
+    this.animate(
+        function(square, destroy, callback) {
+            var totalsteps = steps * Config.tps;
+            var mesh = square.mesh;
+            var posdiff = new THREE.Vector3();
+            posdiff.subVectors(posVect3, mesh.position);
+            posdiff.divideScalar(totalsteps);
+
+            var thisdimens = new THREE.Vector2(mesh.geometry.parameters.width, mesh.geometry.parameters.height);
+            var thatdimens = thisdimens.clone();
+            var dimensiondiff = new THREE.Vector2();
+            dimensiondiff.subVectors(thisdimens, dimensionsVect2);
+            dimensiondiff.divideScalar(totalsteps);
+
+            var rotxdiff = rotationEuler.x - mesh.rotation.x;
+            rotxdiff /= totalsteps;
+            var rotydiff = rotationEuler.y - mesh.rotation.y;
+            rotydiff /= totalsteps;
+            var rotzdiff = rotationEuler.z - mesh.rotation.z;
+            rotzdiff /= totalsteps;
+
+            return function() {
+
+                mesh.position.add(posdiff);
+                thatdimens.sub(dimensiondiff);
+                mesh.scale.x = thatdimens.x / thisdimens.x;
+                mesh.scale.y = thatdimens.y / thisdimens.y;
+                mesh.rotation.x += rotxdiff;
+                mesh.rotation.y += rotydiff;
+                mesh.rotation.z += rotzdiff;
+
+                totalsteps--;
+                if (!totalsteps) {
+                    square.killOrCallback(destroy, callback);
+                    return true;
+                }
+                return false;
+            };
+        }, true, callback);
+};
+
+Square.prototype.killOrCallback = function(destroy, callback) {
+    if (destroy)
+        GameState.scene.remove(this.mesh);
+    if (callback)
+        callback();
+};
+
+
+module.exports = Square ;
+
+},{"./animation.js":220,"./config.js":222,"./gamestate.js":225,"./lib/three.min.js":227}],231:[function(require,module,exports){
 var GameSquare = require("./gamesquare.js");
 var GameState = require("./gamestate.js");
 
