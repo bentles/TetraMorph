@@ -1,4 +1,4 @@
-var THREE = require("./three.min.js");
+var THREE = require("./lib/three.min.js");
 
 var Square = require("./square.js");
 var util = require("./utilities.js");

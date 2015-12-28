@@ -1,4 +1,4 @@
-var THREE = require("./three.min.js");
+var THREE = require("./lib/three.min.js");
 
 //work out shapes and materials
 var frontmaterial = new THREE.MeshBasicMaterial({

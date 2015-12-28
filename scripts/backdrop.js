@@ -1,5 +1,5 @@
 var Animation = require("./animation.js");
-var THREE = require("./three.min.js");
+var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");
 

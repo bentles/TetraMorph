@@ -1,8 +1,8 @@
 //add ability to seed RNG to the math object
-require("./seedrandom.min.js");
+require("./lib/seedrandom.min.js");
 
 //the threejs library object
-var THREE = require("./three.min.js");
+var THREE = require("./lib/three.min.js");
 
 //internal dependencies
 var materials = require("./materials");
