@@ -12,22 +12,18 @@ var GameSquare = require("./gamesquare.js");
 var Animation = require("./animation.js");
 var Score = require("./score.js");
 var State = require("./gamestate.js");
+var Util = require("./utilities.js");
 
 var camera, renderer, raycaster, mouseVector;
 var backdrop;
 var animationFrameID;
-
-var screens = ["gamestart", "gameover", "paused", "seed"];
-
-//player's GameSquare
-var playerGameSquare;
 
 //physics at 60fps
 var dt = 1000 / Config.tps;
 
 function setup() {
     //clear the screen
-    switchToScreen(-1);
+    Util.switchToScreen(-1);
 
     //set up seed
     var seed = Math.random();
@@ -48,12 +44,6 @@ function setup() {
     backdrop = new Backdrop(4, 4, 0x00CC00);
     backdrop.animateBreathe();
 
-    //player
-    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0);
-    playerGameSquare.generateSquares();
-    playerGameSquare.addX(-550);
-    playerGameSquare.playerReset();
-
     //set up renderer
     renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -69,6 +59,22 @@ function setup() {
     window.addEventListener('contextmenu', function(event) {
         event.preventDefault();
     }, false);
+}
+
+function initGame()
+{
+    //create the player
+    var player_game_square = new GameSquare(materials.material, materials.materialmap, 0);
+    player_game_square.generateSquares();
+    player_game_square.addX(-550);
+    player_game_square.playerReset();
+    State.add("player", player_game_square);
+
+    //set up the scores
+    var tscore = new Score("t", false, Config.light_colour, ["r1", "r2", "r3"], "right-tongue");
+    var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
+    State.add("tscore", tscore);
+    State.add("fscore", fscore);
 }
 
 function animate(time) {
@@ -99,21 +105,14 @@ function animate(time) {
 }
 
 //start states for game variables
-var time_for_shape = Config.time_for_shape; //seconds
-var start_pos = Config.start_pos;
 var multiplier = true;
 var moving_forward_animation;
 
-//scores
-var tscore = new Score("t", false, Config.light_colour, ["r1", "r2", "r3"], "right-tongue");
-var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
-State.add("tscore", tscore);
-State.add("fscore", fscore);
-
 function gameLogic() {
+    console.log(State.scene.children.length);
     if (!State.lost) //while you are still alive the game goes on
     {
-        var roundWon = (State.gs !== null) && (playerGameSquare.squareString === State.gs.squareString);
+        var roundWon = (State.gs !== null) && (State.player.squareString === State.gs.squareString);
         if (roundWon) {
             moving_forward_animation.stop();
             gameSquareWin(State.gs, State.tscore, State.fscore);
@@ -132,7 +131,7 @@ function gameLogic() {
             }
 
             //reset player square
-            playerGameSquare.playerReset();
+            State.player.playerReset();
 
             //make an uneditable gamesquare
             State.gs = new GameSquare(
@@ -144,18 +143,18 @@ function gameLogic() {
 
             //position the gamesquare
             State.gs.addX(550);
-            State.gs.setZ(start_pos);
+            State.gs.setZ(Config.start_pos);
 
             //animate the gamesquare
             moving_forward_animation = new Animation(function() {
-                var step = Math.abs(playerGameSquare.getZ() - start_pos) / (time_for_shape * Config.tps);
+                var step = Math.abs(State.player.getZ() - Config.start_pos) / (Config.time_for_shape * Config.tps);
                 State.gs.addZ(step);
                 return false;
             });
 
             State.animationlist.push(moving_forward_animation);
 
-            State.count_down_to_next_shape = time_for_shape * Config.tps;
+            State.count_down_to_next_shape = Config.time_for_shape * Config.tps;
         } else if (State.count_down_to_next_shape > 0) {
             //if they win before the end move on to the next animation
             //continue counting down
@@ -205,7 +204,7 @@ function gameSquareLose(gs, tscore, fscore) {
         fscore.count + "</h3><h3>Dark Score: " + tscore.count +
         "</h3><h3>Difficulty Reached: " + State.difficulty +
         "</h3>"; //<h3>Refresh to play again</h3>";
-    switchToScreen(1); //game over 
+    Util.switchToScreen(1); //game over
     State.lost = true;
 }
 
@@ -225,12 +224,6 @@ function gameSquareAnimateLose() {
     });
 }
 
-function gameReset() {
-    State.lost = false;
-    setup();
-    requestAnimationFrame(animate);
-}
-
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -241,7 +234,7 @@ function onWindowResize() {
 
 function onMouseDown(e) {
     if (State.lost) {
-        gameReset();
+        //gameReset();
     } else if (!State.active) {
         onFocus();
     } else //must be resumed by click before another click can do anything
@@ -277,10 +270,10 @@ function onKeyBoard(e) {
         State.tscore.toggleMultiplier();
         State.fscore.toggleMultiplier();
         backdrop.setColor(multiplier ? color2 : color1);
-    } else if (e.keyCode === 107)
-        Config.breathespeed += 0.001;
+} else if (e.keyCode === 107)
+    Config.breathe_speed += 0.001;
     else if (e.keyCode === 109)
-        Config.breathespeed -= 0.001;
+        Config.breathe_speed -= 0.001;
 }
 
 function onFocus() {
@@ -298,28 +291,29 @@ function onBlur() {
     {
         State.active = false;
         if (!State.lost)
-            switchToScreen(2);
+            Util.switchToScreen(2);
         State.paused_time = Date.now();
         cancelAnimationFrame(animationFrameID);
     }
 };
 
-function switchToScreen(screenNumber) {
-    for (var i = 0; i < screens.length; i++) {
-        document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
-    }
+
+function restartGame() {
+    Util.switchToScreen(-1);
+    State.reset();
 }
 
 function startGame() {
-    switchToScreen(-1);
-    State.reset();
+    initGame();
+    Util.switchToScreen(-1);
     requestAnimationFrame(animate);
 }
 
 document.getElementById("new_game").addEventListener("click", startGame);
-document.getElementById("retry").addEventListener("click", startGame);
+document.getElementById("retry").addEventListener("click", restartGame);
 document.getElementById("main_menu").addEventListener("click", function(){switchToScreen(0)});
 
+
 setup();
-switchToScreen(0);
+Util.switchToScreen(0);
 

@@ -7,7 +7,7 @@ var GameState = require("./gamestate.js");
 
 function Backdrop(dimension, repeats, startcolour) {
     var that = this;
-    this.breathespeed = Config.breathespeed;
+    this.breathespeed = Config.breathe_speed;
     this.repeats = repeats;
     this.width = dimension;
     this.height = dimension;

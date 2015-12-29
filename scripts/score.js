@@ -8,8 +8,8 @@ function Score(id, multiplier, color, colourableids, bar) {
     this.multiplier = multiplier;
     this.color = color;
 
-    this.small = Config.smallfont;
-    this.large = Config.largefont;
+    this.small = Config.small_font;
+    this.large = Config.large_font;
     this.barDomElement = document.getElementById(bar);
     this.domElement = document.getElementById(this.id);
     this.domElement.style.fontSize = this.multiplier ? this.large : this.small;

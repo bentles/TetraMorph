@@ -29,7 +29,7 @@ var GameState = require("./gamestate.js");
 
 function Backdrop(dimension, repeats, startcolour) {
     var that = this;
-    this.breathespeed = Config.breathespeed;
+    this.breathespeed = Config.breathe_speed;
     this.repeats = repeats;
     this.width = dimension;
     this.height = dimension;
@@ -170,20 +170,20 @@ module.exports = Backdrop;
 },{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8}],3:[function(require,module,exports){
 module.exports = {
     //game config
-    tps : 60,                  // ticks per second
+    tps : 60,                   // ticks per second
     time_for_shape : 10,
     init_difficulty : 30,
 
     //aesthetics config
-    breathespeed : 0.005,      // background animation speed
-    start_pos : -10000,        // how far away the square starts
-    gap: 10,                   // space between squares
-    depth: 5,                  // how deep the squares are
-    smallfont : "20pt",        // font sizes of scores
-    largefont : "30pt",
-    score_animation_time : 0.5,// time (s) for the score animation
-    light_colour :  0x145214,  // light colour
-    dark_colour : 0x33CC33     //
+    breathe_speed : 0.005,       // background animation speed
+    start_pos : -10000,         // how far away the square starts
+    gap: 10,                    // space between squares
+    depth: 5,                   // how deep the squares are
+    small_font : "20pt",         // font sizes of scores
+    large_font : "30pt",
+    score_animation_time : 0.5, // time (s) for the score animation
+    light_colour :  0x145214,
+    dark_colour : 0x33CC33,
 };
 
 },{}],4:[function(require,module,exports){
@@ -201,22 +201,18 @@ var GameSquare = require("./gamesquare.js");
 var Animation = require("./animation.js");
 var Score = require("./score.js");
 var State = require("./gamestate.js");
+var Util = require("./utilities.js");
 
 var camera, renderer, raycaster, mouseVector;
 var backdrop;
 var animationFrameID;
-
-var screens = ["gamestart", "gameover", "paused", "seed"];
-
-//player's GameSquare
-var playerGameSquare;
 
 //physics at 60fps
 var dt = 1000 / Config.tps;
 
 function setup() {
     //clear the screen
-    switchToScreen(-1);
+    Util.switchToScreen(-1);
 
     //set up seed
     var seed = Math.random();
@@ -237,12 +233,6 @@ function setup() {
     backdrop = new Backdrop(4, 4, 0x00CC00);
     backdrop.animateBreathe();
 
-    //player
-    playerGameSquare = new GameSquare(materials.material, materials.materialmap, 0);
-    playerGameSquare.generateSquares();
-    playerGameSquare.addX(-550);
-    playerGameSquare.playerReset();
-
     //set up renderer
     renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -258,6 +248,22 @@ function setup() {
     window.addEventListener('contextmenu', function(event) {
         event.preventDefault();
     }, false);
+}
+
+function initGame()
+{
+    //create the player
+    var player_game_square = new GameSquare(materials.material, materials.materialmap, 0);
+    player_game_square.generateSquares();
+    player_game_square.addX(-550);
+    player_game_square.playerReset();
+    State.add("player", player_game_square);
+
+    //set up the scores
+    var tscore = new Score("t", false, Config.light_colour, ["r1", "r2", "r3"], "right-tongue");
+    var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
+    State.add("tscore", tscore);
+    State.add("fscore", fscore);
 }
 
 function animate(time) {
@@ -288,21 +294,14 @@ function animate(time) {
 }
 
 //start states for game variables
-var time_for_shape = Config.time_for_shape; //seconds
-var start_pos = Config.start_pos;
 var multiplier = true;
 var moving_forward_animation;
 
-//scores
-var tscore = new Score("t", false, Config.light_colour, ["r1", "r2", "r3"], "right-tongue");
-var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
-State.add("tscore", tscore);
-State.add("fscore", fscore);
-
 function gameLogic() {
+    console.log(State.scene.children.length);
     if (!State.lost) //while you are still alive the game goes on
     {
-        var roundWon = (State.gs !== null) && (playerGameSquare.squareString === State.gs.squareString);
+        var roundWon = (State.gs !== null) && (State.player.squareString === State.gs.squareString);
         if (roundWon) {
             moving_forward_animation.stop();
             gameSquareWin(State.gs, State.tscore, State.fscore);
@@ -321,7 +320,7 @@ function gameLogic() {
             }
 
             //reset player square
-            playerGameSquare.playerReset();
+            State.player.playerReset();
 
             //make an uneditable gamesquare
             State.gs = new GameSquare(
@@ -333,18 +332,18 @@ function gameLogic() {
 
             //position the gamesquare
             State.gs.addX(550);
-            State.gs.setZ(start_pos);
+            State.gs.setZ(Config.start_pos);
 
             //animate the gamesquare
             moving_forward_animation = new Animation(function() {
-                var step = Math.abs(playerGameSquare.getZ() - start_pos) / (time_for_shape * Config.tps);
+                var step = Math.abs(State.player.getZ() - Config.start_pos) / (Config.time_for_shape * Config.tps);
                 State.gs.addZ(step);
                 return false;
             });
 
             State.animationlist.push(moving_forward_animation);
 
-            State.count_down_to_next_shape = time_for_shape * Config.tps;
+            State.count_down_to_next_shape = Config.time_for_shape * Config.tps;
         } else if (State.count_down_to_next_shape > 0) {
             //if they win before the end move on to the next animation
             //continue counting down
@@ -394,7 +393,7 @@ function gameSquareLose(gs, tscore, fscore) {
         fscore.count + "</h3><h3>Dark Score: " + tscore.count +
         "</h3><h3>Difficulty Reached: " + State.difficulty +
         "</h3>"; //<h3>Refresh to play again</h3>";
-    switchToScreen(1); //game over 
+    Util.switchToScreen(1); //game over
     State.lost = true;
 }
 
@@ -414,12 +413,6 @@ function gameSquareAnimateLose() {
     });
 }
 
-function gameReset() {
-    State.lost = false;
-    setup();
-    requestAnimationFrame(animate);
-}
-
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -430,7 +423,7 @@ function onWindowResize() {
 
 function onMouseDown(e) {
     if (State.lost) {
-        gameReset();
+        //gameReset();
     } else if (!State.active) {
         onFocus();
     } else //must be resumed by click before another click can do anything
@@ -466,10 +459,10 @@ function onKeyBoard(e) {
         State.tscore.toggleMultiplier();
         State.fscore.toggleMultiplier();
         backdrop.setColor(multiplier ? color2 : color1);
-    } else if (e.keyCode === 107)
-        Config.breathespeed += 0.001;
+} else if (e.keyCode === 107)
+    Config.breathe_speed += 0.001;
     else if (e.keyCode === 109)
-        Config.breathespeed -= 0.001;
+        Config.breathe_speed -= 0.001;
 }
 
 function onFocus() {
@@ -487,33 +480,34 @@ function onBlur() {
     {
         State.active = false;
         if (!State.lost)
-            switchToScreen(2);
+            Util.switchToScreen(2);
         State.paused_time = Date.now();
         cancelAnimationFrame(animationFrameID);
     }
 };
 
-function switchToScreen(screenNumber) {
-    for (var i = 0; i < screens.length; i++) {
-        document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
-    }
+
+function restartGame() {
+    Util.switchToScreen(-1);
+    State.reset();
 }
 
 function startGame() {
-    switchToScreen(-1);
-    State.reset();
+    initGame();
+    Util.switchToScreen(-1);
     requestAnimationFrame(animate);
 }
 
 document.getElementById("new_game").addEventListener("click", startGame);
-document.getElementById("retry").addEventListener("click", startGame);
+document.getElementById("retry").addEventListener("click", restartGame);
 document.getElementById("main_menu").addEventListener("click", function(){switchToScreen(0)});
 
+
 setup();
-switchToScreen(0);
+Util.switchToScreen(0);
 
 
-},{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials":9,"./score.js":10}],5:[function(require,module,exports){
+},{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials":9,"./score.js":10,"./utilities.js":13}],5:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 
 var Square = require("./square.js");
@@ -800,6 +794,7 @@ module.exports = GameSquare;
 },{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./square.js":11,"./treenode.js":12,"./utilities.js":13}],6:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
+var Util = require("./utilities.js")
 
 var game_state = {
     scene : new THREE.Scene(),
@@ -826,8 +821,24 @@ var game_state = {
 };
 
 function reset() {
-    game_state.scene = new THREE.Scene();
+    //players and animations
+    game_state.player.playerReset();
+    game_state.gs.clearSquares();
+    game_state.gs = null;
     game_state.animationlist = [];
+
+    //time
+    game_state.paused_time = 0;
+    game_state.current_time = 0;
+    game_state.new_time = 0;
+    game_state.accumulator = 0;
+
+    game_state.lost = false;
+    game_state.active = true;
+
+    //creating the game squares
+    game_state.count_down_to_next_shape = 0;
+    game_state.difficulty = Config.init_difficulty;
 }
 
 function add(name, value) {
@@ -835,7 +846,7 @@ function add(name, value) {
 }
 
 module.exports = game_state ;
-},{"./config.js":3,"./lib/three.min.js":8}],7:[function(require,module,exports){
+},{"./config.js":3,"./lib/three.min.js":8,"./utilities.js":13}],7:[function(require,module,exports){
 !function(a,b,c,d,e,f,g,h,i){function j(a){var b,c=a.length,e=this,f=0,g=e.i=e.j=0,h=e.S=[];for(c||(a=[c++]);d>f;)h[f]=f++;for(f=0;d>f;f++)h[f]=h[g=t&g+a[f%c]+(b=h[f])],h[g]=b;(e.g=function(a){for(var b,c=0,f=e.i,g=e.j,h=e.S;a--;)b=h[f=t&f+1],c=c*d+h[t&(h[f]=h[g=t&g+b])+(h[g]=b)];return e.i=f,e.j=g,c})(d)}function k(a,b){return b.i=a.i,b.j=a.j,b.S=a.S.slice(),b}function l(a,b){var c,d=[],e=typeof a;if(b&&"object"==e)for(c in a)try{d.push(l(a[c],b-1))}catch(f){}return d.length?d:"string"==e?a:a+"\0"}function m(a,b){for(var c,d=a+"",e=0;e<d.length;)b[t&e]=t&(c^=19*b[t&e])+d.charCodeAt(e++);return o(b)}function n(c){try{return p?o(p.randomBytes(d)):(a.crypto.getRandomValues(c=new Uint8Array(d)),o(c))}catch(e){return[+new Date,a,(c=a.navigator)&&c.plugins,a.screen,o(b)]}}function o(a){return String.fromCharCode.apply(0,a)}var p,q=c.pow(d,e),r=c.pow(2,f),s=2*r,t=d-1,u=c["seed"+i]=function(a,f,g){var h=[];f=1==f?{entropy:!0}:f||{};var p=m(l(f.entropy?[a,o(b)]:null==a?n():a,3),h),t=new j(h);return m(o(t.S),b),(f.pass||g||function(a,b,d,e){return e&&(e.S&&k(e,t),a.state=function(){return k(t,{})}),d?(c[i]=a,b):a})(function(){for(var a=t.g(e),b=q,c=0;r>a;)a=(a+c)*d,b*=d,c=t.g(1);for(;a>=s;)a/=2,b/=2,c>>>=1;return(a+c)/b},p,"global"in f?f.global:this==c,f.state)};if(m(c[i](),b),g&&g.exports){g.exports=u;}else h&&h.amd&&h(function(){return u})}(this,[],Math,256,6,52,"object"==typeof module&&module,"function"==typeof define&&define,"random");
 
 },{}],8:[function(require,module,exports){
@@ -1697,8 +1708,8 @@ function Score(id, multiplier, color, colourableids, bar) {
     this.multiplier = multiplier;
     this.color = color;
 
-    this.small = Config.smallfont;
-    this.large = Config.largefont;
+    this.small = Config.small_font;
+    this.large = Config.large_font;
     this.barDomElement = document.getElementById(bar);
     this.domElement = document.getElementById(this.id);
     this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
@@ -2014,6 +2025,14 @@ function singleTreeRecursion(node, tlist, flist) {
             });
 }
 
+var screens = ["gamestart", "gameover", "paused", "seed"];
+function switchToScreen(screenNumber) {
+    for (var i = 0; i < screens.length; i++) {
+        document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
+    }
+}
+
+module.exports.switchToScreen = switchToScreen;
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
 module.exports.geometricSeriesSum = geometricSeriesSum ;
 
