@@ -19,7 +19,6 @@ function Score(id, multiplier, color, colourableids, bar) {
         this.colourables.push(document.getElementById(colourableids[i]));
         this.colourables[i].style.fill = "#" + this.color.toString(16);
     }
-
 }
 
 Score.prototype.toggleMultiplier = function() {
@@ -44,7 +43,7 @@ Score.prototype.add = function(x) {
         count++;
         if (count <= (time * Config.tps)) {
             //look into changing this if possible for two to play at once.
-            that.barDomElement.setAttribute("width", current + step * count);
+            that.barDomElement.setAttribute("width", current + step * count + "px");
             return false;
         } else
             return true;

@@ -6,8 +6,7 @@ var Node = require("./treenode.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");
 
-function GameSquare(material, materialmap, difficulty, editable) //0 difficulty is just a single square
-{
+function GameSquare(material, materialmap, difficulty, editable) { //0 difficulty is just a single square
     this.material = material.clone();
     this.materialmap = materialmap;
     this.difficulty = difficulty;
@@ -129,6 +128,7 @@ GameSquare.prototype.generateSquares = function() {
         }
     }
 };
+
 GameSquare.prototype.addPositionedSquareAtNode = function(node, flipped) {
     var orignode = node;
     var cornerlist = [];

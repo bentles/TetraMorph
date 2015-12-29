@@ -11,7 +11,7 @@ var Backdrop = require("./backdrop.js");
 var GameSquare = require("./gamesquare.js");
 var Animation = require("./animation.js");
 var Score = require("./score.js");
-var GameState = require("./gamestate.js");
+var State = require("./gamestate.js");
 
 var camera, renderer, raycaster, mouseVector;
 var backdrop;
@@ -22,23 +22,12 @@ var screens = ["gamestart", "gameover", "paused", "seed"];
 //player's GameSquare
 var playerGameSquare;
 
-//pausing and resuming
-var pausedTime = 0;
-var active = true;
-
 //physics at 60fps
-
 var dt = 1000 / Config.tps;
-var currentTime = 0,
-    newTime = 0;
-var accumulator = 0;
 
-//game state
-var lost = false;
-
-function init() {
-    //not sure why but if i start off with none in css it never appears :/
-    switchToScreen(0);
+function setup() {
+    //clear the screen
+    switchToScreen(-1);
 
     //set up seed
     var seed = Math.random();
@@ -53,7 +42,7 @@ function init() {
     //lighting
     var light = new THREE.PointLight(0xffffff, 0.8);
     light.position.set(0.3, 0.2, 1).normalize();
-    GameState.scene.add(light);
+    State.scene.add(light);
 
     //create the backdrop
     backdrop = new Backdrop(4, 4, 0x00CC00);
@@ -83,66 +72,62 @@ function init() {
 }
 
 function animate(time) {
-    newTime = time || 0;
+    State.new_time = time || 0;
 
-    var elapsedTime = newTime - currentTime;
+    var elapsed_time = State.new_time - State.current_time;
 
-    if (pausedTime > 0) //game has recently been paused
+    if (State.paused_time > 0) //game has recently been paused
     {
-        elapsedTime -= pausedTime;
-        pausedTime = 0;
+        elapsed_time -= State.paused_time;
+        State.paused_time = 0;
     }
-    currentTime = newTime;
+    State.current_time = State.new_time;
 
-    accumulator += elapsedTime;
+    State.accumulator += elapsed_time;
 
     //loop if we can do more physics per render
     //don't do physics at all if not enough time has passed for another step
     //instead, render again
-    while (accumulator >= dt) {
+    while (State.accumulator >= dt) {
         gameLogic();
-        accumulator -= dt;
+        State.accumulator -= dt;
     }
 
-    //TODO add interpolation somehow
-    renderer.render(GameState.scene, camera);
+    renderer.render(State.scene, camera);
 
     animationFrameID = requestAnimationFrame(animate);
 }
 
-//score setup
-var color1 = 0x145214;
-var color2 = 0x33CC33;
-var tscore = new Score("t", false, color1, ["r1", "r2", "r3"], "right-tongue");
-var fscore = new Score("f", true, color2, ["l1", "l2", "l3"], "left-tongue");
-
 //start states for game variables
-var timeForShape = Config.time_for_shape; //seconds
-var countDownToNextShape = 0;
+var time_for_shape = Config.time_for_shape; //seconds
 var start_pos = Config.start_pos;
-var difficulty = Config.init_difficulty;
 var multiplier = true;
-var gs = null;
-var movingForwardAnimation;
+var moving_forward_animation;
+
+//scores
+var tscore = new Score("t", false, Config.light_colour, ["r1", "r2", "r3"], "right-tongue");
+var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
+State.add("tscore", tscore);
+State.add("fscore", fscore);
 
 function gameLogic() {
-    if (!lost) //while you are still alive the game goes on
+    if (!State.lost) //while you are still alive the game goes on
     {
-        var roundWon = (gs !== null) && (playerGameSquare.squareString === gs.squareString);
+        var roundWon = (State.gs !== null) && (playerGameSquare.squareString === State.gs.squareString);
         if (roundWon) {
-            movingForwardAnimation.stop();
-            gameSquareWin(gs, tscore, fscore);
-            difficulty += 2;
+            moving_forward_animation.stop();
+            gameSquareWin(State.gs, State.tscore, State.fscore);
+            State.difficulty += 2;
             gameSquareAnimateWin();
-            countDownToNextShape = 0.3 * Config.tps;
-            gs = null; //marker for having won
+            State.count_down_to_next_shape = 0.3 * Config.tps;
+            State.gs = null; //marker for having won
         }
 
-        if (countDownToNextShape === 0) {
+        if (State.count_down_to_next_shape === 0) {
             //need to play animation for losing if gs is not null by this point
-            if (gs !== null) {
-                movingForwardAnimation.stop();
-                gameSquareLose(gs, tscore, fscore);
+            if (State.gs !== null) {
+                moving_forward_animation.stop();
+                gameSquareLose(State.gs, State.tscore, State.fscore);
                 gameSquareAnimateLose();
             }
 
@@ -150,27 +135,31 @@ function gameLogic() {
             playerGameSquare.playerReset();
 
             //make an uneditable gamesquare
-            gs = new GameSquare(materials.material, materials.materialmap, Math.floor(difficulty), false);
-            gs.generateSquares();
+            State.gs = new GameSquare(
+                materials.material,
+                materials.materialmap,
+                Math.floor(State.difficulty),
+                false);
+            State.gs.generateSquares();
 
             //position the gamesquare
-            gs.addX(550);
-            gs.setZ(start_pos);
+            State.gs.addX(550);
+            State.gs.setZ(start_pos);
 
             //animate the gamesquare
-            movingForwardAnimation = new Animation(function() {
-                var step = Math.abs(playerGameSquare.getZ() - start_pos) / (timeForShape * Config.tps);
-                gs.addZ(step);
+            moving_forward_animation = new Animation(function() {
+                var step = Math.abs(playerGameSquare.getZ() - start_pos) / (time_for_shape * Config.tps);
+                State.gs.addZ(step);
                 return false;
             });
 
-            GameState.animationlist.push(movingForwardAnimation);
+            State.animationlist.push(moving_forward_animation);
 
-            countDownToNextShape = timeForShape * Config.tps;
-        } else if (countDownToNextShape > 0) {
+            State.count_down_to_next_shape = time_for_shape * Config.tps;
+        } else if (State.count_down_to_next_shape > 0) {
             //if they win before the end move on to the next animation
             //continue counting down
-            countDownToNextShape--;
+            State.count_down_to_next_shape--;
         }
     }
 
@@ -181,18 +170,18 @@ function gameLogic() {
      * call each Animation's play method in turn and remove those that return true
      * this may or may not be a terrible way to do this that I regret later lol
      */
-    var len = GameState.animationlist.length;
+    var len = State.animationlist.length;
     while (len--) {
-        var done = GameState.animationlist[len].playStep();
+        var done = State.animationlist[len].playStep();
         if (done) {
-            var nextAnims = GameState.animationlist[len].getNextAnis();
-            GameState.animationlist.splice(len, 1);
+            var nextAnims = State.animationlist[len].getNextAnis();
+            State.animationlist.splice(len, 1);
 
             //Animations can have a list of successors which activate after an
             //animation is complete
             if (nextAnims.length > 0)
                 nextAnims.forEach(function(x) {
-                    GameState.animationlist.push(x);
+                    State.animationlist.push(x);
                 }, this);
         }
     }
@@ -214,32 +203,32 @@ function gameSquareLose(gs, tscore, fscore) {
 
     stats_div.innerHTML = "<h3>Light Score : " +
         fscore.count + "</h3><h3>Dark Score: " + tscore.count +
-        "</h3><h3>Difficulty Reached: " + difficulty +
+        "</h3><h3>Difficulty Reached: " + State.difficulty +
         "</h3>"; //<h3>Refresh to play again</h3>";
     switchToScreen(1); //game over 
-    lost = true;
+    State.lost = true;
 }
 
 function gameSquareAnimateWin() {
     var time = 0.6;
     var steps = Config.tps * 5;
-    gs.squares.forEach(function(x) {
-        x.animateMoveTo(new THREE.Vector3(0, -300, 700), new THREE.Vector2(20, 20),
-                        x.mesh.rotation, time, true);
+    State.gs.squares.forEach(function(x) {
+        x.animateMoveTo(new THREE.Vector3(0, -300, 700),
+            new THREE.Vector2(20, 20),
+            x.mesh.rotation, time, true);
     });
 }
 
 function gameSquareAnimateLose() {
-    gs.squares.forEach(function(x) {
+    State.gs.squares.forEach(function(x) {
         x.animateFade(3, true);
     });
 }
 
-
 function gameReset() {
-    lost = false;
-    init();
-    requestAnimationFrame(animate());
+    State.lost = false;
+    setup();
+    requestAnimationFrame(animate);
 }
 
 function onWindowResize() {
@@ -247,13 +236,13 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(GameState.scene, camera);
+    renderer.render(State.scene, camera);
 }
 
 function onMouseDown(e) {
-    if (lost) {
+    if (State.lost) {
         gameReset();
-    } else if (!active) {
+    } else if (!State.active) {
         onFocus();
     } else //must be resumed by click before another click can do anything
     {
@@ -263,7 +252,7 @@ function onMouseDown(e) {
         var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
 
         raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-        var intersects = raycaster.intersectObjects(GameState.scene.children);
+        var intersects = raycaster.intersectObjects(State.scene.children);
 
         if (intersects[0] && (intersects[0].object.shape !== undefined)) {
             if (e.button === 0 && e.shiftKey || e.button === 1)
@@ -279,15 +268,14 @@ function onMouseDown(e) {
 function onKeyBoard(e) {
     e = e || window.event;
     if (e.keyCode === 27) {
-        if (active)
+        if (State.active)
             onBlur();
         else
             onFocus();
     } else if (e.keyCode === 32) {
         multiplier = !multiplier;
-
-        tscore.toggleMultiplier();
-        fscore.toggleMultiplier();
+        State.tscore.toggleMultiplier();
+        State.fscore.toggleMultiplier();
         backdrop.setColor(multiplier ? color2 : color1);
     } else if (e.keyCode === 107)
         Config.breathespeed += 0.001;
@@ -296,22 +284,22 @@ function onKeyBoard(e) {
 }
 
 function onFocus() {
-    if (!active) //needed on firefox
+    if (!State.active) //needed on firefox
     {
-        active = true;
+        State.active = true;
         document.getElementById("paused").style.display = "none";
-        pausedTime = Date.now() - pausedTime;
+        State.paused_time = Date.now() - State.paused_time;
         requestAnimationFrame(animate);
     }
 };
 
 function onBlur() {
-    if (active) //just to be safe
+    if (State.active) //just to be safe
     {
-        active = false;
-        if (!lost)
+        State.active = false;
+        if (!State.lost)
             switchToScreen(2);
-        pausedTime = Date.now();
+        State.paused_time = Date.now();
         cancelAnimationFrame(animationFrameID);
     }
 };
@@ -322,15 +310,16 @@ function switchToScreen(screenNumber) {
     }
 }
 
-function startGame()
-{
+function startGame() {
     switchToScreen(-1);
-    requestAnimationFrame(animate());
+    State.reset();
+    requestAnimationFrame(animate);
 }
 
 document.getElementById("new_game").addEventListener("click", startGame);
 document.getElementById("retry").addEventListener("click", startGame);
+document.getElementById("main_menu").addEventListener("click", function(){switchToScreen(0)});
 
-
-init();
+setup();
+switchToScreen(0);
 
