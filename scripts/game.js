@@ -17,6 +17,7 @@ var Util = require("./utilities.js");
 var camera, renderer, raycaster, mouseVector;
 var backdrop;
 var animationFrameID;
+var seed;
 
 //physics at 60fps
 var dt = 1000 / Config.tps;
@@ -26,7 +27,7 @@ function setup() {
     Util.switchToScreen(-1);
 
     //set up seed
-    var seed = Math.random();
+    seed = Math.random();
     Math.seedrandom(seed);
 
     //scene and camera
@@ -292,11 +293,16 @@ function onFocus() {
 function onBlur() {
     if (State.active) //just to be safe
     {
+        document.getElementById("seed_display").innerHTML = "seed: " + seed ;
+
         State.active = false;
         if (!State.lost)
             Util.switchToScreen(2);
         State.paused = true;
         cancelAnimationFrame(animationFrameID);
+
+
+
     }
 };
 

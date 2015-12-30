@@ -76,7 +76,7 @@ function Backdrop(dimension, repeats, startcolour) {
 Backdrop.prototype.animateBreathe = function() {
     var step = 0;
     var mesh = this.mesh;
-    var breathespeed = this.breathespeed;
+    var breathespeed = this.breathespeed / 2;
     GameState.animationlist.push(new Animation(function() {
         step += Math.PI * breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
