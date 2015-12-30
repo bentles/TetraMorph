@@ -60,7 +60,7 @@ function Backdrop(dimension, repeats, startcolour) {
     this.textureNec(this.text2);
 
     //create materials
-    this.mat1 = new THREE.MeshPhongMaterial({
+    this.mat1 = new THREE.MeshBasicMaterial({
         map: this.text1,
         emissive: new THREE.Color(0x333333),
         emissiveMap: this.text1,
@@ -69,7 +69,7 @@ function Backdrop(dimension, repeats, startcolour) {
         vertexColors: THREE.FaceColors,
         side: THREE.BackSide
     });
-    this.mat2 = new THREE.MeshPhongMaterial({
+    this.mat2 = new THREE.MeshBasicMaterial({
         emissive: new THREE.Color(0x222222),
         emissiveMap: this.text2,
         specular: new THREE.Color(0xFFFFFF),
@@ -82,7 +82,7 @@ function Backdrop(dimension, repeats, startcolour) {
     this.matmap = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0];
 
     this.backdrop = new THREE.MeshFaceMaterial(this.mats);
-    this.mat2.color.setHex(startcolour);
+    this.mat2.color.setHex(0x0000CC);//startcolour);
     this.mat1.color.setHex(0x0000CC);
 
     this.geom = new THREE.BoxGeometry(2300, 2300, 60000);
@@ -103,7 +103,7 @@ Backdrop.prototype.animateBreathe = function() {
         step += Math.PI * breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
-        mesh.rotation.set(0, 0, Math.PI + Math.cos(step)*3);
+        mesh.rotation.set(0, 0, Math.PI + Math.cos(step)*2);
         return false;
     }));
 };
