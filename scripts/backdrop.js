@@ -63,7 +63,7 @@ function Backdrop(dimension, repeats, startcolour) {
     this.mat2.color.setHex(startcolour);
     this.mat1.color.setHex(0x0000CC);
 
-    this.geom = new THREE.BoxGeometry(2100, 1000, 60000);
+    this.geom = new THREE.BoxGeometry(2300, 2300, 60000);
     for (var i = 0; i < this.matmap.length; i++) {
         this.geom.faces[i].materialIndex = this.matmap[i];
     }
@@ -81,7 +81,7 @@ Backdrop.prototype.animateBreathe = function() {
         step += Math.PI * breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
-        mesh.rotateZ(Math.cos(step)/ 500);
+        mesh.rotation.set(0, 0, Math.PI + Math.cos(step)*3);
         return false;
     }));
 };

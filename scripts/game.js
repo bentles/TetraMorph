@@ -305,6 +305,7 @@ function restartGame() {
     Util.switchToScreen(-1);
     cancelAnimationFrame(animationFrameID);
     State.reset();
+    backdrop.animateBreathe();
     animationFrameID = requestAnimationFrame(animate);
 }
 
