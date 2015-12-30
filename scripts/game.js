@@ -136,28 +136,30 @@ function gameLogic() {
             //reset player square
             State.player.playerReset();
 
-            //make an uneditable gamesquare
-            State.gs = new GameSquare(
-                materials.material,
-                materials.materialmap,
-                Math.floor(State.difficulty),
-                false);
-            State.gs.generateSquares();
+            //if the game has not just been lost, make the next game square
+            if (!State.lost) {
+                State.gs = new GameSquare(
+                    materials.material,
+                    materials.materialmap,
+                    Math.floor(State.difficulty),
+                    false);
+                State.gs.generateSquares();
 
-            //position the gamesquare
-            State.gs.addX(550);
-            State.gs.setZ(Config.start_pos);
+                //position the gamesquare
+                State.gs.addX(550);
+                State.gs.setZ(Config.start_pos);
 
-            //animate the gamesquare
-            moving_forward_animation = new Animation(function() {
-                var step = Math.abs(State.player.getZ() - Config.start_pos) / (Config.time_for_shape * Config.tps);
-                State.gs.addZ(step);
-                return false;
-            });
+                //animate the gamesquare
+                moving_forward_animation = new Animation(function () {
+                    var step = Math.abs(State.player.getZ() - Config.start_pos) / (Config.time_for_shape * Config.tps);
+                    State.gs.addZ(step);
+                    return false;
+                });
 
-            State.animationlist.push(moving_forward_animation);
+                State.animationlist.push(moving_forward_animation);
 
-            State.count_down_to_next_shape = Config.time_for_shape * Config.tps;
+                State.count_down_to_next_shape = Config.time_for_shape * Config.tps;
+            }
         } else if (State.count_down_to_next_shape > 0) {
             //if they win before the end move on to the next animation
             //continue counting down
@@ -225,6 +227,10 @@ function gameSquareAnimateLose() {
     State.gs.squares.forEach(function(x) {
         x.animateFade(3, true);
     });
+
+    //State.player.squares.forEach(function(x) {
+    //    x.animateFade(3, true);
+    //});
 }
 
 function onWindowResize() {
@@ -323,7 +329,7 @@ function startGame() {
 
 document.getElementById("new_game").addEventListener("click", startGame);
 document.getElementById("retry").addEventListener("click", restartGame);
-document.getElementById("main_menu").addEventListener("click", function(){switchToScreen(0)});
+document.getElementById("main_menu").addEventListener("click", function(){Util.switchToScreen(0)});
 
 
 setup();

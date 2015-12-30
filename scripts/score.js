@@ -51,6 +51,11 @@ Score.prototype.add = function(x) {
     }));
 };
 
+Score.prototype.reset = function() {
+    this.count = 0;
+    this.domElement.innerHTML = this.count ;
+}
+
 Score.prototype.lost = function() {
     return this.count < 0;
 };
