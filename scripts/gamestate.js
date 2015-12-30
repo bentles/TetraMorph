@@ -7,12 +7,12 @@ var game_state = {
     animationlist : [],
 
     //time related vars
-    paused_time : 0,
     current_time : 0,
     new_time : 0,
     accumulator : 0,
 
     // state flags
+    paused : true,
     lost : false,
     active : true,
 
@@ -34,7 +34,7 @@ function reset() {
     game_state.animationlist = [];
 
     //time
-    game_state.paused_time = 0;
+    game_state.paused = true;
     game_state.current_time = 0;
     game_state.new_time = 0;
     game_state.accumulator = 0;

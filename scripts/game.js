@@ -80,13 +80,15 @@ function initGame()
 function animate(time) {
     State.new_time = time || 0;
 
+    if(State.paused)
+    {
+        State.current_time = State.new_time ;
+        State.paused = false;
+    }
+
     var elapsed_time = State.new_time - State.current_time;
 
-    if (State.paused_time > 0) //game has recently been paused
-    {
-        elapsed_time -= State.paused_time;
-        State.paused_time = 0;
-    }
+
     State.current_time = State.new_time;
 
     State.accumulator += elapsed_time;
@@ -109,7 +111,7 @@ var multiplier = true;
 var moving_forward_animation;
 
 function gameLogic() {
-    console.log(State.scene.children.length);
+    //console.log(State.scene.children.length);
     if (!State.lost) //while you are still alive the game goes on
     {
         var roundWon = (State.gs !== null) && (State.player.squareString === State.gs.squareString);
@@ -281,7 +283,8 @@ function onFocus() {
     {
         State.active = true;
         document.getElementById("paused").style.display = "none";
-        State.paused_time = Date.now() - State.paused_time;
+
+        //implicitly reset State.paused
         requestAnimationFrame(animate);
     }
 };
@@ -292,7 +295,7 @@ function onBlur() {
         State.active = false;
         if (!State.lost)
             Util.switchToScreen(2);
-        State.paused_time = Date.now();
+        State.paused = true;
         cancelAnimationFrame(animationFrameID);
     }
 };
@@ -300,7 +303,9 @@ function onBlur() {
 
 function restartGame() {
     Util.switchToScreen(-1);
+    cancelAnimationFrame(animationFrameID);
     State.reset();
+    animationFrameID = requestAnimationFrame(animate);
 }
 
 function startGame() {
