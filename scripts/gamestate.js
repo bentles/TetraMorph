@@ -29,7 +29,9 @@ var game_state = {
 function reset() {
     //players and animations
     game_state.player.playerReset();
-    game_state.gs.clearSquares();
+    if (game_state.gs != null)
+        game_state.gs.clearSquares();
+
     game_state.gs = null;
     game_state.animationlist = [];
 

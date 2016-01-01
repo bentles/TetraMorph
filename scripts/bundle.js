@@ -188,7 +188,7 @@ module.exports = {
 
 },{}],4:[function(require,module,exports){
 //add ability to seed RNG to the math object
-require("./lib/seedrandom.min.js");
+var seedrandom = require("./lib/seedrandom.min.js");
 
 //the threejs library object
 var THREE = require("./lib/three.min.js");
@@ -211,13 +211,13 @@ var seed;
 //physics at 60fps
 var dt = 1000 / Config.tps;
 
+//stop right-click context menu from appearing. ever.
+window.addEventListener('contextmenu', function(event) {
+    event.preventDefault(); }, false);
+
 function setup() {
     //clear the screen
     Util.switchToScreen(-1);
-
-    //set up seed
-    seed = Math.random();
-    Math.seedrandom(seed);
 
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
@@ -241,18 +241,6 @@ function setup() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    //add event listeners for mouse
-    document.addEventListener('mousedown', onMouseDown, false);
-    window.addEventListener('resize', onWindowResize, false);
-    window.addEventListener('keydown', onKeyBoard, false);
-    window.addEventListener('blur', onBlur, false);
-    window.addEventListener('contextmenu', function(event) {
-        event.preventDefault();
-    }, false);
-}
-
-function initGame()
-{
     //create the player
     var player_game_square = new GameSquare(materials.material, materials.materialmap, 0);
     player_game_square.generateSquares();
@@ -265,6 +253,19 @@ function initGame()
     var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
     State.add("tscore", tscore);
     State.add("fscore", fscore);
+
+    //add event listeners for mouse
+    document.addEventListener('mousedown', onMouseDown, false);
+    window.addEventListener('resize', onWindowResize, false);
+    window.addEventListener('keydown', onKeyBoard, false);
+    window.addEventListener('blur', onBlur, false);
+}
+
+function reSeed()
+{
+    //set up seed
+    seed = Math.random();
+    seedrandom(seed, {global: true});
 }
 
 function animate(time) {
@@ -277,7 +278,6 @@ function animate(time) {
     }
 
     var elapsed_time = State.new_time - State.current_time;
-
 
     State.current_time = State.new_time;
 
@@ -495,14 +495,12 @@ function onBlur() {
             Util.switchToScreen(2);
         State.paused = true;
         cancelAnimationFrame(animationFrameID);
-
-
-
     }
 };
 
 
 function restartGame() {
+    seedrandom(seed, {global: true});
     Util.switchToScreen(-1);
     cancelAnimationFrame(animationFrameID);
     State.reset();
@@ -511,9 +509,8 @@ function restartGame() {
 }
 
 function startGame() {
-    initGame();
-    Util.switchToScreen(-1);
-    requestAnimationFrame(animate);
+    reSeed();
+    restartGame();
 }
 
 document.getElementById("new_game").addEventListener("click", startGame);
@@ -558,23 +555,28 @@ GameSquare.prototype.generateSquareString = function() {
     //squareString the squarestring is maintained by the gamesquare
     //through all operations
 
-    this.numletters = 1;
-    this.squareString = Math.random() >= 0.5 ? "f" : "t";
-
-    for (var i = 0; i < (this.difficulty / 10); i++) {
-        var operation = Math.random() >= 0.5;
-
-        var pos = this.getSkewedRandomLetterDetails().pos;
-        var depth = this.getSkewedRandomLetterDetails().depth;
-
-        if (operation && depth < 3) //splitting a square	
-            this.splitAtNthLetter(pos);
-        else if (!operation)
-            this.flipAtNthLetter(pos);
+    if (this.difficulty === 0) {
+        this.squareString = "f";
     }
+    else {
+        this.numletters = 1;
+        this.squareString = Math.random() >= 0.5 ? "f" : "t";
 
-    if (this.squareString === "f")
-        this.generateSquareString();
+        for (var i = 0; i < (this.difficulty / 10); i++) {
+            var operation = Math.random() >= 0.5;
+
+            var pos = this.getSkewedRandomLetterDetails().pos;
+            var depth = this.getSkewedRandomLetterDetails().depth;
+
+            if (operation && depth < 3) //splitting a square
+                this.splitAtNthLetter(pos);
+            else if (!operation)
+                this.flipAtNthLetter(pos);
+        }
+
+        if (this.squareString === "f")
+            this.generateSquareString();
+    }
 };
 
 GameSquare.prototype.getSkewedRandomLetterDetails = function() {
@@ -592,8 +594,8 @@ GameSquare.prototype.getSkewedRandomLetterDetails = function() {
     }
 
     return {
-        "pos": length,
-        "depth": depth
+        "pos" : length,
+        "depth" : depth
     };
 };
 
@@ -841,7 +843,9 @@ var game_state = {
 function reset() {
     //players and animations
     game_state.player.playerReset();
-    game_state.gs.clearSquares();
+    if (game_state.gs != null)
+        game_state.gs.clearSquares();
+
     game_state.gs = null;
     game_state.animationlist = [];
 

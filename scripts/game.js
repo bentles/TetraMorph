@@ -1,5 +1,5 @@
 //add ability to seed RNG to the math object
-require("./lib/seedrandom.min.js");
+var seedrandom = require("./lib/seedrandom.min.js");
 
 //the threejs library object
 var THREE = require("./lib/three.min.js");
@@ -22,13 +22,13 @@ var seed;
 //physics at 60fps
 var dt = 1000 / Config.tps;
 
+//stop right-click context menu from appearing. ever.
+window.addEventListener('contextmenu', function(event) {
+    event.preventDefault(); }, false);
+
 function setup() {
     //clear the screen
     Util.switchToScreen(-1);
-
-    //set up seed
-    seed = Math.random();
-    Math.seedrandom(seed);
 
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
@@ -52,18 +52,6 @@ function setup() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    //add event listeners for mouse
-    document.addEventListener('mousedown', onMouseDown, false);
-    window.addEventListener('resize', onWindowResize, false);
-    window.addEventListener('keydown', onKeyBoard, false);
-    window.addEventListener('blur', onBlur, false);
-    window.addEventListener('contextmenu', function(event) {
-        event.preventDefault();
-    }, false);
-}
-
-function initGame()
-{
     //create the player
     var player_game_square = new GameSquare(materials.material, materials.materialmap, 0);
     player_game_square.generateSquares();
@@ -76,6 +64,19 @@ function initGame()
     var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
     State.add("tscore", tscore);
     State.add("fscore", fscore);
+
+    //add event listeners for mouse
+    document.addEventListener('mousedown', onMouseDown, false);
+    window.addEventListener('resize', onWindowResize, false);
+    window.addEventListener('keydown', onKeyBoard, false);
+    window.addEventListener('blur', onBlur, false);
+}
+
+function reSeed()
+{
+    //set up seed
+    seed = Math.random();
+    seedrandom(seed, {global: true});
 }
 
 function animate(time) {
@@ -88,7 +89,6 @@ function animate(time) {
     }
 
     var elapsed_time = State.new_time - State.current_time;
-
 
     State.current_time = State.new_time;
 
@@ -306,14 +306,12 @@ function onBlur() {
             Util.switchToScreen(2);
         State.paused = true;
         cancelAnimationFrame(animationFrameID);
-
-
-
     }
 };
 
 
 function restartGame() {
+    seedrandom(seed, {global: true});
     Util.switchToScreen(-1);
     cancelAnimationFrame(animationFrameID);
     State.reset();
@@ -322,9 +320,8 @@ function restartGame() {
 }
 
 function startGame() {
-    initGame();
-    Util.switchToScreen(-1);
-    requestAnimationFrame(animate);
+    reSeed();
+    restartGame();
 }
 
 document.getElementById("new_game").addEventListener("click", startGame);

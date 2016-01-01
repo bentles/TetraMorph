@@ -30,23 +30,28 @@ GameSquare.prototype.generateSquareString = function() {
     //squareString the squarestring is maintained by the gamesquare
     //through all operations
 
-    this.numletters = 1;
-    this.squareString = Math.random() >= 0.5 ? "f" : "t";
-
-    for (var i = 0; i < (this.difficulty / 10); i++) {
-        var operation = Math.random() >= 0.5;
-
-        var pos = this.getSkewedRandomLetterDetails().pos;
-        var depth = this.getSkewedRandomLetterDetails().depth;
-
-        if (operation && depth < 3) //splitting a square	
-            this.splitAtNthLetter(pos);
-        else if (!operation)
-            this.flipAtNthLetter(pos);
+    if (this.difficulty === 0) {
+        this.squareString = "f";
     }
+    else {
+        this.numletters = 1;
+        this.squareString = Math.random() >= 0.5 ? "f" : "t";
 
-    if (this.squareString === "f")
-        this.generateSquareString();
+        for (var i = 0; i < (this.difficulty / 10); i++) {
+            var operation = Math.random() >= 0.5;
+
+            var pos = this.getSkewedRandomLetterDetails().pos;
+            var depth = this.getSkewedRandomLetterDetails().depth;
+
+            if (operation && depth < 3) //splitting a square
+                this.splitAtNthLetter(pos);
+            else if (!operation)
+                this.flipAtNthLetter(pos);
+        }
+
+        if (this.squareString === "f")
+            this.generateSquareString();
+    }
 };
 
 GameSquare.prototype.getSkewedRandomLetterDetails = function() {
@@ -64,8 +69,8 @@ GameSquare.prototype.getSkewedRandomLetterDetails = function() {
     }
 
     return {
-        "pos": length,
-        "depth": depth
+        "pos" : length,
+        "depth" : depth
     };
 };
 
