@@ -89,7 +89,7 @@ svg
 }
 
 .selectable:hover {
-    color: #0099CC;
+    color: #7ac8cc;
     cursor: pointer;
     /*text-shadow: -2px 2px #ffffff;*/
 }

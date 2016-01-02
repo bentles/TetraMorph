@@ -85,7 +85,7 @@ function Backdrop(dimension, repeats, startcolour) {
     this.mat2.color.setHex(0x0000CC);//startcolour);
     this.mat1.color.setHex(0x0000CC);
 
-    this.geom = new THREE.BoxGeometry(2300, 2300, 60000);
+    this.geom = new THREE.BoxGeometry(2400, 2400, 60000);
     for (var i = 0; i < this.matmap.length; i++) {
         this.geom.faces[i].materialIndex = this.matmap[i];
     }
@@ -487,7 +487,7 @@ function onFocus() {
 function onBlur() {
     if (State.active) //just to be safe
     {
-        document.getElementById("seed_display").innerHTML = "seed: " + seed ;
+        document.getElementById("seed_display").innerHTML = "seed: " + State.seed ;
         composer.render(State.scene, camera);
         State.active = false;
         if (!State.lost)

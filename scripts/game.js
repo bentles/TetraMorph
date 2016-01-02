@@ -298,7 +298,7 @@ function onFocus() {
 function onBlur() {
     if (State.active) //just to be safe
     {
-        document.getElementById("seed_display").innerHTML = "seed: " + seed ;
+        document.getElementById("seed_display").innerHTML = "seed: " + State.seed ;
         composer.render(State.scene, camera);
         State.active = false;
         if (!State.lost)
