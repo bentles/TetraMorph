@@ -89,9 +89,9 @@ svg
 }
 
 .selectable:hover {
-    color: #7ac8cc;
+    color: #00CDCD;
     cursor: pointer;
-    /*text-shadow: -2px 2px #ffffff;*/
+    -webkit-text-stroke: 1px white;
 }
 
 #score{

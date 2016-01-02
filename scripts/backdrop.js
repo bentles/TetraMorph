@@ -7,6 +7,7 @@ var GameState = require("./gamestate.js");
 
 function Backdrop(dimension, repeats, startcolour) {
     var that = this;
+    this.fast_mode = false;
     this.breathespeed = Config.breathe_speed;
     this.repeats = repeats;
     this.width = dimension;
@@ -74,17 +75,40 @@ function Backdrop(dimension, repeats, startcolour) {
 }
 
 Backdrop.prototype.animateBreathe = function() {
+    var that = this;
     var step = 0;
     var mesh = this.mesh;
     var breathespeed = this.breathespeed / 2;
     GameState.animationlist.push(new Animation(function() {
-        step += Math.PI * breathespeed;
+        if (that.fast_mode)
+            step += Math.PI * breathespeed * 10;
+        else
+            step += Math.PI * breathespeed;
+
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
         mesh.rotation.set(0, 0, Math.sin(step)*2);
         return false;
     }));
 };
+
+//this is dumb and i hate it
+Backdrop.prototype.animateWin = function(){
+    var that = this;
+    var step = 0.5 * Config.tps;
+    GameState.animationlist.push(new Animation(function() {
+        if (step >= 0) {
+            step--;
+            that.fast_mode = true;
+            return false;
+        }
+        else {
+            that.fast_mode = false;
+            return true;
+        }
+    }));
+
+}
 
 Backdrop.prototype.setColor = function(hex) {
     this.mat2.color.setHex(hex);

@@ -123,6 +123,7 @@ function gameLogic() {
             gameSquareWin(State.gs, State.score);
             State.difficulty += 2;
             gameSquareAnimateWin();
+            backdrop.animateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
             State.gs = null; //marker for having won
         }

@@ -1,7 +1,7 @@
 module.exports = {
     //game config
     tps : 60,                   // ticks per second
-    time_for_shape : 6,
+    time_for_shape : 5,
     init_difficulty : 30,
 
     //aesthetics config
