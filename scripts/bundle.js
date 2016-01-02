@@ -171,7 +171,7 @@ module.exports = Backdrop;
 module.exports = {
     //game config
     tps : 60,                   // ticks per second
-    time_for_shape : 4,
+    time_for_shape : 6,
     init_difficulty : 30,
 
     //aesthetics config
@@ -274,8 +274,7 @@ function setup() {
 function reSeed()
 {
     //set up seed
-    seed = Math.random();
-    seedrandom(seed, {global: true});
+    State.seed = Math.random();
 }
 
 function animate(time) {
@@ -432,7 +431,7 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(State.scene, camera);
+    composer.render(State.scene, camera);
 }
 
 function onMouseDown(e) {
@@ -500,9 +499,8 @@ function onBlur() {
 
 
 function restartGame() {
-    seedrandom(seed, {global: true});
-    Util.switchToScreen(4);
     cancelAnimationFrame(animationFrameID);
+    Util.switchToScreen(4);
     State.reset();
     backdrop.animateBreathe();
     animationFrameID = requestAnimationFrame(animate);
@@ -558,10 +556,10 @@ GameSquare.prototype.generateSquareString = function() {
         this.squareString = "f";
     }
     else {
-        this.squareString = Math.random() >= 0.5 ? "f" : "t";
+        this.squareString = GameState.rng() >= 0.5 ? "f" : "t";
 
         for (var i = 0; i < (this.difficulty / 10); i++) {
-            var operation = Math.random() >= 0.5;
+            var operation = GameState.rng() >= 0.5;
 
             var details = this.getSkewedRandomLetterDetails();
 
@@ -577,7 +575,7 @@ GameSquare.prototype.generateSquareString = function() {
 };
 
 GameSquare.prototype.getSkewedRandomLetterDetails = function() {
-    var rand = Math.random(); //[0, 1)
+    var rand = GameState.rng(); //[0, 1)
     var depth = 0;
     var length = this.squareString.length;
 
@@ -815,7 +813,7 @@ module.exports = GameSquare;
 },{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./square.js":11,"./treenode.js":12,"./utilities.js":13}],6:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
-var Util = require("./utilities.js")
+var Seedrandom = require("./lib/seedrandom.min.js")
 
 var game_state = {
     scene : new THREE.Scene(),
@@ -836,12 +834,18 @@ var game_state = {
     difficulty : Config.init_difficulty,
     gs : null,
 
+    //seeded random number generator
+    seed : Math.random(),
+    rng : Seedrandom(seed),
+
     //reference to the reset function
     reset : reset,
     add : add
 };
 
 function reset() {
+    game_state.rng = Seedrandom(game_state.seed);
+
     //players and animations
     game_state.player.playerReset();
     if (game_state.gs != null)
@@ -871,7 +875,7 @@ function add(name, value) {
 }
 
 module.exports = game_state ;
-},{"./config.js":3,"./lib/three.min.js":8,"./utilities.js":13}],7:[function(require,module,exports){
+},{"./config.js":3,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8}],7:[function(require,module,exports){
 !function(a,b,c,d,e,f,g,h,i){function j(a){var b,c=a.length,e=this,f=0,g=e.i=e.j=0,h=e.S=[];for(c||(a=[c++]);d>f;)h[f]=f++;for(f=0;d>f;f++)h[f]=h[g=t&g+a[f%c]+(b=h[f])],h[g]=b;(e.g=function(a){for(var b,c=0,f=e.i,g=e.j,h=e.S;a--;)b=h[f=t&f+1],c=c*d+h[t&(h[f]=h[g=t&g+b])+(h[g]=b)];return e.i=f,e.j=g,c})(d)}function k(a,b){return b.i=a.i,b.j=a.j,b.S=a.S.slice(),b}function l(a,b){var c,d=[],e=typeof a;if(b&&"object"==e)for(c in a)try{d.push(l(a[c],b-1))}catch(f){}return d.length?d:"string"==e?a:a+"\0"}function m(a,b){for(var c,d=a+"",e=0;e<d.length;)b[t&e]=t&(c^=19*b[t&e])+d.charCodeAt(e++);return o(b)}function n(c){try{return p?o(p.randomBytes(d)):(a.crypto.getRandomValues(c=new Uint8Array(d)),o(c))}catch(e){return[+new Date,a,(c=a.navigator)&&c.plugins,a.screen,o(b)]}}function o(a){return String.fromCharCode.apply(0,a)}var p,q=c.pow(d,e),r=c.pow(2,f),s=2*r,t=d-1,u=c["seed"+i]=function(a,f,g){var h=[];f=1==f?{entropy:!0}:f||{};var p=m(l(f.entropy?[a,o(b)]:null==a?n():a,3),h),t=new j(h);return m(o(t.S),b),(f.pass||g||function(a,b,d,e){return e&&(e.S&&k(e,t),a.state=function(){return k(t,{})}),d?(c[i]=a,b):a})(function(){for(var a=t.g(e),b=q,c=0;r>a;)a=(a+c)*d,b*=d,c=t.g(1);for(;a>=s;)a/=2,b/=2,c>>>=1;return(a+c)/b},p,"global"in f?f.global:this==c,f.state)};if(m(c[i](),b),g&&g.exports){g.exports=u;}else h&&h.amd&&h(function(){return u})}(this,[],Math,256,6,52,"object"==typeof module&&module,"function"==typeof define&&define,"random");
 
 },{}],8:[function(require,module,exports){
@@ -1800,7 +1804,7 @@ var Animation = require("./animation.js");
 var GameState = require("./gamestate.js");
 
 function Score(id, color, text) {
-    this.text = text;
+    this.text = text === undefined ? "" : text;
     this.id = id;
     this.count = 0;
     this.color = color;

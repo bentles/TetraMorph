@@ -33,10 +33,10 @@ GameSquare.prototype.generateSquareString = function() {
         this.squareString = "f";
     }
     else {
-        this.squareString = Math.random() >= 0.5 ? "f" : "t";
+        this.squareString = GameState.rng() >= 0.5 ? "f" : "t";
 
         for (var i = 0; i < (this.difficulty / 10); i++) {
-            var operation = Math.random() >= 0.5;
+            var operation = GameState.rng() >= 0.5;
 
             var details = this.getSkewedRandomLetterDetails();
 
@@ -52,7 +52,7 @@ GameSquare.prototype.generateSquareString = function() {
 };
 
 GameSquare.prototype.getSkewedRandomLetterDetails = function() {
-    var rand = Math.random(); //[0, 1)
+    var rand = GameState.rng(); //[0, 1)
     var depth = 0;
     var length = this.squareString.length;
 

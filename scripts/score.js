@@ -3,7 +3,7 @@ var Animation = require("./animation.js");
 var GameState = require("./gamestate.js");
 
 function Score(id, color, text) {
-    this.text = text;
+    this.text = text === undefined ? "" : text;
     this.id = id;
     this.count = 0;
     this.color = color;

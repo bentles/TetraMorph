@@ -85,8 +85,7 @@ function setup() {
 function reSeed()
 {
     //set up seed
-    seed = Math.random();
-    seedrandom(seed, {global: true});
+    State.seed = Math.random();
 }
 
 function animate(time) {
@@ -243,7 +242,7 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(State.scene, camera);
+    composer.render(State.scene, camera);
 }
 
 function onMouseDown(e) {
@@ -311,9 +310,8 @@ function onBlur() {
 
 
 function restartGame() {
-    seedrandom(seed, {global: true});
-    Util.switchToScreen(4);
     cancelAnimationFrame(animationFrameID);
+    Util.switchToScreen(4);
     State.reset();
     backdrop.animateBreathe();
     animationFrameID = requestAnimationFrame(animate);

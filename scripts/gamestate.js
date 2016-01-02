@@ -1,6 +1,6 @@
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
-var Util = require("./utilities.js")
+var Seedrandom = require("./lib/seedrandom.min.js")
 
 var game_state = {
     scene : new THREE.Scene(),
@@ -21,12 +21,18 @@ var game_state = {
     difficulty : Config.init_difficulty,
     gs : null,
 
+    //seeded random number generator
+    seed : Math.random(),
+    rng : Seedrandom(seed),
+
     //reference to the reset function
     reset : reset,
     add : add
 };
 
 function reset() {
+    game_state.rng = Seedrandom(game_state.seed);
+
     //players and animations
     game_state.player.playerReset();
     if (game_state.gs != null)
