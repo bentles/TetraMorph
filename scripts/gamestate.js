@@ -48,8 +48,7 @@ function reset() {
     game_state.count_down_to_next_shape = 0;
     game_state.difficulty = Config.init_difficulty;
 
-    game_state.tscore.reset();
-    game_state.fscore.reset();
+    game_state.score.reset();
 }
 
 function add(name, value) {

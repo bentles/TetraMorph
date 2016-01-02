@@ -94,6 +94,14 @@ svg
     /*text-shadow: -2px 2px #ffffff;*/
 }
 
+#score{
+    display: block;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+
+}
+
 h1
 {
     font-size: 7vw;

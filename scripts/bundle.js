@@ -171,7 +171,7 @@ module.exports = Backdrop;
 module.exports = {
     //game config
     tps : 60,                   // ticks per second
-    time_for_shape : 10,
+    time_for_shape : 4,
     init_difficulty : 30,
 
     //aesthetics config
@@ -218,7 +218,7 @@ window.addEventListener('contextmenu', function(event) {
 
 function setup() {
     //clear the screen
-    Util.switchToScreen(-1);
+    Util.switchToScreen(4);
 
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
@@ -261,10 +261,8 @@ function setup() {
     State.add("player", player_game_square);
 
     //set up the scores
-    var tscore = new Score("t", false, Config.light_colour, ["r1", "r2", "r3"], "right-tongue");
-    var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
-    State.add("tscore", tscore);
-    State.add("fscore", fscore);
+    var score = new Score("score", Config.light_colour, "score: ");
+    State.add("score", score);
 
     //add event listeners for mouse
     document.addEventListener('mousedown', onMouseDown, false);
@@ -319,7 +317,7 @@ function gameLogic() {
         var roundWon = (State.gs !== null) && (State.player.squareString === State.gs.squareString);
         if (roundWon) {
             moving_forward_animation.stop();
-            gameSquareWin(State.gs, State.tscore, State.fscore);
+            gameSquareWin(State.gs, State.score);
             State.difficulty += 2;
             gameSquareAnimateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
@@ -330,7 +328,7 @@ function gameLogic() {
             //need to play animation for losing if gs is not null by this point
             if (State.gs !== null) {
                 moving_forward_animation.stop();
-                gameSquareLose(State.gs, State.tscore, State.fscore);
+                gameSquareLose(State.score);
                 gameSquareAnimateLose();
             }
 
@@ -392,22 +390,17 @@ function gameLogic() {
     }
 }
 
-function gameSquareWin(gs, tscore, fscore) {
+function gameSquareWin(gs, score) {
     var scores = gs.getSquareStringDetails();
-    tscore.add(scores.t);
-    fscore.add(scores.f);
+    score.add(scores.t + scores.f);
 }
 
-function gameSquareLose(gs, tscore, fscore) {
-    var scores = gs.getSquareStringDetails();
-    tscore.add(-scores.t);
-    fscore.add(-scores.f);
-
+function gameSquareLose(score) {
     //game over
     var stats_div = document.getElementById("stats");
 
-    stats_div.innerHTML = "<h3>Light Score : " +
-        fscore.count + "</h3><h3>Dark Score: " + tscore.count +
+    stats_div.innerHTML =
+        "<h3>Score: " + score.count +
         "</h3><h3>Difficulty Reached: " + State.difficulty +
         "</h3>"; //<h3>Refresh to play again</h3>";
     Util.switchToScreen(1); //game over
@@ -475,12 +468,7 @@ function onKeyBoard(e) {
             onBlur();
         else
             onFocus();
-    } else if (e.keyCode === 32) {
-        multiplier = !multiplier;
-        State.tscore.toggleMultiplier();
-        State.fscore.toggleMultiplier();
-        backdrop.setColor(multiplier ? color2 : color1);
-} else if (e.keyCode === 107)
+    } else if (e.keyCode === 107)
     Config.breathe_speed += 0.001;
     else if (e.keyCode === 109)
         Config.breathe_speed -= 0.001;
@@ -490,7 +478,7 @@ function onFocus() {
     if (!State.active) //needed on firefox
     {
         State.active = true;
-        document.getElementById("paused").style.display = "none";
+        Util.switchToScreen(4);
 
         //implicitly reset State.paused
         requestAnimationFrame(animate);
@@ -513,7 +501,7 @@ function onBlur() {
 
 function restartGame() {
     seedrandom(seed, {global: true});
-    Util.switchToScreen(-1);
+    Util.switchToScreen(4);
     cancelAnimationFrame(animationFrameID);
     State.reset();
     backdrop.animateBreathe();
@@ -875,8 +863,7 @@ function reset() {
     game_state.count_down_to_next_shape = 0;
     game_state.difficulty = Config.init_difficulty;
 
-    game_state.tscore.reset();
-    game_state.fscore.reset();
+    game_state.score.reset();
 }
 
 function add(name, value) {
@@ -1812,58 +1799,23 @@ var Config = require("./config.js");
 var Animation = require("./animation.js");
 var GameState = require("./gamestate.js");
 
-function Score(id, multiplier, color, colourableids, bar) {
+function Score(id, color, text) {
+    this.text = text;
     this.id = id;
     this.count = 0;
-    this.multiplier = multiplier;
     this.color = color;
-
-    this.small = Config.small_font;
-    this.large = Config.large_font;
-    this.barDomElement = document.getElementById(bar);
     this.domElement = document.getElementById(this.id);
-    this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
-
-    this.colourables = [];
-    for (var i = 0; i < colourableids.length; i++) {
-        this.colourables.push(document.getElementById(colourableids[i]));
-        this.colourables[i].style.fill = "#" + this.color.toString(16);
-    }
 }
 
-Score.prototype.toggleMultiplier = function() {
-    this.multiplier = !this.multiplier;
-    this.domElement.style.fontSize = this.multiplier ? this.large : this.small;
-};
-
 Score.prototype.add = function(x) {
-    var that = this;
     this.count += x;
     this.count = this.count < 0 ? 0 : this.count;
-    this.domElement.innerHTML = this.count;
-
-    //animate tongue
-    var time = Config.score_animation_time; //time for the animation is half a sec
-    var target = (Math.log(this.count) / Math.log(10)) * 100 || 0;
-    target = target < 0 ? 0 : target;
-    var current = parseInt(this.barDomElement.getAttribute("width"));
-    var step = (target - current) / (time * Config.tps);
-    var count = 0;
-    GameState.animationlist.push(new Animation(function() {
-        count++;
-        if (count <= (time * Config.tps)) {
-            //look into changing this if possible for two to play at once.
-            that.barDomElement.setAttribute("width", current + step * count + "px");
-            return false;
-        } else
-            return true;
-
-    }));
+    this.domElement.innerHTML = this.text + this.count;
 };
 
 Score.prototype.reset = function() {
     this.count = 0;
-    this.domElement.innerHTML = this.count ;
+    this.domElement.innerHTML = this.text + this.count ;
 }
 
 Score.prototype.lost = function() {
@@ -2140,7 +2092,7 @@ function singleTreeRecursion(node, tlist, flist) {
             });
 }
 
-var screens = ["gamestart", "gameover", "paused", "seed"];
+var screens = ["gamestart", "gameover", "paused", "seed", "game"];
 function switchToScreen(screenNumber) {
     for (var i = 0; i < screens.length; i++) {
         document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";

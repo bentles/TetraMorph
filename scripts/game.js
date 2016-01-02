@@ -29,7 +29,7 @@ window.addEventListener('contextmenu', function(event) {
 
 function setup() {
     //clear the screen
-    Util.switchToScreen(-1);
+    Util.switchToScreen(4);
 
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
@@ -72,10 +72,8 @@ function setup() {
     State.add("player", player_game_square);
 
     //set up the scores
-    var tscore = new Score("t", false, Config.light_colour, ["r1", "r2", "r3"], "right-tongue");
-    var fscore = new Score("f", true, Config.dark_colour, ["l1", "l2", "l3"], "left-tongue");
-    State.add("tscore", tscore);
-    State.add("fscore", fscore);
+    var score = new Score("score", Config.light_colour, "score: ");
+    State.add("score", score);
 
     //add event listeners for mouse
     document.addEventListener('mousedown', onMouseDown, false);
@@ -130,7 +128,7 @@ function gameLogic() {
         var roundWon = (State.gs !== null) && (State.player.squareString === State.gs.squareString);
         if (roundWon) {
             moving_forward_animation.stop();
-            gameSquareWin(State.gs, State.tscore, State.fscore);
+            gameSquareWin(State.gs, State.score);
             State.difficulty += 2;
             gameSquareAnimateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
@@ -141,7 +139,7 @@ function gameLogic() {
             //need to play animation for losing if gs is not null by this point
             if (State.gs !== null) {
                 moving_forward_animation.stop();
-                gameSquareLose(State.gs, State.tscore, State.fscore);
+                gameSquareLose(State.score);
                 gameSquareAnimateLose();
             }
 
@@ -203,22 +201,17 @@ function gameLogic() {
     }
 }
 
-function gameSquareWin(gs, tscore, fscore) {
+function gameSquareWin(gs, score) {
     var scores = gs.getSquareStringDetails();
-    tscore.add(scores.t);
-    fscore.add(scores.f);
+    score.add(scores.t + scores.f);
 }
 
-function gameSquareLose(gs, tscore, fscore) {
-    var scores = gs.getSquareStringDetails();
-    tscore.add(-scores.t);
-    fscore.add(-scores.f);
-
+function gameSquareLose(score) {
     //game over
     var stats_div = document.getElementById("stats");
 
-    stats_div.innerHTML = "<h3>Light Score : " +
-        fscore.count + "</h3><h3>Dark Score: " + tscore.count +
+    stats_div.innerHTML =
+        "<h3>Score: " + score.count +
         "</h3><h3>Difficulty Reached: " + State.difficulty +
         "</h3>"; //<h3>Refresh to play again</h3>";
     Util.switchToScreen(1); //game over
@@ -286,12 +279,7 @@ function onKeyBoard(e) {
             onBlur();
         else
             onFocus();
-    } else if (e.keyCode === 32) {
-        multiplier = !multiplier;
-        State.tscore.toggleMultiplier();
-        State.fscore.toggleMultiplier();
-        backdrop.setColor(multiplier ? color2 : color1);
-} else if (e.keyCode === 107)
+    } else if (e.keyCode === 107)
     Config.breathe_speed += 0.001;
     else if (e.keyCode === 109)
         Config.breathe_speed -= 0.001;
@@ -301,7 +289,7 @@ function onFocus() {
     if (!State.active) //needed on firefox
     {
         State.active = true;
-        document.getElementById("paused").style.display = "none";
+        Util.switchToScreen(4);
 
         //implicitly reset State.paused
         requestAnimationFrame(animate);
@@ -324,7 +312,7 @@ function onBlur() {
 
 function restartGame() {
     seedrandom(seed, {global: true});
-    Util.switchToScreen(-1);
+    Util.switchToScreen(4);
     cancelAnimationFrame(animationFrameID);
     State.reset();
     backdrop.animateBreathe();

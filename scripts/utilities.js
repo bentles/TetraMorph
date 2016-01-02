@@ -52,7 +52,7 @@ function singleTreeRecursion(node, tlist, flist) {
             });
 }
 
-var screens = ["gamestart", "gameover", "paused", "seed"];
+var screens = ["gamestart", "gameover", "paused", "seed", "game"];
 function switchToScreen(screenNumber) {
     for (var i = 0; i < screens.length; i++) {
         document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
