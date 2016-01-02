@@ -16,7 +16,6 @@ function GameSquare(material, materialmap, difficulty, editable) { //0 difficult
     this.depth = Config.depth;
 
     this.squareString = "";
-    this.numletters = 0;
     this.z = 0;
     this.x = 0;
     //make the parent of the top node the gamesquare
@@ -34,19 +33,17 @@ GameSquare.prototype.generateSquareString = function() {
         this.squareString = "f";
     }
     else {
-        this.numletters = 1;
         this.squareString = Math.random() >= 0.5 ? "f" : "t";
 
         for (var i = 0; i < (this.difficulty / 10); i++) {
             var operation = Math.random() >= 0.5;
 
-            var pos = this.getSkewedRandomLetterDetails().pos;
-            var depth = this.getSkewedRandomLetterDetails().depth;
+            var details = this.getSkewedRandomLetterDetails();
 
-            if (operation && depth < 3) //splitting a square
-                this.splitAtNthLetter(pos);
+            if (operation && details.depth < 3) //splitting a square
+                this.splitAtNthLetter(details.pos);
             else if (!operation)
-                this.flipAtNthLetter(pos);
+                this.flipAtNthLetter(details.pos);
         }
 
         if (this.squareString === "f")
@@ -227,12 +224,15 @@ GameSquare.prototype.getSquareStringDetails = function() {
 };
 
 GameSquare.prototype.splitAtNthLetter = function(n) {
-    this.squareString = this.squareString.substring(0, n) + "(" + this.squareString[n] + this.squareString[n] + this.squareString[n] + this.squareString[n] + ")" + this.squareString.substring(n + 1, this.squareString.length);
-    this.numletters += 3;
+    this.squareString = this.squareString.substring(0, n) + "(" +
+        this.squareString[n] + this.squareString[n] + this.squareString[n] + this.squareString[n] + //split
+        ")" + this.squareString.substring(n + 1, this.squareString.length);
 };
 
 GameSquare.prototype.flipAtNthLetter = function(n) {
-    this.squareString = this.squareString.substring(0, n) + (this.squareString[n] === "f" ? "t" : "f") + this.squareString.substring(n + 1, this.squareString.length);
+    this.squareString = this.squareString.substring(0, n) +
+        (this.squareString[n] === "f" ? "t" : "f") + //flip
+        this.squareString.substring(n + 1, this.squareString.length);
 };
 
 GameSquare.prototype.updateSquareString = function() {
@@ -245,7 +245,8 @@ function getSquareString(node) {
         return node.value.flipped ? "t" : "f";
     else {
         var cn = node.children;
-        return "(" + getSquareString(cn[0]) + getSquareString(cn[1]) + getSquareString(cn[2]) + getSquareString(cn[3]) + ")";
+        return "(" + getSquareString(cn[0]) + getSquareString(cn[1]) +
+            getSquareString(cn[2]) + getSquareString(cn[3]) + ")";
     }
 }
 

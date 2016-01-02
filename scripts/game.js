@@ -15,6 +15,7 @@ var State = require("./gamestate.js");
 var Util = require("./utilities.js");
 
 var camera, renderer, raycaster, mouseVector;
+var composer;
 var backdrop;
 var animationFrameID;
 var seed;
@@ -51,6 +52,17 @@ function setup() {
         canvas: document.getElementById("canvas")
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    //set up post processing
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass( new THREE.RenderPass(State.scene, camera));
+    var hblur = new THREE.ShaderPass(THREE.HorizontalBlurShader);
+    hblur.uniforms.h = {type:"f", value:15/window.innerWidth};
+    composer.addPass(hblur);
+    var vblur = new THREE.ShaderPass(THREE.VerticalBlurShader);
+    vblur.uniforms.v = {type:"f", value:15/window.innerHeight};
+    vblur.renderToScreen = true; //want to see it after 2nd pass
+    composer.addPass( vblur );
 
     //create the player
     var player_game_square = new GameSquare(materials.material, materials.materialmap, 0);
@@ -300,7 +312,7 @@ function onBlur() {
     if (State.active) //just to be safe
     {
         document.getElementById("seed_display").innerHTML = "seed: " + seed ;
-
+        composer.render(State.scene, camera);
         State.active = false;
         if (!State.lost)
             Util.switchToScreen(2);

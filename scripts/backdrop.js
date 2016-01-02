@@ -40,16 +40,16 @@ function Backdrop(dimension, repeats, startcolour) {
     //create materials
     this.mat1 = new THREE.MeshBasicMaterial({
         map: this.text1,
-        emissive: new THREE.Color(0x333333),
-        emissiveMap: this.text1,
+        //emissive: new THREE.Color(0x333333),
+        //emissiveMap: this.text1,
         specular: new THREE.Color(0xFFFFFF),
         specularMap: this.text1,
         vertexColors: THREE.FaceColors,
         side: THREE.BackSide
     });
     this.mat2 = new THREE.MeshBasicMaterial({
-        emissive: new THREE.Color(0x222222),
-        emissiveMap: this.text2,
+        //emissive: new THREE.Color(0x222222),
+        //emissiveMap: this.text2,
         specular: new THREE.Color(0xFFFFFF),
         specularMap: this.text2,
         map: this.text2,
@@ -100,7 +100,7 @@ Backdrop.prototype.setRepeats = function(i) {
 Backdrop.prototype.textureNec = function(texture) {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.LinearMipMapLinearFilter;
+    texture.minFilter = THREE.LinearFilter;
     texture.needsUpdate = true;
 };
 
