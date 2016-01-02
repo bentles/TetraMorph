@@ -14,23 +14,14 @@ var Score = require("./score.js");
 var State = require("./gamestate.js");
 var Util = require("./utilities.js");
 
-var camera, renderer, raycaster, mouseVector;
-var composer;
+var camera, renderer, raycaster, mouseVector, composer;
 var backdrop;
 var animationFrameID;
-var seed;
 
 //physics at 60fps
 var dt = 1000 / Config.tps;
 
-//stop right-click context menu from appearing. ever.
-window.addEventListener('contextmenu', function(event) {
-    event.preventDefault(); }, false);
-
 function setup() {
-    //clear the screen
-    Util.switchToScreen(4);
-
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = 1000;
@@ -53,7 +44,7 @@ function setup() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    //set up post processing
+    //set up post processing for pause screen
     composer = new THREE.EffectComposer(renderer);
     composer.addPass( new THREE.RenderPass(State.scene, camera));
     var hblur = new THREE.ShaderPass(THREE.HorizontalBlurShader);
@@ -80,6 +71,10 @@ function setup() {
     window.addEventListener('resize', onWindowResize, false);
     window.addEventListener('keydown', onKeyBoard, false);
     window.addEventListener('blur', onBlur, false);
+
+    //stop right-click context menu from appearing. ever.
+    window.addEventListener('contextmenu', function(event) {
+        event.preventDefault(); }, false);
 }
 
 function reSeed()
@@ -116,8 +111,6 @@ function animate(time) {
     animationFrameID = requestAnimationFrame(animate);
 }
 
-//start states for game variables
-var multiplier = true;
 var moving_forward_animation;
 
 function gameLogic() {
@@ -213,7 +206,7 @@ function gameSquareLose(score) {
         "<h3>Score: " + score.count +
         "</h3><h3>Difficulty Reached: " + State.difficulty +
         "</h3>"; //<h3>Refresh to play again</h3>";
-    Util.switchToScreen(1); //game over
+    switchToScreen(1); //game over
     State.lost = true;
 }
 
@@ -288,30 +281,29 @@ function onFocus() {
     if (!State.active) //needed on firefox
     {
         State.active = true;
-        Util.switchToScreen(4);
+        switchToScreen(4);
 
         //implicitly reset State.paused
         requestAnimationFrame(animate);
     }
-};
+}
 
 function onBlur() {
-    if (State.active) //just to be safe
+    if (State.active && State.current_screen === 4) //just to be safe && only on game screen
     {
         document.getElementById("seed_display").innerHTML = "seed: " + State.seed ;
         composer.render(State.scene, camera);
         State.active = false;
         if (!State.lost)
-            Util.switchToScreen(2);
+            switchToScreen(2);
         State.paused = true;
         cancelAnimationFrame(animationFrameID);
     }
-};
-
+}
 
 function restartGame() {
     cancelAnimationFrame(animationFrameID);
-    Util.switchToScreen(4);
+    switchToScreen(4);
     State.reset();
     backdrop.animateBreathe();
     animationFrameID = requestAnimationFrame(animate);
@@ -322,11 +314,17 @@ function startGame() {
     restartGame();
 }
 
+function switchToScreen(screen)
+{
+    Util.showScreen(screen);
+    State.current_screen = screen;
+}
+
 document.getElementById("new_game").addEventListener("click", startGame);
 document.getElementById("retry").addEventListener("click", restartGame);
-document.getElementById("main_menu").addEventListener("click", function(){Util.switchToScreen(0)});
+document.getElementById("main_menu").addEventListener("click", function(){switchToScreen(0)});
 
 
 setup();
-Util.switchToScreen(0);
+switchToScreen(0);
 

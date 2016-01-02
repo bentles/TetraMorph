@@ -21,6 +21,9 @@ var game_state = {
     difficulty : Config.init_difficulty,
     gs : null,
 
+    //current_screen
+    current_screen : 4,
+
     //seeded random number generator
     seed : Math.random(),
     rng : Seedrandom(seed),
@@ -30,7 +33,10 @@ var game_state = {
     add : add
 };
 
+//puts everything in order for a new game
 function reset() {
+    game_state.current_screen = 4;
+
     game_state.rng = Seedrandom(game_state.seed);
 
     //players and animations

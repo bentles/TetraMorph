@@ -53,12 +53,13 @@ function singleTreeRecursion(node, tlist, flist) {
 }
 
 var screens = ["gamestart", "gameover", "paused", "seed", "game"];
-function switchToScreen(screenNumber) {
+
+function showScreen(screenNumber) {
     for (var i = 0; i < screens.length; i++) {
         document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
     }
 }
 
-module.exports.switchToScreen = switchToScreen;
+module.exports.showScreen = showScreen;
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
 module.exports.geometricSeriesSum = geometricSeriesSum ;
