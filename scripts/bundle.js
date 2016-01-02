@@ -103,7 +103,7 @@ Backdrop.prototype.animateBreathe = function() {
         step += Math.PI * breathespeed;
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
-        mesh.rotation.set(0, 0, Math.cos(step)*2);
+        mesh.rotation.set(0, 0, Math.sin(step)*2);
         return false;
     }));
 };
