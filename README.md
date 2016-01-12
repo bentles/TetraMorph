@@ -1,6 +1,6 @@
 TetraMorph
 ==========
-A WIP game based on my Squares.js repo
+A WIP game based on my Squares.js repo, also first use of browserify :)
 
 You can try it out here: http://bentles.github.io/TetraMorph
 
