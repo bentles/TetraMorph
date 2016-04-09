@@ -195,7 +195,7 @@ module.exports = Backdrop;
 module.exports = {
     //game config
     tps : 60,                   // ticks per second
-    time_for_shape : 5,
+    time_for_shape : 7,
     init_difficulty : 30,
 
     //aesthetics config
@@ -208,6 +208,7 @@ module.exports = {
     score_animation_time : 0.5, // time (s) for the score animation
     light_colour :  0x145214,
     dark_colour : 0x33CC33,
+	camera_z : 1000
 };
 
 },{}],4:[function(require,module,exports){
@@ -237,7 +238,7 @@ var dt = 1000 / Config.tps;
 function setup() {
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
-    camera.position.z = 1000;
+    camera.position.z = Config.camera_z;
 
     mouseVector = new THREE.Vector3();
 
@@ -2137,4 +2138,4 @@ module.exports.showScreen = showScreen;
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
 module.exports.geometricSeriesSum = geometricSeriesSum ;
 
-},{}]},{},[4]);
+},{}]},{},[1,2,3,4,5,6,7,8,9,10,11,12,13]);

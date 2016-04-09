@@ -14,4 +14,5 @@ module.exports = {
     score_animation_time : 0.5, // time (s) for the score animation
     light_colour :  0x145214,
     dark_colour : 0x33CC33,
+	camera_z : 1000
 };

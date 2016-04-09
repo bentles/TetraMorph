@@ -24,7 +24,7 @@ var dt = 1000 / Config.tps;
 function setup() {
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
-    camera.position.z = 1000;
+    camera.position.z = Config.camera_z;
 
     mouseVector = new THREE.Vector3();
 
