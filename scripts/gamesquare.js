@@ -150,10 +150,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     var totaly = 0;
 
     //helper variable for calculating position
-    var height = 1000;
-
-    //size of the square dimension x dimesion
-    var dimension = 1000;
+    var height = Config.game_square_size;
 
     for (var i = 1; i < cornerlist.length; i++) {
         var x = (cornerlist[i] % 2);
@@ -168,8 +165,6 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     }
 
     i--; //i must be one too large for the loop to end
-
-    dimension = dimension / Math.pow(2, i) - util.geometricSeriesSum(this.gap / 2, 1 / 2, i); //probably wrong
 
     var geom = new THREE.BoxGeometry(height, height, this.depth);
 

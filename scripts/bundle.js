@@ -197,17 +197,18 @@ module.exports = {
     tps : 60,                   // ticks per second
     time_for_shape : 7,
     init_difficulty : 30,
+	game_square_size: 1000,
 
     //aesthetics config
     breathe_speed : 0.005,       // background animation speed
     start_pos : -10000,         // how far away the square starts
-    gap: 10,                    // space between squares
-    depth: 5,                   // how deep the squares are
+    gap: 20,                    // space between squares
+    depth: 5,                   // how deep the squares are in the z direction
     small_font : "20pt",         // font sizes of scores
     large_font : "30pt",
     score_animation_time : 0.5, // time (s) for the score animation
-    light_colour :  0x145214,
-    dark_colour : 0x33CC33,
+    light_colour : 0x00B500,
+    dark_colour : 0x145214,
 	camera_z : 1000
 };
 
@@ -697,10 +698,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     var totaly = 0;
 
     //helper variable for calculating position
-    var height = 1000;
-
-    //size of the square dimension x dimesion
-    var dimension = 1000;
+    var height = Config.game_square_size;
 
     for (var i = 1; i < cornerlist.length; i++) {
         var x = (cornerlist[i] % 2);
@@ -715,8 +713,6 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     }
 
     i--; //i must be one too large for the loop to end
-
-    dimension = dimension / Math.pow(2, i) - util.geometricSeriesSum(this.gap / 2, 1 / 2, i); //probably wrong
 
     var geom = new THREE.BoxGeometry(height, height, this.depth);
 
@@ -1800,11 +1796,12 @@ module.exports = THREE;
 
 },{}],9:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
+var Config = require("./config.js");
 
 //work out shapes and materials
 var frontmaterial = new THREE.MeshBasicMaterial({
     transparent: true,
-    color: 0x33CC33,
+    color: Config.light_colour,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
@@ -1816,7 +1813,7 @@ var sidematerial = new THREE.MeshBasicMaterial({
 });
 var backmaterial = new THREE.MeshBasicMaterial({
     transparent: true,
-    color: 0x145214,
+    color: Config.dark_colour,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
@@ -1828,7 +1825,7 @@ var material = new THREE.MeshFaceMaterial(materials);
 module.exports.materialmap = materialmap;
 module.exports.material = material;
 
-},{"./lib/three.min.js":8}],10:[function(require,module,exports){
+},{"./config.js":3,"./lib/three.min.js":8}],10:[function(require,module,exports){
 var Config = require("./config.js");
 var Animation = require("./animation.js");
 var GameState = require("./gamestate.js");
