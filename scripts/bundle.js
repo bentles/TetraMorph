@@ -194,22 +194,26 @@ module.exports = Backdrop;
 },{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8}],3:[function(require,module,exports){
 module.exports = {
     //game config
-    tps : 60,                   // ticks per second
+    tps : 60,                    // ticks per second
     time_for_shape : 7,
     init_difficulty : 30,
-	game_square_size: 1000,
+	gamesquare_size: 1000,
+	split_depth: 4,              // how many times you can split the first squre
 
     //aesthetics config
     breathe_speed : 0.005,       // background animation speed
-    start_pos : -10000,         // how far away the square starts
-    gap: 20,                    // space between squares
-    depth: 5,                   // how deep the squares are in the z direction
+    start_pos : -5000,           // how far away the square starts
+    gap: 20,                     // space between squares
+    depth: 5,                    // how deep the squares are in the z direction
     small_font : "20pt",         // font sizes of scores
     large_font : "30pt",
-    score_animation_time : 0.5, // time (s) for the score animation
+    score_animation_time : 0.5,  // time (s) for the score animation
     light_colour : 0x00B500,
     dark_colour : 0x145214,
-	camera_z : 1000
+	side_colour : 0x123123,
+	camera_z : 1000,
+	player_x_offset : -550,
+	gamesquare_x_offset : 550
 };
 
 },{}],4:[function(require,module,exports){
@@ -220,7 +224,7 @@ var seedrandom = require("./lib/seedrandom.min.js");
 var THREE = require("./lib/three.min.js");
 
 //internal dependencies
-var materials = require("./materials");
+var materials = require("./materials.js");
 var Config = require("./config.js");
 var Backdrop = require("./backdrop.js");
 var GameSquare = require("./gamesquare.js");
@@ -237,6 +241,19 @@ var animationFrameID;
 var dt = 1000 / Config.tps;
 
 function setup() {
+	for(var i = 1; i <= 60; i++) {
+		var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
+		var b = materials.simple_material;
+
+		var z = Config.start_pos + ((1000 -Config.start_pos) / 60) * i  ;
+		var mesh = new THREE.Mesh(a,b);
+		mesh.position.x = 550;
+		mesh.position.y = 0;
+		mesh.position.z = z;
+
+		State.scene.add(mesh);
+	}
+	
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = Config.camera_z;
@@ -271,11 +288,11 @@ function setup() {
     composer.addPass( vblur );
 
     //create the player
-    var player_game_square = new GameSquare(materials.material, materials.materialmap, 0);
-    player_game_square.generateSquares();
-    player_game_square.addX(-550);
-    player_game_square.playerReset();
-    State.add("player", player_game_square);
+    var player_gamesquare = new GameSquare(materials.material, materials.materialmap, 0);
+    player_gamesquare.generateSquares();
+    player_gamesquare.addX(Config.player_x_offset);
+    player_gamesquare.playerReset();
+    State.add("player", player_gamesquare);
 
     //set up the scores
     var score = new Score("score", Config.light_colour, "score: ");
@@ -337,7 +354,7 @@ function gameLogic() {
             moving_forward_animation.stop();
             gameSquareWin(State.gs, State.score);
             State.difficulty += 2;
-            gameSquareAnimateWin();
+            State.gs.animateWin();
             backdrop.animateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
             State.gs = null; //marker for having won
@@ -348,7 +365,7 @@ function gameLogic() {
             if (State.gs !== null) {
                 moving_forward_animation.stop();
                 gameSquareLose(State.score);
-                gameSquareAnimateLose();
+                State.gs.animateLose();
             }
 
             //reset player square
@@ -364,7 +381,7 @@ function gameLogic() {
                 State.gs.generateSquares();
 
                 //position the gamesquare
-                State.gs.addX(550);
+                State.gs.addX(Config.gamesquare_x_offset);
                 State.gs.setZ(Config.start_pos);
 
                 //animate the gamesquare
@@ -424,26 +441,6 @@ function gameSquareLose(score) {
         "</h3>"; //<h3>Refresh to play again</h3>";
     switchToScreen(1); //game over
     State.lost = true;
-}
-
-function gameSquareAnimateWin() {
-    var time = 0.6;
-    var steps = Config.tps * 5;
-    State.gs.squares.forEach(function(x) {
-        x.animateMoveTo(new THREE.Vector3(0, -300, 700),
-            new THREE.Vector2(20, 20),
-            x.mesh.rotation, time, true);
-    });
-}
-
-function gameSquareAnimateLose() {
-    State.gs.squares.forEach(function(x) {
-        x.animateFade(3, true);
-    });
-
-    //State.player.squares.forEach(function(x) {
-    //    x.animateFade(3, true);
-    //});
 }
 
 function onWindowResize() {
@@ -545,7 +542,7 @@ setup();
 switchToScreen(0);
 
 
-},{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials":9,"./score.js":10,"./utilities.js":13}],5:[function(require,module,exports){
+},{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials.js":9,"./score.js":10,"./utilities.js":14}],5:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 
 var Square = require("./square.js");
@@ -566,9 +563,24 @@ function GameSquare(material, materialmap, difficulty, editable) { //0 difficult
     this.squareString = "";
     this.z = 0;
     this.x = 0;
+	
     //make the parent of the top node the gamesquare
     this.squares = new Node(null, this);
 }
+
+GameSquare.prototype.animateWin = function () {
+    var time = 0.6;
+    var steps = Config.tps * 5;
+    this.squares.forEach(function(x) {
+        x.animateMoveTo(new THREE.Vector3(0, -300, 700),
+            new THREE.Vector2(20, 20),
+            x.mesh.rotation, time, true);
+    });
+};
+
+GameSquare.prototype.animateLose = function() {
+    
+};
 
 GameSquare.prototype.generateSquareString = function() {
     //generates strings of the form "t" or "(tttt)" or
@@ -588,7 +600,7 @@ GameSquare.prototype.generateSquareString = function() {
 
             var details = this.getSkewedRandomLetterDetails();
 
-            if (operation && details.depth < 3) //splitting a square
+            if (operation && details.depth <= Config.split_depth) //splitting a square
                 this.splitAtNthLetter(details.pos);
             else if (!operation)
                 this.flipAtNthLetter(details.pos);
@@ -689,7 +701,7 @@ GameSquare.prototype.addPositionedSquareAtNode = function(node, flipped) {
     cornerlist.unshift(0);
 
     var newSquare = this.generatePositionedSquare(cornerlist, flipped);
-    newSquare.mesh.position.x += this.x;
+    newSquare.mesh.position.x += this.x; 
     orignode.setValue(newSquare);
 };
 
@@ -698,7 +710,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     var totaly = 0;
 
     //helper variable for calculating position
-    var height = Config.game_square_size;
+    var height = Config.gamesquare_size;
 
     for (var i = 1; i < cornerlist.length; i++) {
         var x = (cornerlist[i] % 2);
@@ -734,7 +746,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
 GameSquare.prototype.clearSquares = function() {
     var that = this;
     this.squares.forEach(function(square) {
-        GameState.scene.remove(square.mesh);
+        square.kill();
     });
     this.squares = new Node(null, this);
     this.squareString = "";
@@ -784,7 +796,7 @@ GameSquare.prototype.updateSquareString = function() {
 
 //recursion is fun :D
 function getSquareString(node) {
-    if (node.hasValue())
+    if (!node.hasChildren())
         return node.value.flipped ? "t" : "f";
     else {
         var cn = node.children;
@@ -830,7 +842,7 @@ GameSquare.prototype.addX = function(num) {
 
 module.exports = GameSquare;
 
-},{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./square.js":11,"./treenode.js":12,"./utilities.js":13}],6:[function(require,module,exports){
+},{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./square.js":12,"./treenode.js":13,"./utilities.js":14}],6:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
 var Seedrandom = require("./lib/seedrandom.min.js")
@@ -1798,7 +1810,7 @@ module.exports = THREE;
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
 
-//work out shapes and materials
+//game square materials
 var frontmaterial = new THREE.MeshBasicMaterial({
     transparent: true,
     color: Config.light_colour,
@@ -1807,7 +1819,7 @@ var frontmaterial = new THREE.MeshBasicMaterial({
 });
 var sidematerial = new THREE.MeshBasicMaterial({
     transparent: true,
-    color: 0x123123,
+    color: Config.side_colour,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
@@ -1822,6 +1834,13 @@ var materials = [frontmaterial, sidematerial, backmaterial];
 var materialmap = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2];
 var material = new THREE.MeshFaceMaterial(materials);
 
+module.exports.simple_material = new THREE.MeshBasicMaterial({
+    transparent: true,
+    color: 0x333399,
+	opacity: 0.5,
+    shininess: 50,
+    vertexColors: THREE.FaceColors
+});
 module.exports.materialmap = materialmap;
 module.exports.material = material;
 
@@ -1856,6 +1875,63 @@ Score.prototype.lost = function() {
 module.exports = Score;
 
 },{"./animation.js":1,"./config.js":3,"./gamestate.js":6}],11:[function(require,module,exports){
+/* 
+ * Spaces exist between squares. This is true without there being a object to represent
+ * them but is also true for this object. Spaces are used as a selection point for performing
+ * actions on multiple squares. You click on the Space in the middle of 4 squares in order to
+ * perform an action on all 4 squares. 
+
+ * Since actions on spaces don't have an explicit target they can be performed recursively.
+ * I think this will make them interesting to use and a very effective tool for fast 
+ * manipulation of gamesquares.
+ */
+var Config = require("./config.js");
+var THREE = require("./lib/three.min.js");
+var Materials = require("./materials.js");
+var GameState = require("./gamestate.js");
+
+function Space(node, childp, height, width) {
+	if (node === undefined)
+		throw "Spaces must have associated nodes";
+
+	this.node = node;
+	
+	//default constructor creates a space the goes in the gap between 4 squares
+	var h = height === undefined? Config.gap : height;
+	var w = width === undefined? Config.gap : width;
+	
+	var geom = new THREE.BoxGeometry(h, w, Config.depth);
+	this.mesh = new THREE.Mesh(geom, Materials.simple_material.clone());
+/*	this.mesh.position.x = 0,
+	this.mesh.position.y = -2,
+	this.mesh.position.z = 0,*/
+
+	this.addToScene();
+	console.log("space created!");
+
+	//how does the space know which children squares it is associated with?
+	//it takes a child predicate function that acts on the index of the child examined
+	this.childp = childp === undefined ? function(index){return true;} : childp;
+
+	//we need to be able to identify squares and spaces as different...
+	//though with duck-typing we can get pretty far...
+}
+
+// TODO: reorganise this
+Space.prototype.animateMoveTo = function() {};
+Space.prototype.animateFade = function() {};
+
+Space.prototype.kill = function() {
+	GameState.scene.remove(this.mesh);
+};
+
+Space.prototype.addToScene = function() {
+	GameState.scene.add(this.mesh);
+};
+
+module.exports = Space;
+
+},{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./materials.js":9}],12:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 var Animation = require("./animation.js");
 var Config = require("./config.js");
@@ -1876,6 +1952,7 @@ function Square(mesh, flipped, editable) {
 Square.prototype = Object.create(Shape.prototype);
 Square.prototype.requestSplit = function() {
     if (this.editable) {
+		// TODO: split depth check!!
         var gs = this.node.getGameSquare();
         this.node.initChildren();
         for (var i = 0; i < 4; i++)
@@ -1995,17 +2072,38 @@ Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEul
 
 Square.prototype.killOrCallback = function(destroy, callback) {
     if (destroy)
-        GameState.scene.remove(this.mesh);
+        this.kill();
     if (callback)
         callback();
 };
 
+Square.prototype.kill = function() {
+	GameState.scene.remove(this.mesh);
+};
+
+Square.prototype.addToScene = function() {
+	GameState.scene.add(this.mesh);
+};
 
 module.exports = Square ;
 
-},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8}],12:[function(require,module,exports){
+},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8}],13:[function(require,module,exports){
+/*
+ * Gamesquares are quaternary trees. The basic building blocks of these trees are treenodes.
+ * Treenodes will always have a value which is either a square or a space. If the value is
+ * a space then the node will have 4 child nodes associated with it. Otherwise it will not.
+ *
+ * Spaces and Squares are given references back to their node. This is so an operation like
+ * merging Squares together can take place, as it requires knowledge of the rest of the tree
+ * structure. 
+ *
+ * Child nodes are also given references to their parents. This is allows for traversals up 
+ * the tree structure. This is another requirement for merging squares together.
+ */
+
 var GameSquare = require("./gamesquare.js");
 var GameState = require("./gamestate.js");
+var Space = require("./space.js");
 
 function Node(value, parent, children) {
     this.value = (value === undefined) ? null : value;
@@ -2014,13 +2112,17 @@ function Node(value, parent, children) {
 
     //Only leaf nodes may have a value
     if (this.children.length !== 0)
-        this.value = null;
+        this.value = new Space(this);
+
+	if (this.value !== null) // TODO: meh me not like this
+		this.value.addToScene();
 }
+
 Node.prototype.initChildren = function() {
     if (this.value)
-        GameState.scene.remove(this.value.mesh);
+        this.value.kill();
 
-    this.value = null;
+    this.value = new Space(this);
     this.children = [];
     for (var i = 0; i < 4; i++) {
         var a = new Node(null, this);
@@ -2028,14 +2130,16 @@ Node.prototype.initChildren = function() {
     }
 };
 
-Node.prototype.hasValue = function() {
-    return this.value !== null;
+Node.prototype.hasChildren = function() {
+	return this.children.length > 0;
 };
 
 Node.prototype.forEach = function(fn, thisArg) {
-    if (this.hasValue())
-        fn(this.value);
-    else
+	//apply the function to the value
+    fn(this.value);
+
+	//apply the function to the children if it has any
+    if(this.hasChildren())
         this.children.forEach(function(child) {
             child.forEach(fn);
         });
@@ -2048,27 +2152,23 @@ Node.prototype.getGameSquare = function() {
 Node.prototype.setValue = function(square) {
     this.value = square;
     square.node = this;
-    var scene = GameState.scene;
-    scene.add(square.mesh);
+    square.addToScene();
 
-    if (!this.children.forEach)
-        var a = 12;
-
-    this.children.forEach(
+	//remove children - useful for merging I guess
+    this.children.forEach( //array forEach
         function(child) {
-            child.forEach(
+            child.forEach( //node forEach
                 function(square) {
-                    scene.remove(square.mesh);
+                    square.kill();
                 });
         });
 
     this.children = [];
 };
 
-
 module.exports = Node;
 
-},{"./gamesquare.js":5,"./gamestate.js":6}],13:[function(require,module,exports){
+},{"./gamesquare.js":5,"./gamestate.js":6,"./space.js":11}],14:[function(require,module,exports){
 //a is start
 //r is the multiplication factor
 //n is the term number
@@ -2131,8 +2231,30 @@ function showScreen(screenNumber) {
     }
 }
 
+function evenp(i) {
+	return i % 0 === 0;
+}
+
+function oddp(i) {
+	return i % 0 !== 0;
+}
+
+function less3p(i) {
+	return i < 3;
+}
+
+function greater2p(i) {
+	return i > 2;
+}
+
 module.exports.showScreen = showScreen;
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
-module.exports.geometricSeriesSum = geometricSeriesSum ;
+module.exports.geometricSeriesSum = geometricSeriesSum;
+module.exports.evenp = evenp; 
+module.exports.oddp = oddp; 
+module.exports.less3p = less3p; 
+module.exports.greater2p = greater2p; 
 
-},{}]},{},[1,2,3,4,5,6,7,8,9,10,11,12,13]);
+
+
+},{}]},{},[1,2,3,4,5,6,7,8,9,10,12,13,14]);

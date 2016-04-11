@@ -60,6 +60,28 @@ function showScreen(screenNumber) {
     }
 }
 
+function evenp(i) {
+	return i % 0 === 0;
+}
+
+function oddp(i) {
+	return i % 0 !== 0;
+}
+
+function less3p(i) {
+	return i < 3;
+}
+
+function greater2p(i) {
+	return i > 2;
+}
+
 module.exports.showScreen = showScreen;
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
-module.exports.geometricSeriesSum = geometricSeriesSum ;
+module.exports.geometricSeriesSum = geometricSeriesSum;
+module.exports.evenp = evenp; 
+module.exports.oddp = oddp; 
+module.exports.less3p = less3p; 
+module.exports.greater2p = greater2p; 
+
+

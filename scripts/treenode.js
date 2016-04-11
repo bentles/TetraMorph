@@ -1,5 +1,19 @@
+/*
+ * Gamesquares are quaternary trees. The basic building blocks of these trees are treenodes.
+ * Treenodes will always have a value which is either a square or a space. If the value is
+ * a space then the node will have 4 child nodes associated with it. Otherwise it will not.
+ *
+ * Spaces and Squares are given references back to their node. This is so an operation like
+ * merging Squares together can take place, as it requires knowledge of the rest of the tree
+ * structure. 
+ *
+ * Child nodes are also given references to their parents. This is allows for traversals up 
+ * the tree structure. This is another requirement for merging squares together.
+ */
+
 var GameSquare = require("./gamesquare.js");
 var GameState = require("./gamestate.js");
+var Space = require("./space.js");
 
 function Node(value, parent, children) {
     this.value = (value === undefined) ? null : value;
@@ -8,13 +22,17 @@ function Node(value, parent, children) {
 
     //Only leaf nodes may have a value
     if (this.children.length !== 0)
-        this.value = null;
+        this.value = new Space(this);
+
+	if (this.value !== null) // TODO: meh me not like this
+		this.value.addToScene();
 }
+
 Node.prototype.initChildren = function() {
     if (this.value)
-        GameState.scene.remove(this.value.mesh);
+        this.value.kill();
 
-    this.value = null;
+    this.value = new Space(this);
     this.children = [];
     for (var i = 0; i < 4; i++) {
         var a = new Node(null, this);
@@ -22,14 +40,16 @@ Node.prototype.initChildren = function() {
     }
 };
 
-Node.prototype.hasValue = function() {
-    return this.value !== null;
+Node.prototype.hasChildren = function() {
+	return this.children.length > 0;
 };
 
 Node.prototype.forEach = function(fn, thisArg) {
-    if (this.hasValue())
-        fn(this.value);
-    else
+	//apply the function to the value
+    fn(this.value);
+
+	//apply the function to the children if it has any
+    if(this.hasChildren())
         this.children.forEach(function(child) {
             child.forEach(fn);
         });
@@ -42,22 +62,18 @@ Node.prototype.getGameSquare = function() {
 Node.prototype.setValue = function(square) {
     this.value = square;
     square.node = this;
-    var scene = GameState.scene;
-    scene.add(square.mesh);
+    square.addToScene();
 
-    if (!this.children.forEach)
-        var a = 12;
-
-    this.children.forEach(
+	//remove children - useful for merging I guess
+    this.children.forEach( //array forEach
         function(child) {
-            child.forEach(
+            child.forEach( //node forEach
                 function(square) {
-                    scene.remove(square.mesh);
+                    square.kill();
                 });
         });
 
     this.children = [];
 };
-
 
 module.exports = Node;

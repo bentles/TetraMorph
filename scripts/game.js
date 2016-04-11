@@ -5,7 +5,7 @@ var seedrandom = require("./lib/seedrandom.min.js");
 var THREE = require("./lib/three.min.js");
 
 //internal dependencies
-var materials = require("./materials");
+var materials = require("./materials.js");
 var Config = require("./config.js");
 var Backdrop = require("./backdrop.js");
 var GameSquare = require("./gamesquare.js");
@@ -22,6 +22,19 @@ var animationFrameID;
 var dt = 1000 / Config.tps;
 
 function setup() {
+	for(var i = 1; i <= 60; i++) {
+		var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
+		var b = materials.simple_material;
+
+		var z = Config.start_pos + ((1000 -Config.start_pos) / 60) * i  ;
+		var mesh = new THREE.Mesh(a,b);
+		mesh.position.x = 550;
+		mesh.position.y = 0;
+		mesh.position.z = z;
+
+		State.scene.add(mesh);
+	}
+	
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = Config.camera_z;
@@ -56,11 +69,11 @@ function setup() {
     composer.addPass( vblur );
 
     //create the player
-    var player_game_square = new GameSquare(materials.material, materials.materialmap, 0);
-    player_game_square.generateSquares();
-    player_game_square.addX(-550);
-    player_game_square.playerReset();
-    State.add("player", player_game_square);
+    var player_gamesquare = new GameSquare(materials.material, materials.materialmap, 0);
+    player_gamesquare.generateSquares();
+    player_gamesquare.addX(Config.player_x_offset);
+    player_gamesquare.playerReset();
+    State.add("player", player_gamesquare);
 
     //set up the scores
     var score = new Score("score", Config.light_colour, "score: ");
@@ -122,7 +135,7 @@ function gameLogic() {
             moving_forward_animation.stop();
             gameSquareWin(State.gs, State.score);
             State.difficulty += 2;
-            gameSquareAnimateWin();
+            State.gs.animateWin();
             backdrop.animateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
             State.gs = null; //marker for having won
@@ -133,7 +146,7 @@ function gameLogic() {
             if (State.gs !== null) {
                 moving_forward_animation.stop();
                 gameSquareLose(State.score);
-                gameSquareAnimateLose();
+                State.gs.animateLose();
             }
 
             //reset player square
@@ -149,7 +162,7 @@ function gameLogic() {
                 State.gs.generateSquares();
 
                 //position the gamesquare
-                State.gs.addX(550);
+                State.gs.addX(Config.gamesquare_x_offset);
                 State.gs.setZ(Config.start_pos);
 
                 //animate the gamesquare
@@ -209,26 +222,6 @@ function gameSquareLose(score) {
         "</h3>"; //<h3>Refresh to play again</h3>";
     switchToScreen(1); //game over
     State.lost = true;
-}
-
-function gameSquareAnimateWin() {
-    var time = 0.6;
-    var steps = Config.tps * 5;
-    State.gs.squares.forEach(function(x) {
-        x.animateMoveTo(new THREE.Vector3(0, -300, 700),
-            new THREE.Vector2(20, 20),
-            x.mesh.rotation, time, true);
-    });
-}
-
-function gameSquareAnimateLose() {
-    State.gs.squares.forEach(function(x) {
-        x.animateFade(3, true);
-    });
-
-    //State.player.squares.forEach(function(x) {
-    //    x.animateFade(3, true);
-    //});
 }
 
 function onWindowResize() {

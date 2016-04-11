@@ -18,9 +18,24 @@ function GameSquare(material, materialmap, difficulty, editable) { //0 difficult
     this.squareString = "";
     this.z = 0;
     this.x = 0;
+	
     //make the parent of the top node the gamesquare
     this.squares = new Node(null, this);
 }
+
+GameSquare.prototype.animateWin = function () {
+    var time = 0.6;
+    var steps = Config.tps * 5;
+    this.squares.forEach(function(x) {
+        x.animateMoveTo(new THREE.Vector3(0, -300, 700),
+            new THREE.Vector2(20, 20),
+            x.mesh.rotation, time, true);
+    });
+};
+
+GameSquare.prototype.animateLose = function() {
+    
+};
 
 GameSquare.prototype.generateSquareString = function() {
     //generates strings of the form "t" or "(tttt)" or
@@ -40,7 +55,7 @@ GameSquare.prototype.generateSquareString = function() {
 
             var details = this.getSkewedRandomLetterDetails();
 
-            if (operation && details.depth < 3) //splitting a square
+            if (operation && details.depth <= Config.split_depth) //splitting a square
                 this.splitAtNthLetter(details.pos);
             else if (!operation)
                 this.flipAtNthLetter(details.pos);
@@ -141,7 +156,7 @@ GameSquare.prototype.addPositionedSquareAtNode = function(node, flipped) {
     cornerlist.unshift(0);
 
     var newSquare = this.generatePositionedSquare(cornerlist, flipped);
-    newSquare.mesh.position.x += this.x;
+    newSquare.mesh.position.x += this.x; 
     orignode.setValue(newSquare);
 };
 
@@ -150,7 +165,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
     var totaly = 0;
 
     //helper variable for calculating position
-    var height = Config.game_square_size;
+    var height = Config.gamesquare_size;
 
     for (var i = 1; i < cornerlist.length; i++) {
         var x = (cornerlist[i] % 2);
@@ -186,7 +201,7 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
 GameSquare.prototype.clearSquares = function() {
     var that = this;
     this.squares.forEach(function(square) {
-        GameState.scene.remove(square.mesh);
+        square.kill();
     });
     this.squares = new Node(null, this);
     this.squareString = "";
@@ -236,7 +251,7 @@ GameSquare.prototype.updateSquareString = function() {
 
 //recursion is fun :D
 function getSquareString(node) {
-    if (node.hasValue())
+    if (!node.hasChildren())
         return node.value.flipped ? "t" : "f";
     else {
         var cn = node.children;
