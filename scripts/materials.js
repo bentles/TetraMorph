@@ -35,7 +35,7 @@ module.exports.simple_material = new THREE.MeshBasicMaterial({
 module.exports.simple_material2 = new THREE.MeshBasicMaterial({
     transparent: true,
     color: 0x333399,
-	opacity: 1,
+	opacity: 0,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
