@@ -32,5 +32,13 @@ module.exports.simple_material = new THREE.MeshBasicMaterial({
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
+module.exports.simple_material2 = new THREE.MeshBasicMaterial({
+    transparent: true,
+    color: 0x333399,
+	opacity: 1,
+    shininess: 50,
+    vertexColors: THREE.FaceColors
+});
+
 module.exports.materialmap = materialmap;
 module.exports.material = material;

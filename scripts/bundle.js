@@ -1841,6 +1841,14 @@ module.exports.simple_material = new THREE.MeshBasicMaterial({
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
+module.exports.simple_material2 = new THREE.MeshBasicMaterial({
+    transparent: true,
+    color: 0x333399,
+	opacity: 1,
+    shininess: 50,
+    vertexColors: THREE.FaceColors
+});
+
 module.exports.materialmap = materialmap;
 module.exports.material = material;
 
@@ -1901,7 +1909,7 @@ function Space(node, childp, height, width) {
 	var w = width === undefined? Config.gap : width;
 	
 	var geom = new THREE.BoxGeometry(h, w, Config.depth);
-	this.mesh = new THREE.Mesh(geom, Materials.simple_material.clone());
+	this.mesh = new THREE.Mesh(geom, Materials.simple_material2.clone());
 /*	this.mesh.position.x = 0,
 	this.mesh.position.y = -2,
 	this.mesh.position.z = 0,*/

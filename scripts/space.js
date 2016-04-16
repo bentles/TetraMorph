@@ -24,7 +24,7 @@ function Space(node, childp, height, width) {
 	var w = width === undefined? Config.gap : width;
 	
 	var geom = new THREE.BoxGeometry(h, w, Config.depth);
-	this.mesh = new THREE.Mesh(geom, Materials.simple_material.clone());
+	this.mesh = new THREE.Mesh(geom, Materials.simple_material2.clone());
 /*	this.mesh.position.x = 0,
 	this.mesh.position.y = -2,
 	this.mesh.position.z = 0,*/
