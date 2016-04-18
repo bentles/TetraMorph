@@ -527,16 +527,25 @@ function startGame() {
     restartGame();
 }
 
+function startWithSeed() {
+	State.seed = document.getElementById("seed-value").value || "competitive";
+	restartGame();
+}
+
 function switchToScreen(screen)
 {
     Util.showScreen(screen);
     State.current_screen = screen;
 }
 
-document.getElementById("new_game").addEventListener("click", startGame);
-document.getElementById("retry").addEventListener("click", restartGame);
-document.getElementById("main_menu").addEventListener("click", function(){switchToScreen(0)});
 
+document.getElementById("new-game").addEventListener("click", startGame);
+document.getElementById("retry").addEventListener("click", restartGame);
+document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
+document.getElementById("enter-seed").
+	addEventListener("click", function(){switchToScreen(3);});
+document.getElementById("start-seeded").addEventListener("click", startWithSeed);
+document.getElementById("back").addEventListener("click", function(){switchToScreen(0);});
 
 setup();
 switchToScreen(0);
@@ -1915,7 +1924,7 @@ function Space(node, childp, height, width) {
 	this.mesh.position.z = 0,*/
 
 	this.addToScene();
-	console.log("space created!");
+	//console.log("space created!");
 
 	//how does the space know which children squares it is associated with?
 	//it takes a child predicate function that acts on the index of the child examined

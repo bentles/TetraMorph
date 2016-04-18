@@ -11,8 +11,8 @@
     <div class="middle">
         <div id="gamestart" class="game unclickable">
             <h1>TetraMorph</h1>
-            <h2 id="new_game"><span class="selectable">New Game</span></h2>
-            <h2><span class="selectable">Enter Seed</span></h2>
+            <h2 id="new-game"><span class="selectable">New Game</span></h2>
+            <h2 id="enter-seed"><span class="selectable">Enter Seed</span></h2>
             <h2><span class="selectable">Settings</span></h2>
         </div>
 
@@ -26,12 +26,18 @@
         <div id="gameover" class="game unclickable">
             <h1>Game Over</h1>
             <h2 id="retry" ><span class="selectable">Retry</span></h2>
-            <h2 id="main_menu"><span class="selectable">Main Menu</span></h2>
+            <h2 id="main-menu"><span class="selectable">Main Menu</span></h2>
             <br>
             <div id="stats"></div>
         </div>
 
-        <div id="seed" class="game unclickable"></div>
+        <div id="seed" class="game unclickable">
+			<h1>Enter Seed</h1>
+            <input id="seed-value" type="text" onfocus="this.select()" value="competitive"></input>
+            <h2 id="start-seeded"><span class="selectable">Start</span></h2>
+			<h2 id="back"><span class="selectable">Back</span></h2>
+            <br>			
+		</div>
 
         <div id="game" class="game unclickable">
             <h2 id="score"></h2>

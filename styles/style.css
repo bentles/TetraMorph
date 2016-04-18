@@ -11,14 +11,6 @@
     user-select: none;
 }
 
-input
-{
-    border: 0px solid #000000;
-    border-bottom-width: 2px;
-    border-bottom-color: white;
-    background-color: transparent;
-}
-
 body
 {
     margin: 0;
@@ -62,13 +54,34 @@ svg
 
 .game h1,h2,h3,input
 {
-    text-align: center;
-    margin: 0 auto;
-    display: block;
-    color: white;
-    /*Internet Magic Follows*/
-
+	text-align: center;	
+	margin: 0 auto;
+	display: block;
+	color: white;
+	/*Internet Magic Follows*/
 }
+
+input
+{
+	outline-width: 0;
+    border: 0px solid #000000;
+    border-bottom-width: 4px;
+    border-bottom-color: white;
+    background-color: transparent;
+	font-family: Joystix;
+	font-size: 2vw;
+	font-weight: bold;
+	width: 25vw;
+	text-align: left;
+	color: #2e8a56;
+	padding: 0px 4px 0px 4px;
+}
+
+input::selection
+{
+	background: #cc0000;
+	color: #ffffff;
+}		   
 
 .outer {
     display: table;
@@ -91,7 +104,6 @@ svg
 .selectable:hover {
     color: #00CDCD;
     cursor: pointer;
-    -webkit-text-stroke: 1px white;
 }
 
 #score{

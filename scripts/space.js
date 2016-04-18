@@ -30,7 +30,7 @@ function Space(node, childp, height, width) {
 	this.mesh.position.z = 0,*/
 
 	this.addToScene();
-	console.log("space created!");
+	//console.log("space created!");
 
 	//how does the space know which children squares it is associated with?
 	//it takes a child predicate function that acts on the index of the child examined
