@@ -1,0 +1,24 @@
+* Tetramorph things to do in order of how much I care right now
+** TODO Bug fixes and small enhancements
+*** TODO Clicking in certain menus restarts the game :(
+*** TODO Gamesquare being reset at the game over screen where it would be nicer to see it as it was
+*** TODO Nicer selection colours for the menu. Preferable a different one for "back" and "main menu"
+*** TODO Get rid of old css from the svg score days
+** TODO Spaces
+- multiple split
+- multiple flip
+*** TODO Parent spaces
+- rotation
+*** TODO Sibling spaces
+** TODO Smarter animations
+- that can pass off to children or parents midway through
+- that can reconcile rotations on 2 axes at the same time (quaternions?)
+- that make use of dt
+** TODO Music and sfx
+- how do i even
+** TODO Zen mode?
+- give points for doing things quickly but no real pressure to succeed
+** TODO Mobile support?
+spaces aren't going to work but the basic operations should be doable on touch screens
+** TODO Changing colours?
+would make things look cool though not really necessary

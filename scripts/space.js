@@ -1,5 +1,5 @@
 /* 
- * Spaces exist between squares. This is true without there being a object to represent
+ * Spaces exist between squares. This is true without there being an object to represent
  * them but is also true for this object. Spaces are used as a selection point for performing
  * actions on multiple squares. You click on the Space in the middle of 4 squares in order to
  * perform an action on all 4 squares. 
