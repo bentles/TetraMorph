@@ -22,6 +22,8 @@ var animationFrameID;
 var dt = 1000 / Config.tps;
 
 function setup() {
+	//TODO: move me pls!!
+	//create a simple effect to give a sense of depth
 	for(var i = 1; i <= 60; i++) {
 		var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
 		var b = materials.simple_material;
@@ -31,9 +33,11 @@ function setup() {
 		mesh.position.x = 550;
 		mesh.position.y = 0;
 		mesh.position.z = z;
-
 		State.scene.add(mesh);
 	}
+
+	//get canvas
+	var canvas =  document.getElementById("canvas");
 	
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
@@ -53,7 +57,7 @@ function setup() {
     //set up renderer
     renderer = new THREE.WebGLRenderer({
         antialias: true,
-        canvas: document.getElementById("canvas")
+        canvas: canvas
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -266,7 +270,7 @@ function onKeyBoard(e) {
         else
             onFocus();
     } else if (e.keyCode === 107)
-    Config.breathe_speed += 0.001;
+		Config.breathe_speed += 0.001;
     else if (e.keyCode === 109)
         Config.breathe_speed -= 0.001;
 }
@@ -285,7 +289,7 @@ function onFocus() {
 function onBlur() {
     if (State.active && State.current_screen === 4) //just to be safe && only on game screen
     {
-        document.getElementById("seed_display").innerHTML = "seed: " + State.seed ;
+        document.getElementById("seed-display").innerHTML = "seed: " + State.seed ;
         composer.render(State.scene, camera);
         State.active = false;
         if (!State.lost)
@@ -328,6 +332,7 @@ document.getElementById("enter-seed").
 	addEventListener("click", function(){switchToScreen(3);});
 document.getElementById("start-seeded").addEventListener("click", startWithSeed);
 document.getElementById("back").addEventListener("click", function(){switchToScreen(0);});
+document.getElementById("seed-display").addEventListener("mousedown", function(e) {e.stopPropagation();});
 
 setup();
 switchToScreen(0);

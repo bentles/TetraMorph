@@ -2,8 +2,9 @@
 ** TODO Bug fixes and small enhancements
 *** DONE Gamesquare being reset at the game over screen where it would be nicer to see it as it was
 *** DONE Entering a shown seed does not have the result hoped for
-*** TODO save last selection for seed in local storage? or just in memory... 
+*** DONE save last selection for seed in local storage? or just in memory... 
 should only have to write it once per game session
+*** TODO fix horrible css naming... unclickable is unselectable you dingus lol
 *** TODO Save user's best scores in local storage
 - design some kind of screen to display them
 *** TODO Clicking in certain menus restarts the game :(

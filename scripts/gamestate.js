@@ -1,6 +1,6 @@
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
-var Seedrandom = require("./lib/seedrandom.min.js")
+var Seedrandom = require("./lib/seedrandom.min.js");
 
 var game_state = {
     scene : new THREE.Scene(),

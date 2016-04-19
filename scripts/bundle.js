@@ -241,6 +241,8 @@ var animationFrameID;
 var dt = 1000 / Config.tps;
 
 function setup() {
+	//TODO: move me pls!!
+	//create a simple effect to give a sense of depth
 	for(var i = 1; i <= 60; i++) {
 		var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
 		var b = materials.simple_material;
@@ -250,9 +252,11 @@ function setup() {
 		mesh.position.x = 550;
 		mesh.position.y = 0;
 		mesh.position.z = z;
-
 		State.scene.add(mesh);
 	}
+
+	//get canvas
+	var canvas =  document.getElementById("canvas");
 	
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
@@ -272,7 +276,7 @@ function setup() {
     //set up renderer
     renderer = new THREE.WebGLRenderer({
         antialias: true,
-        canvas: document.getElementById("canvas")
+        canvas: canvas
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -485,7 +489,7 @@ function onKeyBoard(e) {
         else
             onFocus();
     } else if (e.keyCode === 107)
-    Config.breathe_speed += 0.001;
+		Config.breathe_speed += 0.001;
     else if (e.keyCode === 109)
         Config.breathe_speed -= 0.001;
 }
@@ -504,7 +508,7 @@ function onFocus() {
 function onBlur() {
     if (State.active && State.current_screen === 4) //just to be safe && only on game screen
     {
-        document.getElementById("seed_display").innerHTML = "seed: " + State.seed ;
+        document.getElementById("seed-display").innerHTML = "seed: " + State.seed ;
         composer.render(State.scene, camera);
         State.active = false;
         if (!State.lost)
@@ -547,6 +551,7 @@ document.getElementById("enter-seed").
 	addEventListener("click", function(){switchToScreen(3);});
 document.getElementById("start-seeded").addEventListener("click", startWithSeed);
 document.getElementById("back").addEventListener("click", function(){switchToScreen(0);});
+document.getElementById("seed-display").addEventListener("mousedown", function(e) {e.stopPropagation();});
 
 setup();
 switchToScreen(0);
@@ -855,7 +860,7 @@ module.exports = GameSquare;
 },{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./square.js":12,"./treenode.js":13,"./utilities.js":14}],6:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
-var Seedrandom = require("./lib/seedrandom.min.js")
+var Seedrandom = require("./lib/seedrandom.min.js");
 
 var game_state = {
     scene : new THREE.Scene(),
@@ -923,6 +928,7 @@ function add(name, value) {
 }
 
 module.exports = game_state ;
+
 },{"./config.js":3,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8}],7:[function(require,module,exports){
 !function(a,b,c,d,e,f,g,h,i){function j(a){var b,c=a.length,e=this,f=0,g=e.i=e.j=0,h=e.S=[];for(c||(a=[c++]);d>f;)h[f]=f++;for(f=0;d>f;f++)h[f]=h[g=t&g+a[f%c]+(b=h[f])],h[g]=b;(e.g=function(a){for(var b,c=0,f=e.i,g=e.j,h=e.S;a--;)b=h[f=t&f+1],c=c*d+h[t&(h[f]=h[g=t&g+b])+(h[g]=b)];return e.i=f,e.j=g,c})(d)}function k(a,b){return b.i=a.i,b.j=a.j,b.S=a.S.slice(),b}function l(a,b){var c,d=[],e=typeof a;if(b&&"object"==e)for(c in a)try{d.push(l(a[c],b-1))}catch(f){}return d.length?d:"string"==e?a:a+"\0"}function m(a,b){for(var c,d=a+"",e=0;e<d.length;)b[t&e]=t&(c^=19*b[t&e])+d.charCodeAt(e++);return o(b)}function n(c){try{return p?o(p.randomBytes(d)):(a.crypto.getRandomValues(c=new Uint8Array(d)),o(c))}catch(e){return[+new Date,a,(c=a.navigator)&&c.plugins,a.screen,o(b)]}}function o(a){return String.fromCharCode.apply(0,a)}var p,q=c.pow(d,e),r=c.pow(2,f),s=2*r,t=d-1,u=c["seed"+i]=function(a,f,g){var h=[];f=1==f?{entropy:!0}:f||{};var p=m(l(f.entropy?[a,o(b)]:null==a?n():a,3),h),t=new j(h);return m(o(t.S),b),(f.pass||g||function(a,b,d,e){return e&&(e.S&&k(e,t),a.state=function(){return k(t,{})}),d?(c[i]=a,b):a})(function(){for(var a=t.g(e),b=q,c=0;r>a;)a=(a+c)*d,b*=d,c=t.g(1);for(;a>=s;)a/=2,b/=2,c>>>=1;return(a+c)/b},p,"global"in f?f.global:this==c,f.state)};if(m(c[i](),b),g&&g.exports){g.exports=u;}else h&&h.amd&&h(function(){return u})}(this,[],Math,256,6,52,"object"==typeof module&&module,"function"==typeof define&&define,"random");
 
