@@ -367,12 +367,12 @@ function gameLogic() {
                 gameSquareLose(State.score);
                 State.gs.animateLose();
             }
-
-            //reset player square
-            State.player.playerReset();
-
+         
             //if the game has not just been lost, make the next game square
             if (!State.lost) {
+				//reset player square
+				State.player.playerReset();
+				
                 State.gs = new GameSquare(
                     materials.material,
                     materials.materialmap,
