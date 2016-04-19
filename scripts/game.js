@@ -309,7 +309,8 @@ function startGame() {
 }
 
 function startWithSeed() {
-	State.seed = document.getElementById("seed-value").value || "competitive";
+	var value = document.getElementById("seed-value").value; 
+	State.seed = Number.parseFloat(value) || value || "competitive";
 	restartGame();
 }
 

@@ -1,13 +1,14 @@
 * Tetramorph things to do in order of how much I care right now
 ** TODO Bug fixes and small enhancements
 *** DONE Gamesquare being reset at the game over screen where it would be nicer to see it as it was
+*** DONE Entering a shown seed does not have the result hoped for
+*** TODO save last selection for seed in local storage? or just in memory... 
+should only have to write it once per game session
 *** TODO Save user's best scores in local storage
 - design some kind of screen to display them
 *** TODO Clicking in certain menus restarts the game :(
 *** TODO Nicer selection colours for the menu. Preferable a different one for "back" and "main menu"
 *** TODO Get rid of old css from the svg score days
-*** TODO save last selection for seed in local storage? or just in memory... 
-should only have to write it once per game session
 ** TODO Spaces
 - multiple split
 - multiple flip
