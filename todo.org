@@ -13,10 +13,10 @@ should only have to write it once per game session
 **** TODO have the game recognise a new high score I guess
 *** TODO Nicer selection colours for the menu. Preferably a different one for "back" and "main menu"
 ** TODO Spaces
-- multiple split
-- multiple flip
 *** TODO Parent spaces
-- rotation
+**** TODO rotation
+**** DONE multiple split
+**** DONE multiple flip
 *** TODO Sibling spaces
 ** TODO Smarter animations
 - that can pass off to children or parents midway through

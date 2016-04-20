@@ -14,6 +14,7 @@
 var GameSquare = require("./gamesquare.js");
 var GameState = require("./gamestate.js");
 var Space = require("./space.js");
+var THREE = require("./lib/three.min.js");
 
 function Node(value, parent, children) {
     this.value = (value === undefined) ? null : value;
@@ -29,10 +30,14 @@ function Node(value, parent, children) {
 }
 
 Node.prototype.initChildren = function() {
-    if (this.value)
-        this.value.kill();
+	var pos = new THREE.Vector3(0,0,0);
 
-    this.value = new Space(this);
+	if (this.value) {
+		pos = this.value.mesh.position;
+        this.value.kill();
+	}
+		
+    this.value = new Space({ node:this, x: pos.x, y: pos.y, z:pos.z });
     this.children = [];
     for (var i = 0; i < 4; i++) {
         var a = new Node(null, this);
@@ -55,11 +60,21 @@ Node.prototype.forEach = function(fn, thisArg) {
         });
 };
 
+Node.prototype.forEachChild = function(fn) {
+	if(this.hasChildren())
+        this.children.forEach(function(child) {
+			fn(child.value);
+        });
+};
+
 Node.prototype.getGameSquare = function() {
     return (this.parent instanceof Node) ?  this.parent.getGameSquare() : this.parent ;
 };
 
 Node.prototype.setValue = function(square) {
+	if (this.value && this.value.kill)
+		this.value.kill();
+	
     this.value = square;
     square.node = this;
     square.addToScene();

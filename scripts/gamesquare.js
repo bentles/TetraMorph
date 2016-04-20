@@ -55,7 +55,7 @@ GameSquare.prototype.generateSquareString = function() {
 
             var details = this.getSkewedRandomLetterDetails();
 
-            if (operation && details.depth <= Config.split_depth) //splitting a square
+            if (operation && details.depth < Config.split_depth) //splitting a square
                 this.splitAtNthLetter(details.pos);
             else if (!operation)
                 this.flipAtNthLetter(details.pos);
@@ -199,7 +199,6 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
 };
 
 GameSquare.prototype.clearSquares = function() {
-    var that = this;
     this.squares.forEach(function(square) {
         square.kill();
     });

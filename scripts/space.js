@@ -13,43 +13,62 @@ var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
 var GameState = require("./gamestate.js");
 
-function Space(node, childp, height, width) {
-	if (node === undefined)
+function Space(config_details) {	
+	if (config_details.node === undefined)
 		throw "Spaces must have associated nodes";
 
-	this.node = node;
+	this.node = config_details.node;
 	
 	//default constructor creates a space the goes in the gap between 4 squares
-	var h = height === undefined? Config.gap : height;
-	var w = width === undefined? Config.gap : width;
+	var h = config_details.height === undefined? Config.gap : config_details.height;
+	var w = config_details.width === undefined? Config.gap : config_details.width;
 	
 	var geom = new THREE.BoxGeometry(h, w, Config.depth);
 	this.mesh = new THREE.Mesh(geom, Materials.simple_material2.clone());
-/*	this.mesh.position.x = 0,
-	this.mesh.position.y = -2,
-	this.mesh.position.z = 0,*/
+	this.mesh.position.x = config_details.x === undefined ? 0 : config_details.x;
+	this.mesh.position.y = config_details.y === undefined ? 0 : config_details.y;
+	this.mesh.position.z = config_details.y === undefined ? 0 : config_details.z;
+	this.mesh.shape = this;
 
 	this.addToScene();
 	//console.log("space created!");
 
 	//how does the space know which children squares it is associated with?
 	//it takes a child predicate function that acts on the index of the child examined
-	this.childp = childp === undefined ? function(index){return true;} : childp;
+	this.childp = config_details.childp === undefined ?
+		function(index){return true;} : config_details.childp;
 
 	//we need to be able to identify squares and spaces as different...
 	//though with duck-typing we can get pretty far...
 }
 
+Space.prototype.requestSplit = function() {
+	this.node.forEachChild(function(child_val){ child_val.requestSplit(); });
+};
+
+Space.prototype.flip = function() {
+	this.node.forEachChild(function(child_val){ child_val.flip(); });
+};
+
+Space.prototype.requestMerge = function() {
+	
+};
+
 // TODO: reorganise this
-Space.prototype.animateMoveTo = function() {};
+Space.prototype.animateMoveTo = function() {
+	this.kill();	
+};
 Space.prototype.animateFade = function() {};
 
 Space.prototype.kill = function() {
+	//console.log("space deleted!");
 	GameState.scene.remove(this.mesh);
 };
 
 Space.prototype.addToScene = function() {
 	GameState.scene.add(this.mesh);
 };
+
+
 
 module.exports = Space;

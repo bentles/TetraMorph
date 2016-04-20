@@ -9,7 +9,7 @@ module.exports = {
     //aesthetics config
     breathe_speed : 0.005,       // background animation speed
     start_pos : -5000,           // how far away the square starts
-    gap: 20,                     // space between squares
+    gap: 25,                     // space between squares
     depth: 5,                    // how deep the squares are in the z direction
     small_font : "20pt",         // font sizes of scores
     large_font : "30pt",

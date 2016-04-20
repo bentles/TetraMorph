@@ -203,7 +203,7 @@ module.exports = {
     //aesthetics config
     breathe_speed : 0.005,       // background animation speed
     start_pos : -5000,           // how far away the square starts
-    gap: 20,                     // space between squares
+    gap: 25,                     // space between squares
     depth: 5,                    // how deep the squares are in the z direction
     small_font : "20pt",         // font sizes of scores
     large_font : "30pt",
@@ -320,6 +320,8 @@ function reSeed()
 }
 
 function animate(time) {
+	//console.log(State.scene.children.length);
+	
     State.new_time = time || 0;
 
     if(State.paused)
@@ -361,6 +363,9 @@ function gameLogic() {
             State.gs.animateWin();
             backdrop.animateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
+			
+			//clear the gamesquares
+			//State.gs.clearSquares();
             State.gs = null; //marker for having won
         }
 
@@ -375,7 +380,7 @@ function gameLogic() {
             //if the game has not just been lost, make the next game square
             if (!State.lost) {
 				//reset player square
-				State.player.playerReset();
+				State.player.playerReset();				
 				
                 State.gs = new GameSquare(
                     materials.material,
@@ -615,7 +620,7 @@ GameSquare.prototype.generateSquareString = function() {
 
             var details = this.getSkewedRandomLetterDetails();
 
-            if (operation && details.depth <= Config.split_depth) //splitting a square
+            if (operation && details.depth < Config.split_depth) //splitting a square
                 this.splitAtNthLetter(details.pos);
             else if (!operation)
                 this.flipAtNthLetter(details.pos);
@@ -759,7 +764,6 @@ GameSquare.prototype.generatePositionedSquare = function(cornerlist, flipped) {
 };
 
 GameSquare.prototype.clearSquares = function() {
-    var that = this;
     this.squares.forEach(function(square) {
         square.kill();
     });
@@ -1860,7 +1864,7 @@ module.exports.simple_material = new THREE.MeshBasicMaterial({
 module.exports.simple_material2 = new THREE.MeshBasicMaterial({
     transparent: true,
     color: 0x333399,
-	opacity: 0,
+	opacity: 1,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
@@ -1914,44 +1918,63 @@ var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
 var GameState = require("./gamestate.js");
 
-function Space(node, childp, height, width) {
-	if (node === undefined)
+function Space(config_details) {	
+	if (config_details.node === undefined)
 		throw "Spaces must have associated nodes";
 
-	this.node = node;
+	this.node = config_details.node;
 	
 	//default constructor creates a space the goes in the gap between 4 squares
-	var h = height === undefined? Config.gap : height;
-	var w = width === undefined? Config.gap : width;
+	var h = config_details.height === undefined? Config.gap : config_details.height;
+	var w = config_details.width === undefined? Config.gap : config_details.width;
 	
 	var geom = new THREE.BoxGeometry(h, w, Config.depth);
 	this.mesh = new THREE.Mesh(geom, Materials.simple_material2.clone());
-/*	this.mesh.position.x = 0,
-	this.mesh.position.y = -2,
-	this.mesh.position.z = 0,*/
+	this.mesh.position.x = config_details.x === undefined ? 0 : config_details.x;
+	this.mesh.position.y = config_details.y === undefined ? 0 : config_details.y;
+	this.mesh.position.z = config_details.y === undefined ? 0 : config_details.z;
+	this.mesh.shape = this;
 
 	this.addToScene();
 	//console.log("space created!");
 
 	//how does the space know which children squares it is associated with?
 	//it takes a child predicate function that acts on the index of the child examined
-	this.childp = childp === undefined ? function(index){return true;} : childp;
+	this.childp = config_details.childp === undefined ?
+		function(index){return true;} : config_details.childp;
 
 	//we need to be able to identify squares and spaces as different...
 	//though with duck-typing we can get pretty far...
 }
 
+Space.prototype.requestSplit = function() {
+	this.node.forEachChild(function(child_val){ child_val.requestSplit(); });
+};
+
+Space.prototype.flip = function() {
+	this.node.forEachChild(function(child_val){ child_val.flip(); });
+};
+
+Space.prototype.requestMerge = function() {
+	
+};
+
 // TODO: reorganise this
-Space.prototype.animateMoveTo = function() {};
+Space.prototype.animateMoveTo = function() {
+	this.kill();	
+};
 Space.prototype.animateFade = function() {};
 
 Space.prototype.kill = function() {
+	//console.log("space deleted!");
 	GameState.scene.remove(this.mesh);
 };
 
 Space.prototype.addToScene = function() {
 	GameState.scene.add(this.mesh);
 };
+
+
 
 module.exports = Space;
 
@@ -2128,6 +2151,7 @@ module.exports = Square ;
 var GameSquare = require("./gamesquare.js");
 var GameState = require("./gamestate.js");
 var Space = require("./space.js");
+var THREE = require("./lib/three.min.js");
 
 function Node(value, parent, children) {
     this.value = (value === undefined) ? null : value;
@@ -2143,10 +2167,14 @@ function Node(value, parent, children) {
 }
 
 Node.prototype.initChildren = function() {
-    if (this.value)
-        this.value.kill();
+	var pos = new THREE.Vector3(0,0,0);
 
-    this.value = new Space(this);
+	if (this.value) {
+		pos = this.value.mesh.position;
+        this.value.kill();
+	}
+		
+    this.value = new Space({ node:this, x: pos.x, y: pos.y, z:pos.z });
     this.children = [];
     for (var i = 0; i < 4; i++) {
         var a = new Node(null, this);
@@ -2169,11 +2197,21 @@ Node.prototype.forEach = function(fn, thisArg) {
         });
 };
 
+Node.prototype.forEachChild = function(fn) {
+	if(this.hasChildren())
+        this.children.forEach(function(child) {
+			fn(child.value);
+        });
+};
+
 Node.prototype.getGameSquare = function() {
     return (this.parent instanceof Node) ?  this.parent.getGameSquare() : this.parent ;
 };
 
 Node.prototype.setValue = function(square) {
+	if (this.value && this.value.kill)
+		this.value.kill();
+	
     this.value = square;
     square.node = this;
     square.addToScene();
@@ -2192,7 +2230,7 @@ Node.prototype.setValue = function(square) {
 
 module.exports = Node;
 
-},{"./gamesquare.js":5,"./gamestate.js":6,"./space.js":11}],14:[function(require,module,exports){
+},{"./gamesquare.js":5,"./gamestate.js":6,"./lib/three.min.js":8,"./space.js":11}],14:[function(require,module,exports){
 //a is start
 //r is the multiplication factor
 //n is the term number

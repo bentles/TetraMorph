@@ -101,6 +101,8 @@ function reSeed()
 }
 
 function animate(time) {
+	//console.log(State.scene.children.length);
+	
     State.new_time = time || 0;
 
     if(State.paused)
@@ -142,6 +144,9 @@ function gameLogic() {
             State.gs.animateWin();
             backdrop.animateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
+			
+			//clear the gamesquares
+			//State.gs.clearSquares();
             State.gs = null; //marker for having won
         }
 
@@ -156,7 +161,7 @@ function gameLogic() {
             //if the game has not just been lost, make the next game square
             if (!State.lost) {
 				//reset player square
-				State.player.playerReset();
+				State.player.playerReset();				
 				
                 State.gs = new GameSquare(
                     materials.material,
