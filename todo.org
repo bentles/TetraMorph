@@ -4,12 +4,14 @@
 *** DONE Entering a shown seed does not have the result hoped for
 *** DONE save last selection for seed in local storage? or just in memory... 
 should only have to write it once per game session
-*** TODO fix horrible css naming... unclickable is unselectable you dingus lol
+*** DONE fix horrible css naming... unclickable is unselectable you dingus lol
+*** DONE Clicking in certain menus restarts the game :(
+- not sure how i fixed this lol
+*** DONE Get rid of old css from the svg score days
 *** TODO Save user's best scores in local storage
-- design some kind of screen to display them
-*** TODO Clicking in certain menus restarts the game :(
-*** TODO Nicer selection colours for the menu. Preferable a different one for "back" and "main menu"
-*** TODO Get rid of old css from the svg score days
+**** TODO design some kind of screen to display them
+**** TODO have the game recognise a new high score I guess
+*** TODO Nicer selection colours for the menu. Preferably a different one for "back" and "main menu"
 ** TODO Spaces
 - multiple split
 - multiple flip

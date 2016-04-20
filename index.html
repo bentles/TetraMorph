@@ -9,43 +9,41 @@
 <body>
 <div class="outer">
     <div class="middle">
-        <div id="gamestart" class="game unclickable">
+        <div id="gamestart" class="game unselectable">
             <h1>TetraMorph</h1>
-            <h2 id="new-game"><span class="selectable">New Game</span></h2>
-            <h2 id="enter-seed"><span class="selectable">Enter Seed</span></h2>
-            <h2><span class="selectable">Settings</span></h2>
+            <h2 id="new-game"><span class="clickable">New Game</span></h2>
+            <h2 id="enter-seed"><span class="clickable">Enter Seed</span></h2>
+            <h2><span class="clickable">Settings</span></h2>
         </div>
 
-        <div id="paused" class="game unclickable">
+        <div id="paused" class="game unselectable">
             <h1>Game Paused</h1>
             <h2>Click to Focus</h2>
             <br>
-            <h2><span id="seed-display" class="clickable">a</span></h2>
+            <h2><span id="seed-display" class="selectable">a</span></h2>
         </div>
 
-        <div id="gameover" class="game unclickable">
+        <div id="gameover" class="game unselectable">
             <h1>Game Over</h1>
-            <h2 id="retry" ><span class="selectable">Retry</span></h2>
-            <h2 id="main-menu"><span class="selectable">Main Menu</span></h2>
+            <h2 id="retry" ><span class="clickable">Retry</span></h2>
+            <h2 id="main-menu"><span class="clickable">Main Menu</span></h2>
             <br>
             <div id="stats"></div>
         </div>
 
-        <div id="seed" class="game unclickable">
+        <div id="seed" class="game unselectable">
 			<h1>Enter Seed</h1>
             <input id="seed-value" type="text" onfocus="this.select()" value="competitive"></input>
-            <h2 id="start-seeded"><span class="selectable">Start</span></h2>
-			<h2 id="back"><span class="selectable">Back</span></h2>
+            <h2 id="start-seeded"><span class="clickable">Start</span></h2>
+			<h2 id="back"><span class="clickable">Back</span></h2>
             <br>			
 		</div>
 
-        <div id="game" class="game unclickable">
+        <div id="game" class="game unselectable">
             <h2 id="score"></h2>
             <h1 id="time"></h1>
             <h2 id="level"></h2>
         </div>
-
-
     </div>
 </div>
 

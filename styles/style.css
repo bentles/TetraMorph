@@ -1,6 +1,6 @@
 @font-face { font-family: Joystix; src: url('../fonts/joystix monospace.otf'); } 
 
-.unclickable
+.unselectable
 {
     /*Stop highlighting*/
     -webkit-touch-callout: none;
@@ -11,7 +11,7 @@
     user-select: none;
 }
 
-.clickable
+.selectable
 {
 	-webkit-touch-callout: text;
     -webkit-user-select: text;
@@ -25,28 +25,6 @@ body
 {
     margin: 0;
     font-family: Joystix;
-}
-
-svg
-{
-    position: fixed;
-    display:block;
-    margin: 0 auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
-#left-tongue, #right-tongue
-{
-    position: absolute;
-    width: 50%;
-    height: 100%;
-}
-
-#right-tongue
-{
-    float:right;
 }
 
 #scores
@@ -68,7 +46,6 @@ svg
 	margin: 0 auto;
 	display: block;
 	color: white;
-	/*Internet Magic Follows*/
 }
 
 input
@@ -111,10 +88,12 @@ input::selection
     width: 100%;
 }
 
-.selectable:hover {
+.clickable:hover {
     color: #00CDCD;
     cursor: pointer;
 }
+
+
 
 #score{
     display: block;
