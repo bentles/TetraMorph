@@ -38,6 +38,8 @@ function Backdrop(dimension, repeats, startcolour) {
     this.textureNec(this.text1);
     this.textureNec(this.text2);
 
+	console.log("drop!");
+
     //create materials
     this.mat1 = new THREE.MeshBasicMaterial({
         map: this.text1,

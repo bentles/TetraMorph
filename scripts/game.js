@@ -330,7 +330,16 @@ function switchToScreen(screen)
 }
 
 
-document.getElementById("new-game").addEventListener("click", startGame);
+document.getElementById("new-game").
+	addEventListener("click",
+					 function() {
+						 Config.time_for_shape = 7;
+						 startGame();});
+document.getElementById("ez-mode").
+	addEventListener("click",
+					 function() {
+						 Config.time_for_shape = 70;
+						 startGame();});
 document.getElementById("retry").addEventListener("click", restartGame);
 document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("enter-seed").

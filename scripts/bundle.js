@@ -60,6 +60,8 @@ function Backdrop(dimension, repeats, startcolour) {
     this.textureNec(this.text1);
     this.textureNec(this.text2);
 
+	console.log("drop!");
+
     //create materials
     this.mat1 = new THREE.MeshBasicMaterial({
         map: this.text1,
@@ -211,7 +213,7 @@ module.exports = {
     light_colour : 0x00B500,
     dark_colour : 0x145214,
 	side_colour : 0x123123,
-	camera_z : 1000,
+	camera_z : 800,
 	player_x_offset : -550,
 	gamesquare_x_offset : 550
 };
@@ -549,7 +551,16 @@ function switchToScreen(screen)
 }
 
 
-document.getElementById("new-game").addEventListener("click", startGame);
+document.getElementById("new-game").
+	addEventListener("click",
+					 function() {
+						 Config.time_for_shape = 7;
+						 startGame();});
+document.getElementById("ez-mode").
+	addEventListener("click",
+					 function() {
+						 Config.time_for_shape = 70;
+						 startGame();});
 document.getElementById("retry").addEventListener("click", restartGame);
 document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("enter-seed").

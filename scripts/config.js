@@ -17,7 +17,7 @@ module.exports = {
     light_colour : 0x00B500,
     dark_colour : 0x145214,
 	side_colour : 0x123123,
-	camera_z : 1000,
+	camera_z : 800,
 	player_x_offset : -550,
 	gamesquare_x_offset : 550
 };
