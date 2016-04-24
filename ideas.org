@@ -1,2 +1,50 @@
 * Ideas for tetramorph
 ** Switch between more than 2 colours a possiblility to make the game harder
+*** Colour Selections?
+- I'd assume keep as close to colour Scheme currently
+  in use. (Shades of Green?)
+*** Max number of different colours?
+- Thinking 5 as a Max. Discuss, lel
+- How many possible colours to allow at any one given
+  time? (Ie. Allow 3-5 colours per round, or max it
+  at 3 or something)
+*** At what point is a new colour added?
+- Set it at a Score Point Mark? Or a number of completed
+  rounds?
+  EG:
+  Score:
+  5k  = 3 Colours
+  10k = 4 Colours, etc.
+
+  Completed Tiles:
+  50  = 3 Colours
+  100 = 4 Colours, etc.
+*** Remove Points for missing a Game Square
+- Reaching 0 (or less) Score, results in Game Over
+- Logic to the Idea/Process:
+
+  After missing a Square, remove 'X' Points. Any 
+  Subsequent Miss, results in losing DOUBLE the
+  previous Point Deduction.
+
+  25 > 50 > 100 > 200 > 400, etc.
+  
+  *Score 100 Points*
+  - Remove 25 Points
+  *Score 75 Points*
+  - Remove 50 Points
+  *Score 25 Points*
+  - Remove 100 Points
+  *Score -75 Points (Game Over)*
+*** Random Mode (Random Power-Up)?
+- Every now and then, perhaps mark a Square as a
+  'Power-Up' Square. Completing this Square could 
+  create a Temporary (Trippy) colour Scheme (Idea 
+  to make harder to play, but provide double the points?)
+- Possibility of Added additional Effects?
+  - Waving Screen
+  - Music Change? (When Implemented)
+  - Mystery Squares? (Square marked with '?' which is only
+    revealed near the end of the Path (near end of Round)
+    implying need for quick reactions.
+  
