@@ -25,18 +25,18 @@ function Node(value, parent, children) {
     if (this.children.length !== 0)
         this.value = new Space(this);
 
-	if (this.value !== null) // TODO: meh me not like this
-		this.value.addToScene();
+    if (this.value !== null) // TODO: meh me not like this
+        this.value.addToScene();
 }
 
 Node.prototype.initChildren = function() {
-	var pos = new THREE.Vector3(0,0,0);
+    var pos = new THREE.Vector3(0,0,0);
 
-	if (this.value) {
-		pos = this.value.mesh.position;
+    if (this.value) {
+        pos = this.value.mesh.position;
         this.value.kill();
-	}
-		
+    }
+        
     this.value = new Space({ node:this, x: pos.x, y: pos.y, z:pos.z });
     this.children = [];
     for (var i = 0; i < 4; i++) {
@@ -46,14 +46,14 @@ Node.prototype.initChildren = function() {
 };
 
 Node.prototype.hasChildren = function() {
-	return this.children.length > 0;
+    return this.children.length > 0;
 };
 
 Node.prototype.forEach = function(fn, thisArg) {
-	//apply the function to the value
+    //apply the function to the value
     fn(this.value);
 
-	//apply the function to the children if it has any
+    //apply the function to the children if it has any
     if(this.hasChildren())
         this.children.forEach(function(child) {
             child.forEach(fn);
@@ -61,9 +61,9 @@ Node.prototype.forEach = function(fn, thisArg) {
 };
 
 Node.prototype.forEachChild = function(fn) {
-	if(this.hasChildren())
+    if(this.hasChildren())
         this.children.forEach(function(child) {
-			fn(child.value);
+            fn(child.value);
         });
 };
 
@@ -72,14 +72,14 @@ Node.prototype.getGameSquare = function() {
 };
 
 Node.prototype.setValue = function(square) {
-	if (this.value && this.value.kill)
-		this.value.kill();
-	
+    if (this.value && this.value.kill)
+        this.value.kill();
+    
     this.value = square;
     square.node = this;
     square.addToScene();
 
-	//remove children - useful for merging I guess
+    //remove children - useful for merging I guess
     this.children.forEach( //array forEach
         function(child) {
             child.forEach( //node forEach

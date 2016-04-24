@@ -18,7 +18,7 @@ function GameSquare(material, materialmap, difficulty, editable) { //0 difficult
     this.squareString = "";
     this.z = 0;
     this.x = 0;
-	
+    
     //make the parent of the top node the gamesquare
     this.squares = new Node(null, this);
 }

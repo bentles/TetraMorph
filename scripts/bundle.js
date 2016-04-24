@@ -60,7 +60,7 @@ function Backdrop(dimension, repeats, startcolour) {
     this.textureNec(this.text1);
     this.textureNec(this.text2);
 
-	console.log("drop!");
+    console.log("drop!");
 
     //create materials
     this.mat1 = new THREE.MeshBasicMaterial({
@@ -199,8 +199,8 @@ module.exports = {
     tps : 60,                    // ticks per second
     time_for_shape : 7,
     init_difficulty : 30,
-	gamesquare_size: 1000,
-	split_depth: 4,              // how many times you can split the first squre
+    gamesquare_size: 1000,
+    split_depth: 4,              // how many times you can split the first squre
 
     //aesthetics config
     breathe_speed : 0.005,       // background animation speed
@@ -212,10 +212,10 @@ module.exports = {
     score_animation_time : 0.5,  // time (s) for the score animation
     light_colour : 0x00B500,
     dark_colour : 0x145214,
-	side_colour : 0x123123,
-	camera_z : 800,
-	player_x_offset : -550,
-	gamesquare_x_offset : 550
+    side_colour : 0x123123,
+    camera_z : 800,
+    player_x_offset : -550,
+    gamesquare_x_offset : 550
 };
 
 },{}],4:[function(require,module,exports){
@@ -243,23 +243,23 @@ var animationFrameID;
 var dt = 1000 / Config.tps;
 
 function setup() {
-	//TODO: move me pls!!
-	//create a simple effect to give a sense of depth
-	for(var i = 1; i <= 60; i++) {
-		var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
-		var b = materials.simple_material;
+    //TODO: move me pls!!
+    //create a simple effect to give a sense of depth
+    for(var i = 1; i <= 60; i++) {
+        var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
+        var b = materials.simple_material;
 
-		var z = Config.start_pos + ((1000 -Config.start_pos) / 60) * i  ;
-		var mesh = new THREE.Mesh(a,b);
-		mesh.position.x = 550;
-		mesh.position.y = 0;
-		mesh.position.z = z;
-		State.scene.add(mesh);
-	}
+        var z = Config.start_pos + ((1000 -Config.start_pos) / 60) * i  ;
+        var mesh = new THREE.Mesh(a,b);
+        mesh.position.x = 550;
+        mesh.position.y = 0;
+        mesh.position.z = z;
+        State.scene.add(mesh);
+    }
 
-	//get canvas
-	var canvas =  document.getElementById("canvas");
-	
+    //get canvas
+    var canvas =  document.getElementById("canvas");
+    
     //scene and camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = Config.camera_z;
@@ -322,8 +322,8 @@ function reSeed()
 }
 
 function animate(time) {
-	//console.log(State.scene.children.length);
-	
+    //console.log(State.scene.children.length);
+    
     State.new_time = time || 0;
 
     if(State.paused)
@@ -365,9 +365,9 @@ function gameLogic() {
             State.gs.animateWin();
             backdrop.animateWin();
             State.count_down_to_next_shape = 0.3 * Config.tps;
-			
-			//clear the gamesquares
-			//State.gs.clearSquares();
+            
+            //clear the gamesquares
+            //State.gs.clearSquares();
             State.gs = null; //marker for having won
         }
 
@@ -378,12 +378,12 @@ function gameLogic() {
                 gameSquareLose(State.score);
                 State.gs.animateLose();
             }
-         
+            
             //if the game has not just been lost, make the next game square
             if (!State.lost) {
-				//reset player square
-				State.player.playerReset();				
-				
+                //reset player square
+                State.player.playerReset();                 
+                
                 State.gs = new GameSquare(
                     materials.material,
                     materials.materialmap,
@@ -497,7 +497,7 @@ function onKeyBoard(e) {
         else
             onFocus();
     } else if (e.keyCode === 107)
-		Config.breathe_speed += 0.001;
+        Config.breathe_speed += 0.001;
     else if (e.keyCode === 109)
         Config.breathe_speed -= 0.001;
 }
@@ -540,9 +540,9 @@ function startGame() {
 }
 
 function startWithSeed() {
-	var value = document.getElementById("seed-value").value; 
-	State.seed = Number.parseFloat(value) || value || "competitive";
-	restartGame();
+    var value = document.getElementById("seed-value").value; 
+    State.seed = Number.parseFloat(value) || value || "competitive";
+    restartGame();
 }
 
 function switchToScreen(screen)
@@ -553,19 +553,19 @@ function switchToScreen(screen)
 
 
 document.getElementById("new-game").
-	addEventListener("click",
-					 function() {
-						 Config.time_for_shape = 7;
-						 startGame();});
+    addEventListener("click",
+                     function() {
+                         Config.time_for_shape = 7;
+                         startGame();});
 document.getElementById("ez-mode").
-	addEventListener("click",
-					 function() {
-						 Config.time_for_shape = 70;
-						 startGame();});
+    addEventListener("click",
+                     function() {
+                         Config.time_for_shape = 70;
+                         startGame();});
 document.getElementById("retry").addEventListener("click", restartGame);
 document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("enter-seed").
-	addEventListener("click", function(){switchToScreen(3);});
+    addEventListener("click", function(){switchToScreen(3);});
 document.getElementById("start-seeded").addEventListener("click", startWithSeed);
 document.getElementById("back").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("seed-display").addEventListener("mousedown", function(e) {e.stopPropagation();});
@@ -595,7 +595,7 @@ function GameSquare(material, materialmap, difficulty, editable) { //0 difficult
     this.squareString = "";
     this.z = 0;
     this.x = 0;
-	
+    
     //make the parent of the top node the gamesquare
     this.squares = new Node(null, this);
 }
@@ -1869,14 +1869,14 @@ var material = new THREE.MeshFaceMaterial(materials);
 module.exports.simple_material = new THREE.MeshBasicMaterial({
     transparent: true,
     color: 0x333399,
-	opacity: 0.5,
+    opacity: 0.5,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
 module.exports.simple_material2 = new THREE.MeshBasicMaterial({
     transparent: true,
     color: 0x333399,
-	opacity: 1,
+    opacity: 1,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
@@ -1906,7 +1906,7 @@ Score.prototype.add = function(x) {
 Score.prototype.reset = function() {
     this.count = 0;
     this.domElement.innerHTML = this.text + this.count ;
-}
+};
 
 Score.prototype.lost = function() {
     return this.count < 0;
@@ -1930,66 +1930,68 @@ var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
 var GameState = require("./gamestate.js");
 
-function Space(config_details) {	
-	if (config_details.node === undefined)
-		throw "Spaces must have associated nodes";
+function Space(config_details) {    
+    if (config_details.node === undefined)
+        throw "Spaces must have associated nodes";
 
-	this.node = config_details.node;
-	
-	//default constructor creates a space the goes in the gap between 4 squares
-	var h = config_details.height === undefined? Config.gap : config_details.height;
-	var w = config_details.width === undefined? Config.gap : config_details.width;
-	
-	var geom = new THREE.BoxGeometry(h, w, Config.depth);
-	this.mesh = new THREE.Mesh(geom, Materials.simple_material2.clone());
-	this.mesh.position.x = config_details.x === undefined ? 0 : config_details.x;
-	this.mesh.position.y = config_details.y === undefined ? 0 : config_details.y;
-	this.mesh.position.z = config_details.y === undefined ? 0 : config_details.z;
-	this.mesh.shape = this;
+    this.node = config_details.node;
+    
+    //default constructor creates a space the goes in the gap between 4 squares
+    var h = config_details.height === undefined? Config.gap : config_details.height;
+    var w = config_details.width === undefined? Config.gap : config_details.width;
+    
+    var geom = new THREE.BoxGeometry(h, w, Config.depth);
+    this.mesh = new THREE.Mesh(geom, Materials.simple_material2.clone());
+    this.mesh.position.x = config_details.x === undefined ? 0 : config_details.x;
+    this.mesh.position.y = config_details.y === undefined ? 0 : config_details.y;
+    this.mesh.position.z = config_details.y === undefined ? 0 : config_details.z;
+    this.mesh.shape = this;
 
-	this.addToScene();
-	//console.log("space created!");
+    this.addToScene();
+    //console.log("space created!");
 
-	//how does the space know which children squares it is associated with?
-	//it takes a child predicate function that acts on the index of the child examined
-	this.childp = config_details.childp === undefined ?
-		function(index){return true;} : config_details.childp;
+    //how does the space know which children squares it is associated with?
+    //it takes a child predicate function that acts on the index of the child examined
+    this.childp = config_details.childp === undefined ?
+        function(index){return true;} : config_details.childp;
 
-	//we need to be able to identify squares and spaces as different...
-	//though with duck-typing we can get pretty far...
+    //we need to be able to identify squares and spaces as different...
+    //though with duck-typing we can get pretty far...
 }
 
 Space.prototype.requestSplit = function() {
-	this.node.forEachChild(function(child_val){ child_val.requestSplit(); });
+    this.node.forEachChild(function(child_val){ child_val.requestSplit(); });
 };
 
 Space.prototype.flip = function() {
-	this.node.forEachChild(function(child_val){ child_val.flip(); });
+    this.node.forEachChild(function(child_val){ child_val.flip(); });
 };
 
 Space.prototype.requestMerge = function() {
-	// merge to the level of depth of this space
-	// choose the colour based on appearance -> traverse and add up.
-	// divide by 4 for each level of depth
-	//
+    // merge to the level of depth of this space
+    // choose the colour based on appearance -> traverse and add up.
+    // divide by 4 for each level of depth
+    //
 
-	//OR always unflipped? like a big reset button
-	this.node.getGameSquare().addPositionedSquareAtNode(this.node, false);
+    //OR always unflipped? like a big reset button
+    var gs = this.node.getGameSquare();
+    gs.addPositionedSquareAtNode(this.node, false);
+    gs.updateSquareString();    
 };
 
 // TODO: reorganise this
 Space.prototype.animateMoveTo = function() {
-	this.kill();	
+    this.kill();    
 };
 Space.prototype.animateFade = function() {};
 
 Space.prototype.kill = function() {
-	//console.log("space deleted!");
-	GameState.scene.remove(this.mesh);
+    //console.log("space deleted!");
+    GameState.scene.remove(this.mesh);
 };
 
 Space.prototype.addToScene = function() {
-	GameState.scene.add(this.mesh);
+    GameState.scene.add(this.mesh);
 };
 
 
@@ -2017,7 +2019,7 @@ function Square(mesh, flipped, editable) {
 Square.prototype = Object.create(Shape.prototype);
 Square.prototype.requestSplit = function() {
     if (this.editable) {
-		// TODO: split depth check!!
+        // TODO: split depth check!!
         var gs = this.node.getGameSquare();
         this.node.initChildren();
         for (var i = 0; i < 4; i++)
@@ -2143,11 +2145,11 @@ Square.prototype.killOrCallback = function(destroy, callback) {
 };
 
 Square.prototype.kill = function() {
-	GameState.scene.remove(this.mesh);
+    GameState.scene.remove(this.mesh);
 };
 
 Square.prototype.addToScene = function() {
-	GameState.scene.add(this.mesh);
+    GameState.scene.add(this.mesh);
 };
 
 module.exports = Square ;
@@ -2180,18 +2182,18 @@ function Node(value, parent, children) {
     if (this.children.length !== 0)
         this.value = new Space(this);
 
-	if (this.value !== null) // TODO: meh me not like this
-		this.value.addToScene();
+    if (this.value !== null) // TODO: meh me not like this
+        this.value.addToScene();
 }
 
 Node.prototype.initChildren = function() {
-	var pos = new THREE.Vector3(0,0,0);
+    var pos = new THREE.Vector3(0,0,0);
 
-	if (this.value) {
-		pos = this.value.mesh.position;
+    if (this.value) {
+        pos = this.value.mesh.position;
         this.value.kill();
-	}
-		
+    }
+        
     this.value = new Space({ node:this, x: pos.x, y: pos.y, z:pos.z });
     this.children = [];
     for (var i = 0; i < 4; i++) {
@@ -2201,14 +2203,14 @@ Node.prototype.initChildren = function() {
 };
 
 Node.prototype.hasChildren = function() {
-	return this.children.length > 0;
+    return this.children.length > 0;
 };
 
 Node.prototype.forEach = function(fn, thisArg) {
-	//apply the function to the value
+    //apply the function to the value
     fn(this.value);
 
-	//apply the function to the children if it has any
+    //apply the function to the children if it has any
     if(this.hasChildren())
         this.children.forEach(function(child) {
             child.forEach(fn);
@@ -2216,9 +2218,9 @@ Node.prototype.forEach = function(fn, thisArg) {
 };
 
 Node.prototype.forEachChild = function(fn) {
-	if(this.hasChildren())
+    if(this.hasChildren())
         this.children.forEach(function(child) {
-			fn(child.value);
+            fn(child.value);
         });
 };
 
@@ -2227,14 +2229,14 @@ Node.prototype.getGameSquare = function() {
 };
 
 Node.prototype.setValue = function(square) {
-	if (this.value && this.value.kill)
-		this.value.kill();
-	
+    if (this.value && this.value.kill)
+        this.value.kill();
+    
     this.value = square;
     square.node = this;
     square.addToScene();
 
-	//remove children - useful for merging I guess
+    //remove children - useful for merging I guess
     this.children.forEach( //array forEach
         function(child) {
             child.forEach( //node forEach
@@ -2312,19 +2314,19 @@ function showScreen(screenNumber) {
 }
 
 function evenp(i) {
-	return i % 0 === 0;
+    return i % 0 === 0;
 }
 
 function oddp(i) {
-	return i % 0 !== 0;
+    return i % 0 !== 0;
 }
 
 function less3p(i) {
-	return i < 3;
+    return i < 3;
 }
 
 function greater2p(i) {
-	return i > 2;
+    return i > 2;
 }
 
 module.exports.showScreen = showScreen;
@@ -2333,8 +2335,6 @@ module.exports.geometricSeriesSum = geometricSeriesSum;
 module.exports.evenp = evenp; 
 module.exports.oddp = oddp; 
 module.exports.less3p = less3p; 
-module.exports.greater2p = greater2p; 
-
-
+module.exports.greater2p = greater2p;
 
 },{}]},{},[1,2,3,4,5,6,7,8,9,10,12,13,14]);
