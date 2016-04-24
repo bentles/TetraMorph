@@ -1967,17 +1967,10 @@ Space.prototype.flip = function() {
 };
 
 Space.prototype.requestMerge = function() {
-<<<<<<< HEAD
     // merge to the level of depth of this space
     // choose the colour based on appearance -> traverse and add up.
     // divide by 4 for each level of depth
     //
-=======
-	// merge to the level of depth of this space
-	// choose the colour based on appearance -> traverse and add up.
-	// divide by 4 for each level of depth
-	//
->>>>>>> 6692adcf07748833e8638376e19aca35e2543700
 
     //OR always unflipped? like a big reset button
     this.node.getGameSquare().addPositionedSquareAtNode(this.node, false);
