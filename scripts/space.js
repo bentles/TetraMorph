@@ -54,7 +54,7 @@ Space.prototype.requestMerge = function() {
 	// merge to the level of depth of this space
 	// choose the colour based on appearance -> traverse and add up.
 	// divide by 4 for each level of depth
-	// if exactly equal t and f??? random?
+	//
 
 	//OR always unflipped? like a big reset button
 	this.node.getGameSquare().addPositionedSquareAtNode(this.node, false);
