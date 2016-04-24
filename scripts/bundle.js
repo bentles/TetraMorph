@@ -1973,7 +1973,9 @@ Space.prototype.requestMerge = function() {
     //
 
     //OR always unflipped? like a big reset button
-    this.node.getGameSquare().addPositionedSquareAtNode(this.node, false);
+    var gs = this.node.getGameSquare();
+    gs.addPositionedSquareAtNode(this.node, false);
+    gs.updateSquareString();    
 };
 
 // TODO: reorganise this
