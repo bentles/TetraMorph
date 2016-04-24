@@ -12,7 +12,7 @@ should only have to write it once per game session
 **** TODO design some kind of screen to display them
 **** TODO have the game recognise a new high score I guess
 *** TODO Nicer selection colours for the menu. Preferably a different one for "back" and "main menu"
-** TODO Spaces
+** TODO Space
 *** TODO Parent spaces
 **** TODO rotation
 **** DONE multiple split
@@ -29,4 +29,6 @@ should only have to write it once per game session
 ** TODO Mobile support?
 spaces aren't going to work but the basic operations should be doable on touch screens
 ** TODO Changing colours?
-would make things look cool though not really necessary
+   would make things look cool though not really necessary
+** TODO Make this TODO look Prettier
+*** TODO Organise into Categories
