@@ -18,7 +18,7 @@ function Square(mesh, flipped, editable) {
 Square.prototype = Object.create(Shape.prototype);
 Square.prototype.requestSplit = function() {
     if (this.editable) {
-		// TODO: split depth check!!
+        // TODO: split depth check!!
         var gs = this.node.getGameSquare();
         this.node.initChildren();
         for (var i = 0; i < 4; i++)
@@ -144,11 +144,11 @@ Square.prototype.killOrCallback = function(destroy, callback) {
 };
 
 Square.prototype.kill = function() {
-	GameState.scene.remove(this.mesh);
+    GameState.scene.remove(this.mesh);
 };
 
 Square.prototype.addToScene = function() {
-	GameState.scene.add(this.mesh);
+    GameState.scene.add(this.mesh);
 };
 
 module.exports = Square ;
