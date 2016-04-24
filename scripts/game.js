@@ -226,9 +226,10 @@ function gameSquareLose(score) {
     var stats_div = document.getElementById("stats");
 
     stats_div.innerHTML =
-        "<h3>Score: " + score.count +
-        "</h3><h3>Difficulty Reached: " + State.difficulty +
-        "</h3>"; //<h3>Refresh to play again</h3>";
+		"<h2><u><b>Top Score: " + (score.count * 10) +
+        "</b></u></h2><h3><u>Score: " + score.count +
+        "</u></h3><h3><u>Difficulty Reached: " + State.difficulty +
+        "</u></h3>"; //<h3>Refresh to play again</h3>";
     switchToScreen(1); //game over
     State.lost = true;
 }
