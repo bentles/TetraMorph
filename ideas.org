@@ -19,7 +19,7 @@
   Completed Tiles:
   50  = 3 Colours
   100 = 4 Colours, etc.
-*** Remove Points for missing a Game Square
+** Remove Points for missing a Game Square
 - Reaching 0 (or less) Score, results in Game Over
 - Logic to the Idea/Process:
 
@@ -28,15 +28,8 @@
   previous Point Deduction.
 
   25 > 50 > 100 > 200 > 400, etc.
-  
-  *Score 100 Points*
-  - Remove 25 Points
-  *Score 75 Points*
-  - Remove 50 Points
-  *Score 25 Points*
-  - Remove 100 Points
-  *Score -75 Points (Game Over)*
-*** Random Mode (Random Power-Up)?
+- Display if you are in danger - you can't survive another miss  
+** Random Mode (Random Power-Up)?
 - Every now and then, perhaps mark a Square as a
   'Power-Up' Square. Completing this Square could 
   create a Temporary (Trippy) colour Scheme (Idea 
@@ -44,7 +37,6 @@
 - Possibility of Added additional Effects?
   - Waving Screen
   - Music Change? (When Implemented)
-  - Mystery Squares? (Square marked with '?' which is only
-    revealed near the end of the Path (near end of Round)
-    implying need for quick reactions.
+** Mystery Squares? (Square marked with '?' which is only
+revealed near the end of the Path (near end of Round) implying need for quick reactions.
   
