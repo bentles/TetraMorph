@@ -220,15 +220,26 @@ function gameSquareWin(gs, score) {
     var scores = gs.getSquareStringDetails();
     score.add(scores.t + scores.f);
 }
+//Here we are working for the removing of score per loss
+//I have definitely screwed up here. My brain is pooh. (Help)
+function gameSquareDeduct(gs, score) {
+	var scores = gs.getSquareStringDetails();
+	if (score <= 0)
+	{
+		gameSquareLose(gs.getSquareStringDetails())
+	}
+	var dedValue = 5;
+}
 
 function gameSquareLose(score) {
     //game over
     var stats_div = document.getElementById("stats");
 
     stats_div.innerHTML =
-        "<h3>Score: " + score.count +
-        "</h3><h3>Difficulty Reached: " + State.difficulty +
-        "</h3>"; //<h3>Refresh to play again</h3>";
+		"<h2><u><b>Top Score: " + (score.count * 10) +
+        "</b></u></h2><h3><u>Score: " + score.count +
+        "</u></h3><h3><u>Difficulty Reached: " + State.difficulty +
+        "</u></h3>"; //<h3>Refresh to play again</h3>";
     switchToScreen(1); //game over
     State.lost = true;
 }
