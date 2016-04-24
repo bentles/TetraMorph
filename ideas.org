@@ -37,6 +37,7 @@
 - Possibility of Added additional Effects?
   - Waving Screen
   - Music Change? (When Implemented)
-** Mystery Squares? (Square marked with '?' which is only
-revealed near the end of the Path (near end of Round) implying need for quick reactions.
+** Mystery Squares? 
+- (Square marked with '?' which is only
+  revealed near the end of the Path (near end of Round) implying need for quick reactions.
   
