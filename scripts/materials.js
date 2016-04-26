@@ -25,7 +25,7 @@ var materials = [frontmaterial, sidematerial, backmaterial];
 var materialmap = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2];
 var material = new THREE.MeshFaceMaterial(materials);
 
-module.exports.simple_material = new THREE.MeshBasicMaterial({
+module.exports.simple_material = new THREE.MeshLambertMaterial({
     transparent: true,
     color: 0x333399,
     opacity: 0.5,

@@ -19,35 +19,46 @@ var backdrop;
 var animationFrameID;
 
 //physics at 60fps
-var dt = 1000 / Config.tps;
+var physics_step = 1000 / Config.tps;
 
 function setup() {
     //TODO: move me pls!!
     //create a simple effect to give a sense of depth
-    for(var i = 1; i <= 60; i++) {
-        var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
+    var count = 30;
+    
+    for(var i = 1; i <= count; i++) {
+        var a = new THREE.BoxGeometry(Config.gap, Config.gap, Config.gap);
         var b = materials.simple_material;
 
-        var z = Config.start_pos + ((1000 -Config.start_pos) / 60) * i  ;
+        var z = Config.start_pos + ((1000 -Config.start_pos) / count) * i  ;
         var mesh = new THREE.Mesh(a,b);
         mesh.position.x = 550;
         mesh.position.y = 0;
         mesh.position.z = z;
         State.scene.add(mesh);
-    }
 
+        var frames = 0;
+
+        State.animationlist.push(new Animation(function() {
+            frames++;
+            console.log(frames);
+            mesh.position.z = z + 2 * Math.sin(count + z);
+            return false;            
+        }));
+    }
+    
     //get canvas
     var canvas =  document.getElementById("canvas");
     
     //scene and camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = Config.camera_z;
 
     mouseVector = new THREE.Vector3();
 
     //lighting
     var light = new THREE.PointLight(0xffffff, 0.8);
-    light.position.set(0.3, 0.2, 1).normalize();
+    light.position.set(0, 0, 1000).normalize();
     State.scene.add(light);
 
     //create the backdrop
@@ -351,7 +362,8 @@ document.getElementById("ez-mode").
 document.getElementById("retry").addEventListener("click", restartGame);
 document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("enter-seed").
-    addEventListener("click", function(){switchToScreen(3);});
+    addEventListener("click", function(){switchToScreen(3);
+                                         document.getElementById("seed-value").focus();});
 document.getElementById("start-seeded").addEventListener("click", startWithSeed);
 document.getElementById("back").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("seed-display").addEventListener("mousedown", function(e) {e.stopPropagation();});

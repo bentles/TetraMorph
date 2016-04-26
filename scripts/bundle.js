@@ -5,8 +5,8 @@ function Animation(func /*, some number of animations*/ ) {
     this.nextanis = Array.prototype.slice.call(arguments, 1);
 }
 
-Animation.prototype.playStep = function() {
-    return this.done || this.func();
+Animation.prototype.playStep = function(dt) {
+    return this.done || this.func(dt);
 };
 
 Animation.prototype.stop = function() {
@@ -65,16 +65,12 @@ function Backdrop(dimension, repeats, startcolour) {
     //create materials
     this.mat1 = new THREE.MeshBasicMaterial({
         map: this.text1,
-        //emissive: new THREE.Color(0x333333),
-        //emissiveMap: this.text1,
         specular: new THREE.Color(0xFFFFFF),
         specularMap: this.text1,
         vertexColors: THREE.FaceColors,
         side: THREE.BackSide
     });
     this.mat2 = new THREE.MeshBasicMaterial({
-        //emissive: new THREE.Color(0x222222),
-        //emissiveMap: this.text2,
         specular: new THREE.Color(0xFFFFFF),
         specularMap: this.text2,
         map: this.text2,
@@ -85,9 +81,8 @@ function Backdrop(dimension, repeats, startcolour) {
     this.matmap = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0];
 
     this.backdrop = new THREE.MeshFaceMaterial(this.mats);
-    this.mat2.color.setHex(0x0000CC);//startcolour);
-    this.mat1.color.setHex(0x0000CC);
-
+    this.setColour(0x0000CC);
+    
     this.geom = new THREE.BoxGeometry(2400, 2400, 60000);
     for (var i = 0; i < this.matmap.length; i++) {
         this.geom.faces[i].materialIndex = this.matmap[i];
@@ -97,6 +92,11 @@ function Backdrop(dimension, repeats, startcolour) {
 
     GameState.scene.add(this.mesh);
 }
+
+Backdrop.prototype.setColour = function(colourHex) {
+    this.mat2.color.setHex(colourHex);
+    this.mat1.color.setHex(colourHex);
+};
 
 Backdrop.prototype.animateBreathe = function() {
     var that = this;
@@ -132,7 +132,7 @@ Backdrop.prototype.animateWin = function(){
         }
     }));
 
-}
+};
 
 Backdrop.prototype.setColor = function(hex) {
     this.mat2.color.setHex(hex);
@@ -165,10 +165,10 @@ Backdrop.prototype.getRGB = function(colorHex) {
 };
 
 /*
- *programatically create a pixelated striped texture
- *because downloading stuff is slow
- *func takes a single argument, i, that is the position of the pixel
- *in the image and returns true or false
+ * programatically create a pixelated striped texture
+ * because downloading stuff is slow
+ * func takes a single argument, i, that is the position of the pixel
+ * in the image and returns true or false
  */
 Backdrop.prototype.generateTexture = function(color1, alpha1, color2, alpha2, width, height, func) {
     var col1 = this.getRGB(color1);
@@ -213,7 +213,7 @@ module.exports = {
     light_colour : 0x00B500,
     dark_colour : 0x145214,
     side_colour : 0x123123,
-    camera_z : 800,
+    camera_z : 1300,
     player_x_offset : -550,
     gamesquare_x_offset : 550
 };
@@ -240,35 +240,46 @@ var backdrop;
 var animationFrameID;
 
 //physics at 60fps
-var dt = 1000 / Config.tps;
+var physics_step = 1000 / Config.tps;
 
 function setup() {
     //TODO: move me pls!!
     //create a simple effect to give a sense of depth
-    for(var i = 1; i <= 60; i++) {
-        var a = new THREE.BoxGeometry(Config.gap, Config.gap, 10);
+    var count = 30;
+    
+    for(var i = 1; i <= count; i++) {
+        var a = new THREE.BoxGeometry(Config.gap, Config.gap, Config.gap);
         var b = materials.simple_material;
 
-        var z = Config.start_pos + ((1000 -Config.start_pos) / 60) * i  ;
+        var z = Config.start_pos + ((1000 -Config.start_pos) / count) * i  ;
         var mesh = new THREE.Mesh(a,b);
         mesh.position.x = 550;
         mesh.position.y = 0;
         mesh.position.z = z;
         State.scene.add(mesh);
-    }
 
+        var frames = 0;
+
+        State.animationlist.push(new Animation(function() {
+            frames++;
+            console.log(frames);
+            mesh.position.z = z + 2 * Math.sin(count + z);
+            return false;            
+        }));
+    }
+    
     //get canvas
     var canvas =  document.getElementById("canvas");
     
     //scene and camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = Config.camera_z;
 
     mouseVector = new THREE.Vector3();
 
     //lighting
     var light = new THREE.PointLight(0xffffff, 0.8);
-    light.position.set(0.3, 0.2, 1).normalize();
+    light.position.set(0, 0, 1000).normalize();
     State.scene.add(light);
 
     //create the backdrop
@@ -338,13 +349,17 @@ function animate(time) {
 
     State.accumulator += elapsed_time;
 
+    //physics run at 60fps
     //loop if we can do more physics per render
     //don't do physics at all if not enough time has passed for another step
     //instead, render again
-    while (State.accumulator >= dt) {
+    while (State.accumulator >= physics_step) {
         gameLogic();
-        State.accumulator -= dt;
+        State.accumulator -= physics_step;
     }
+
+    //animations run as fast as they can
+    processAnimations(elapsed_time);
 
     renderer.render(State.scene, camera);
 
@@ -353,7 +368,34 @@ function animate(time) {
 
 var moving_forward_animation;
 
+function processAnimations(elapsed_time) {
+    /* Execute animations:
+     * ===================
+     * animationlist is a list of Animations whose play method returns true if complete
+     * call each Animation's play method in turn and remove those that return true
+     * this may or may not be a terrible way to do this that I regret later lol
+     */
+    var len = State.animationlist.length;
+    console.log(len);
+    while (len--) {
+        var done = State.animationlist[len].playStep(elapsed_time);
+        if (done) {
+            var nextAnims = State.animationlist[len].getNextAnis();
+            State.animationlist.splice(len, 1);
+
+            //Animations can have a list of successors which activate after an
+            //animation is complete
+            if (nextAnims.length > 0)
+                nextAnims.forEach(function(x) {
+                    State.animationlist.push(x);
+                }, this);
+        }
+    }
+}
+
 function gameLogic() {
+    //gameLogic assumes the fixed physics_step
+    
     //console.log(State.scene.children.length);
     if (!State.lost) //while you are still alive the game goes on
     {
@@ -410,29 +452,6 @@ function gameLogic() {
             //if they win before the end move on to the next animation
             //continue counting down
             State.count_down_to_next_shape--;
-        }
-    }
-
-
-    /* Execute animations:
-     * ===================
-     * animationlist is a list of Animations whose play method returns true if complete
-     * call each Animation's play method in turn and remove those that return true
-     * this may or may not be a terrible way to do this that I regret later lol
-     */
-    var len = State.animationlist.length;
-    while (len--) {
-        var done = State.animationlist[len].playStep();
-        if (done) {
-            var nextAnims = State.animationlist[len].getNextAnis();
-            State.animationlist.splice(len, 1);
-
-            //Animations can have a list of successors which activate after an
-            //animation is complete
-            if (nextAnims.length > 0)
-                nextAnims.forEach(function(x) {
-                    State.animationlist.push(x);
-                }, this);
         }
     }
 }
@@ -564,7 +583,8 @@ document.getElementById("ez-mode").
 document.getElementById("retry").addEventListener("click", restartGame);
 document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("enter-seed").
-    addEventListener("click", function(){switchToScreen(3);});
+    addEventListener("click", function(){switchToScreen(3);
+                                         document.getElementById("seed-value").focus();});
 document.getElementById("start-seeded").addEventListener("click", startWithSeed);
 document.getElementById("back").addEventListener("click", function(){switchToScreen(0);});
 document.getElementById("seed-display").addEventListener("mousedown", function(e) {e.stopPropagation();});
@@ -1865,7 +1885,7 @@ var materials = [frontmaterial, sidematerial, backmaterial];
 var materialmap = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2];
 var material = new THREE.MeshFaceMaterial(materials);
 
-module.exports.simple_material = new THREE.MeshBasicMaterial({
+module.exports.simple_material = new THREE.MeshLambertMaterial({
     transparent: true,
     color: 0x333399,
     opacity: 0.5,
@@ -1924,6 +1944,7 @@ module.exports = Score;
  * I think this will make them interesting to use and a very effective tool for fast 
  * manipulation of gamesquares.
  */
+
 var Config = require("./config.js");
 var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
@@ -1998,6 +2019,12 @@ Space.prototype.addToScene = function() {
 module.exports = Space;
 
 },{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./materials.js":9}],12:[function(require,module,exports){
+/*
+ * Squares are the basic building blocks of a gamesquare. Each square is either flipped or not 
+ * Squares may or may not be editable. Squares that are not editable cannot be flipped nor
+ * can they request merging or splitting from their parent treenode
+ */
+
 var THREE = require("./lib/three.min.js");
 var Animation = require("./animation.js");
 var Config = require("./config.js");
@@ -2094,6 +2121,7 @@ Square.prototype.animateFade = function(steps, kill, callback) {
         }, kill, callback);
 };
 
+//TODO: this is terrible and i dislike it lol - write it differently plox
 Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEuler, steps, kill, callback) {
     this.animate(
         function(square, destroy, callback) {

@@ -8,6 +8,7 @@
  * I think this will make them interesting to use and a very effective tool for fast 
  * manipulation of gamesquares.
  */
+
 var Config = require("./config.js");
 var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");

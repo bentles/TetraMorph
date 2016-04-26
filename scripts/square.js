@@ -1,3 +1,9 @@
+/*
+ * Squares are the basic building blocks of a gamesquare. Each square is either flipped or not 
+ * Squares may or may not be editable. Squares that are not editable cannot be flipped nor
+ * can they request merging or splitting from their parent treenode
+ */
+
 var THREE = require("./lib/three.min.js");
 var Animation = require("./animation.js");
 var Config = require("./config.js");
@@ -94,6 +100,7 @@ Square.prototype.animateFade = function(steps, kill, callback) {
         }, kill, callback);
 };
 
+//TODO: this is terrible and i dislike it lol - write it differently plox
 Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEuler, steps, kill, callback) {
     this.animate(
         function(square, destroy, callback) {
