@@ -43,16 +43,12 @@ function Backdrop(dimension, repeats, startcolour) {
     //create materials
     this.mat1 = new THREE.MeshBasicMaterial({
         map: this.text1,
-        //emissive: new THREE.Color(0x333333),
-        //emissiveMap: this.text1,
         specular: new THREE.Color(0xFFFFFF),
         specularMap: this.text1,
         vertexColors: THREE.FaceColors,
         side: THREE.BackSide
     });
     this.mat2 = new THREE.MeshBasicMaterial({
-        //emissive: new THREE.Color(0x222222),
-        //emissiveMap: this.text2,
         specular: new THREE.Color(0xFFFFFF),
         specularMap: this.text2,
         map: this.text2,
@@ -63,9 +59,8 @@ function Backdrop(dimension, repeats, startcolour) {
     this.matmap = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0];
 
     this.backdrop = new THREE.MeshFaceMaterial(this.mats);
-    this.mat2.color.setHex(0x0000CC);//startcolour);
-    this.mat1.color.setHex(0x0000CC);
-
+    this.setColour(0x0000CC);
+    
     this.geom = new THREE.BoxGeometry(2400, 2400, 60000);
     for (var i = 0; i < this.matmap.length; i++) {
         this.geom.faces[i].materialIndex = this.matmap[i];
@@ -75,6 +70,11 @@ function Backdrop(dimension, repeats, startcolour) {
 
     GameState.scene.add(this.mesh);
 }
+
+Backdrop.prototype.setColour = function(colourHex) {
+    this.mat2.color.setHex(colourHex);
+    this.mat1.color.setHex(colourHex);
+};
 
 Backdrop.prototype.animateBreathe = function() {
     var that = this;
@@ -110,7 +110,7 @@ Backdrop.prototype.animateWin = function(){
         }
     }));
 
-}
+};
 
 Backdrop.prototype.setColor = function(hex) {
     this.mat2.color.setHex(hex);
@@ -143,10 +143,10 @@ Backdrop.prototype.getRGB = function(colorHex) {
 };
 
 /*
- *programatically create a pixelated striped texture
- *because downloading stuff is slow
- *func takes a single argument, i, that is the position of the pixel
- *in the image and returns true or false
+ * programatically create a pixelated striped texture
+ * because downloading stuff is slow
+ * func takes a single argument, i, that is the position of the pixel
+ * in the image and returns true or false
  */
 Backdrop.prototype.generateTexture = function(color1, alpha1, color2, alpha2, width, height, func) {
     var col1 = this.getRGB(color1);
