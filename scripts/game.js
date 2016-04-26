@@ -117,13 +117,17 @@ function animate(time) {
 
     State.accumulator += elapsed_time;
 
+    //physics run at 60fps
     //loop if we can do more physics per render
     //don't do physics at all if not enough time has passed for another step
     //instead, render again
-    while (State.accumulator >= dt) {
+    while (State.accumulator >= physics_step) {
         gameLogic();
-        State.accumulator -= dt;
+        State.accumulator -= physics_step;
     }
+
+    //animations run as fast as they can
+    processAnimations(elapsed_time);
 
     renderer.render(State.scene, camera);
 
@@ -132,7 +136,34 @@ function animate(time) {
 
 var moving_forward_animation;
 
+function processAnimations(elapsed_time) {
+    /* Execute animations:
+     * ===================
+     * animationlist is a list of Animations whose play method returns true if complete
+     * call each Animation's play method in turn and remove those that return true
+     * this may or may not be a terrible way to do this that I regret later lol
+     */
+    var len = State.animationlist.length;
+    console.log(len);
+    while (len--) {
+        var done = State.animationlist[len].playStep(elapsed_time);
+        if (done) {
+            var nextAnims = State.animationlist[len].getNextAnis();
+            State.animationlist.splice(len, 1);
+
+            //Animations can have a list of successors which activate after an
+            //animation is complete
+            if (nextAnims.length > 0)
+                nextAnims.forEach(function(x) {
+                    State.animationlist.push(x);
+                }, this);
+        }
+    }
+}
+
 function gameLogic() {
+    //gameLogic assumes the fixed physics_step
+    
     //console.log(State.scene.children.length);
     if (!State.lost) //while you are still alive the game goes on
     {
@@ -189,29 +220,6 @@ function gameLogic() {
             //if they win before the end move on to the next animation
             //continue counting down
             State.count_down_to_next_shape--;
-        }
-    }
-
-
-    /* Execute animations:
-     * ===================
-     * animationlist is a list of Animations whose play method returns true if complete
-     * call each Animation's play method in turn and remove those that return true
-     * this may or may not be a terrible way to do this that I regret later lol
-     */
-    var len = State.animationlist.length;
-    while (len--) {
-        var done = State.animationlist[len].playStep();
-        if (done) {
-            var nextAnims = State.animationlist[len].getNextAnis();
-            State.animationlist.splice(len, 1);
-
-            //Animations can have a list of successors which activate after an
-            //animation is complete
-            if (nextAnims.length > 0)
-                nextAnims.forEach(function(x) {
-                    State.animationlist.push(x);
-                }, this);
         }
     }
 }

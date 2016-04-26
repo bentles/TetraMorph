@@ -4,8 +4,8 @@ function Animation(func /*, some number of animations*/ ) {
     this.nextanis = Array.prototype.slice.call(arguments, 1);
 }
 
-Animation.prototype.playStep = function() {
-    return this.done || this.func();
+Animation.prototype.playStep = function(dt) {
+    return this.done || this.func(dt);
 };
 
 Animation.prototype.stop = function() {
