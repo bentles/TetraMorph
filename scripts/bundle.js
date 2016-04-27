@@ -254,7 +254,7 @@ function setup() {
         var a = new THREE.BoxGeometry(Config.gap, Config.gap, Config.gap);
         var b = materials.simple_material;
 
-        var z = Config.start_pos + ((1000 -Config.start_pos) / count) * i  ;
+        var z = Config.start_pos + ((1000 -Config.start_pos) / squareCount) * i  ;
         var mesh = new THREE.Mesh(a,b);
         mesh.position.x = 550;
         mesh.position.y = 0;
@@ -265,7 +265,7 @@ function setup() {
 
         State.animationlist.push(new Animation(function() {
             frames++;
-            mesh.position.z = z + 2 * Math.sin(count + z);
+            mesh.position.z = z + 2 * Math.sin(squareCount + z);
             return false;            
         }));
     }
