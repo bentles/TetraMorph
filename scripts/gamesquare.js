@@ -1,7 +1,6 @@
 var THREE = require("./lib/three.min.js");
 
 var Square = require("./square.js");
-var util = require("./utilities.js");
 var Node = require("./treenode.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");

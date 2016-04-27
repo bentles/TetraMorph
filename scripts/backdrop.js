@@ -78,17 +78,27 @@ Backdrop.prototype.setColour = function(colourHex) {
     this.mat1.color.setHex(colourHex);
 };
 
+Backdrop.prototype.setColourRGB = function(r,g,b) {
+    this.mat2.color.setRGB(r,g,b);
+    this.mat1.color.setRGB(r,g,b);
+};
+
 Backdrop.prototype.animateBreathe = function() {
     var that = this;
     var step = 0;
     var mesh = this.mesh;
     var breathespeed = this.breathespeed / 2;
     GameState.animationlist.push(new Animation(function() {
+        
         if (that.fast_mode)
+        {
             step += Math.PI * breathespeed * 10;
+        }
         else
+        {
             step += Math.PI * breathespeed;
-
+        }
+        
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
         mesh.rotation.set(0, 0, Math.sin(step)*2);
@@ -98,8 +108,11 @@ Backdrop.prototype.animateBreathe = function() {
 
 //this is dumb and i hate it
 Backdrop.prototype.animateWin = function(){
+    //this.setColourRGB(Math.random(), Math.random(), Math.random());
+
     var that = this;
     var step = 0.5 * Config.tps;
+    
     GameState.animationlist.push(new Animation(function() {
         if (step >= 0) {
             step--;

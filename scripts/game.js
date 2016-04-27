@@ -24,9 +24,9 @@ var physics_step = 1000 / Config.tps;
 function setup() {
     //TODO: move me pls!!
     //create a simple effect to give a sense of depth
-    var count = 30;
+    var squareCount = 30;
     
-    for(var i = 1; i <= count; i++) {
+    for(var i = 1; i <= squareCount; i++) {
         var a = new THREE.BoxGeometry(Config.gap, Config.gap, Config.gap);
         var b = materials.simple_material;
 
@@ -41,7 +41,6 @@ function setup() {
 
         State.animationlist.push(new Animation(function() {
             frames++;
-            console.log(frames);
             mesh.position.z = z + 2 * Math.sin(count + z);
             return false;            
         }));
@@ -62,7 +61,7 @@ function setup() {
     State.scene.add(light);
 
     //create the backdrop
-    backdrop = new Backdrop(4, 4, 0x00CC00);
+    backdrop = new Backdrop(2, 4, 0x00CC00);
     backdrop.animateBreathe();
 
     //set up renderer
@@ -112,8 +111,6 @@ function reSeed()
 }
 
 function animate(time) {
-    //console.log(State.scene.children.length);
-    
     State.new_time = time || 0;
 
     if(State.paused)
@@ -155,7 +152,6 @@ function processAnimations(elapsed_time) {
      * this may or may not be a terrible way to do this that I regret later lol
      */
     var len = State.animationlist.length;
-    console.log(len);
     while (len--) {
         var done = State.animationlist[len].playStep(elapsed_time);
         if (done) {
@@ -348,6 +344,14 @@ function switchToScreen(screen)
     State.current_screen = screen;
 }
 
+function addEventListenerByClass(className, eventName, func) {
+    var elements = document.getElementsByClassName(className);
+
+    for(var i = 0; i < elements.length; i++) {
+        elements[i].addEventListener(eventName, func);
+    }
+}
+
 
 document.getElementById("new-game").
     addEventListener("click",
@@ -360,7 +364,7 @@ document.getElementById("ez-mode").
                          Config.time_for_shape = 70;
                          startGame();});
 document.getElementById("retry").addEventListener("click", restartGame);
-document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
+addEventListenerByClass("main-menu", "mousedown", function(){switchToScreen(0);});
 document.getElementById("enter-seed").
     addEventListener("click", function(){switchToScreen(3);
                                          document.getElementById("seed-value").focus();});

@@ -100,17 +100,27 @@ Backdrop.prototype.setColour = function(colourHex) {
     this.mat1.color.setHex(colourHex);
 };
 
+Backdrop.prototype.setColourRGB = function(r,g,b) {
+    this.mat2.color.setRGB(r,g,b);
+    this.mat1.color.setRGB(r,g,b);
+};
+
 Backdrop.prototype.animateBreathe = function() {
     var that = this;
     var step = 0;
     var mesh = this.mesh;
     var breathespeed = this.breathespeed / 2;
     GameState.animationlist.push(new Animation(function() {
+        
         if (that.fast_mode)
+        {
             step += Math.PI * breathespeed * 10;
+        }
         else
+        {
             step += Math.PI * breathespeed;
-
+        }
+        
         step = (step >= 2 * Math.PI) ? step - 2 * Math.PI : step;
         mesh.scale.set((Math.cos(step) + 2), (Math.cos(step) + 2), 1);
         mesh.rotation.set(0, 0, Math.sin(step)*2);
@@ -120,8 +130,11 @@ Backdrop.prototype.animateBreathe = function() {
 
 //this is dumb and i hate it
 Backdrop.prototype.animateWin = function(){
+    //this.setColourRGB(Math.random(), Math.random(), Math.random());
+
     var that = this;
     var step = 0.5 * Config.tps;
+    
     GameState.animationlist.push(new Animation(function() {
         if (step >= 0) {
             step--;
@@ -235,9 +248,9 @@ var physics_step = 1000 / Config.tps;
 function setup() {
     //TODO: move me pls!!
     //create a simple effect to give a sense of depth
-    var count = 30;
+    var squareCount = 30;
     
-    for(var i = 1; i <= count; i++) {
+    for(var i = 1; i <= squareCount; i++) {
         var a = new THREE.BoxGeometry(Config.gap, Config.gap, Config.gap);
         var b = materials.simple_material;
 
@@ -252,7 +265,6 @@ function setup() {
 
         State.animationlist.push(new Animation(function() {
             frames++;
-            console.log(frames);
             mesh.position.z = z + 2 * Math.sin(count + z);
             return false;            
         }));
@@ -273,7 +285,7 @@ function setup() {
     State.scene.add(light);
 
     //create the backdrop
-    backdrop = new Backdrop(4, 4, 0x00CC00);
+    backdrop = new Backdrop(2, 4, 0x00CC00);
     backdrop.animateBreathe();
 
     //set up renderer
@@ -323,8 +335,6 @@ function reSeed()
 }
 
 function animate(time) {
-    //console.log(State.scene.children.length);
-    
     State.new_time = time || 0;
 
     if(State.paused)
@@ -366,7 +376,6 @@ function processAnimations(elapsed_time) {
      * this may or may not be a terrible way to do this that I regret later lol
      */
     var len = State.animationlist.length;
-    console.log(len);
     while (len--) {
         var done = State.animationlist[len].playStep(elapsed_time);
         if (done) {
@@ -559,6 +568,14 @@ function switchToScreen(screen)
     State.current_screen = screen;
 }
 
+function addEventListenerByClass(className, eventName, func) {
+    var elements = document.getElementsByClassName(className);
+
+    for(var i = 0; i < elements.length; i++) {
+        elements[i].addEventListener(eventName, func);
+    }
+}
+
 
 document.getElementById("new-game").
     addEventListener("click",
@@ -571,7 +588,7 @@ document.getElementById("ez-mode").
                          Config.time_for_shape = 70;
                          startGame();});
 document.getElementById("retry").addEventListener("click", restartGame);
-document.getElementById("main-menu").addEventListener("click", function(){switchToScreen(0);});
+addEventListenerByClass("main-menu", "mousedown", function(){switchToScreen(0);});
 document.getElementById("enter-seed").
     addEventListener("click", function(){switchToScreen(3);
                                          document.getElementById("seed-value").focus();});
@@ -587,7 +604,6 @@ switchToScreen(0);
 var THREE = require("./lib/three.min.js");
 
 var Square = require("./square.js");
-var util = require("./utilities.js");
 var Node = require("./treenode.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");
@@ -882,7 +898,7 @@ GameSquare.prototype.addX = function(num) {
 
 module.exports = GameSquare;
 
-},{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./square.js":12,"./treenode.js":13,"./utilities.js":14}],6:[function(require,module,exports){
+},{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./square.js":12,"./treenode.js":13}],6:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 var Config = require("./config.js");
 var Seedrandom = require("./lib/seedrandom.min.js");
