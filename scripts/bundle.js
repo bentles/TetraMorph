@@ -20,10 +20,12 @@ Animation.prototype.getNextAnis = function() {
 module.exports = Animation;
 
 },{}],2:[function(require,module,exports){
-var Animation = require("./animation.js");
 var THREE = require("./lib/three.min.js");
+
+var Animation = require("./animation.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");
+var Util = require("./utilities.js");
 
 //need a cleaner way to do this stuff
 
@@ -152,18 +154,6 @@ Backdrop.prototype.textureNec = function(texture) {
     texture.needsUpdate = true;
 };
 
-Backdrop.prototype.getRGB = function(colorHex) {
-    var r = colorHex / 0x10000 | 0;
-    var g = (colorHex % 0x10000) / 0x100 | 0;
-    var b = colorHex % 0x100;
-
-    return {
-        "r": r,
-        "g": g,
-        "b": b
-    };
-};
-
 /*
  * programatically create a pixelated striped texture
  * because downloading stuff is slow
@@ -171,8 +161,8 @@ Backdrop.prototype.getRGB = function(colorHex) {
  * in the image and returns true or false
  */
 Backdrop.prototype.generateTexture = function(color1, alpha1, color2, alpha2, width, height, func) {
-    var col1 = this.getRGB(color1);
-    var col2 = this.getRGB(color2);
+    var col1 = Util.getRGB(color1);
+    var col2 = Util.getRGB(color2);
     var numpixels = width * height;
     var texture = new Uint8Array(numpixels * 4);
 
@@ -193,7 +183,7 @@ Backdrop.prototype.addColorUints = function(color, alpha, array, i) {
 
 module.exports = Backdrop;
 
-},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8}],3:[function(require,module,exports){
+},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./utilities.js":14}],3:[function(require,module,exports){
 module.exports = {
     //game config
     tps : 60,                    // ticks per second
@@ -1955,7 +1945,6 @@ function Space(config_details) {
         throw "Spaces must have associated nodes";
 
     this.node = config_details.node;
-    
     //default constructor creates a space the goes in the gap between 4 squares
     var h = config_details.height === undefined? Config.gap : config_details.height;
     var w = config_details.width === undefined? Config.gap : config_details.width;
@@ -1966,6 +1955,10 @@ function Space(config_details) {
     this.mesh.position.y = config_details.y === undefined ? 0 : config_details.y;
     this.mesh.position.z = config_details.y === undefined ? 0 : config_details.z;
     this.mesh.shape = this;
+
+    //hide the mesh by default
+    this.mesh.material.visible = config_details.visible === undefined ? false : config_details.visible;
+    
 
     this.addToScene();
     //console.log("space created!");
@@ -2221,7 +2214,8 @@ Node.prototype.initChildren = function() {
         this.value.kill();
     }
         
-    this.value = new Space({ node:this, x: pos.x, y: pos.y, z:pos.z });
+    this.value = new Space(
+        { node:this, x: pos.x, y: pos.y, z:pos.z, visible: this.getGameSquare().editable });
     this.children = [];
     for (var i = 0; i < 4; i++) {
         var a = new Node(null, this);
@@ -2356,6 +2350,18 @@ function greater2p(i) {
     return i > 2;
 }
 
+function getRGB(colorHex) {
+    var r = colorHex / 0x10000 | 0;
+    var g = (colorHex % 0x10000) / 0x100 | 0;
+    var b = colorHex % 0x100;
+
+    return {
+        "r": r,
+        "g": g,
+        "b": b
+    };
+}
+
 module.exports.showScreen = showScreen;
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
 module.exports.geometricSeriesSum = geometricSeriesSum;
@@ -2363,5 +2369,6 @@ module.exports.evenp = evenp;
 module.exports.oddp = oddp; 
 module.exports.less3p = less3p; 
 module.exports.greater2p = greater2p;
+module.exports.getRGB = getRGB;
 
 },{}]},{},[1,2,3,4,5,6,7,8,9,10,12,13,14]);
