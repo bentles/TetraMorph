@@ -37,7 +37,8 @@ Node.prototype.initChildren = function() {
         this.value.kill();
     }
         
-    this.value = new Space({ node:this, x: pos.x, y: pos.y, z:pos.z });
+    this.value = new Space(
+        { node:this, x: pos.x, y: pos.y, z:pos.z, visible: this.getGameSquare().editable });
     this.children = [];
     for (var i = 0; i < 4; i++) {
         var a = new Node(null, this);

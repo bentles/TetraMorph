@@ -19,7 +19,6 @@ function Space(config_details) {
         throw "Spaces must have associated nodes";
 
     this.node = config_details.node;
-    
     //default constructor creates a space the goes in the gap between 4 squares
     var h = config_details.height === undefined? Config.gap : config_details.height;
     var w = config_details.width === undefined? Config.gap : config_details.width;
@@ -30,6 +29,10 @@ function Space(config_details) {
     this.mesh.position.y = config_details.y === undefined ? 0 : config_details.y;
     this.mesh.position.z = config_details.y === undefined ? 0 : config_details.z;
     this.mesh.shape = this;
+
+    //hide the mesh by default
+    this.mesh.material.visible = config_details.visible === undefined ? false : config_details.visible;
+    
 
     this.addToScene();
     //console.log("space created!");
