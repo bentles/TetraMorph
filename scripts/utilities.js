@@ -76,6 +76,18 @@ function greater2p(i) {
     return i > 2;
 }
 
+function getRGB(colorHex) {
+    var r = colorHex / 0x10000 | 0;
+    var g = (colorHex % 0x10000) / 0x100 | 0;
+    var b = colorHex % 0x100;
+
+    return {
+        "r": r,
+        "g": g,
+        "b": b
+    };
+}
+
 module.exports.showScreen = showScreen;
 module.exports.doubleTreeRecurstion = doubleTreeRecursion;
 module.exports.geometricSeriesSum = geometricSeriesSum;
@@ -83,3 +95,4 @@ module.exports.evenp = evenp;
 module.exports.oddp = oddp; 
 module.exports.less3p = less3p; 
 module.exports.greater2p = greater2p;
+module.exports.getRGB = getRGB;

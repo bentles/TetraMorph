@@ -1,7 +1,9 @@
-var Animation = require("./animation.js");
 var THREE = require("./lib/three.min.js");
+
+var Animation = require("./animation.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");
+var Util = require("./utilities.js");
 
 //need a cleaner way to do this stuff
 
@@ -130,18 +132,6 @@ Backdrop.prototype.textureNec = function(texture) {
     texture.needsUpdate = true;
 };
 
-Backdrop.prototype.getRGB = function(colorHex) {
-    var r = colorHex / 0x10000 | 0;
-    var g = (colorHex % 0x10000) / 0x100 | 0;
-    var b = colorHex % 0x100;
-
-    return {
-        "r": r,
-        "g": g,
-        "b": b
-    };
-};
-
 /*
  * programatically create a pixelated striped texture
  * because downloading stuff is slow
@@ -149,8 +139,8 @@ Backdrop.prototype.getRGB = function(colorHex) {
  * in the image and returns true or false
  */
 Backdrop.prototype.generateTexture = function(color1, alpha1, color2, alpha2, width, height, func) {
-    var col1 = this.getRGB(color1);
-    var col2 = this.getRGB(color2);
+    var col1 = Util.getRGB(color1);
+    var col2 = Util.getRGB(color2);
     var numpixels = width * height;
     var texture = new Uint8Array(numpixels * 4);
 
