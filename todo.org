@@ -22,6 +22,8 @@ should only have to write it once per game session
 - that can pass off to children or parents midway through
 - that can reconcile rotations on 2 axes at the same time (quaternions?)
 - that make use of dt
+** TODO Composite objects for easier rotations (spinning on on the Z axis about the center)
+** TODO Keeping track of what is added to the rotation of an object
 ** TODO Music and sfx
 - how do i even
 ** TODO Zen mode?

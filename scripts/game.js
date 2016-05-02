@@ -19,6 +19,7 @@ var backdrop;
 var animationFrameID;
 
 //physics at 60fps
+//this implies 1000 / 60 milliseconds have passed for each frame
 var physics_step = 1000 / Config.tps;
 
 function setup() {
@@ -48,7 +49,7 @@ function setup() {
     
     //get canvas
     var canvas =  document.getElementById("canvas");
-    
+   
     //scene and camera
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = Config.camera_z;
@@ -56,8 +57,8 @@ function setup() {
     mouseVector = new THREE.Vector3();
 
     //lighting
-    var light = new THREE.PointLight(0xffffff, 0.8);
-    light.position.set(0, 0, 1000).normalize();
+    var light = new THREE.DirectionalLight(0xffffff, 0.8);
+    light.position.set(0.1, 0.1, 1).normalize();
     State.scene.add(light);
 
     //create the backdrop
@@ -132,11 +133,11 @@ function animate(time) {
     while (State.accumulator >= physics_step) {
         gameLogic();
         State.accumulator -= physics_step;
+        //animations contain integration... so physics so they should happen at fixed 60fps
+        processAnimations(State.accumulator);
     }
 
-    //animations run as fast as they can
-    processAnimations(elapsed_time);
-
+    //rendering should be as fast as possible (though the browser usually chooses 60fps)
     renderer.render(State.scene, camera);
 
     animationFrameID = requestAnimationFrame(animate);
@@ -144,7 +145,7 @@ function animate(time) {
 
 var moving_forward_animation;
 
-function processAnimations(elapsed_time) {
+function processAnimations(accumulator) {
     /* Execute animations:
      * ===================
      * animationlist is a list of Animations whose play method returns true if complete
@@ -153,7 +154,7 @@ function processAnimations(elapsed_time) {
      */
     var len = State.animationlist.length;
     while (len--) {
-        var done = State.animationlist[len].playStep(elapsed_time);
+        var done = State.animationlist[len].playStep(accumulator);
         if (done) {
             var nextAnims = State.animationlist[len].getNextAnis();
             State.animationlist.splice(len, 1);

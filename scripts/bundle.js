@@ -5,8 +5,8 @@ function Animation(func /*, some number of animations*/ ) {
     this.nextanis = Array.prototype.slice.call(arguments, 1);
 }
 
-Animation.prototype.playStep = function(dt) {
-    return this.done || this.func(dt);
+Animation.prototype.playStep = function(accumulator) {
+    return this.done || this.func(accumulator);
 };
 
 Animation.prototype.stop = function() {
@@ -243,6 +243,7 @@ var backdrop;
 var animationFrameID;
 
 //physics at 60fps
+//this implies 1000 / 60 milliseconds have passed for each frame
 var physics_step = 1000 / Config.tps;
 
 function setup() {
@@ -272,7 +273,7 @@ function setup() {
     
     //get canvas
     var canvas =  document.getElementById("canvas");
-    
+   
     //scene and camera
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 30000);
     camera.position.z = Config.camera_z;
@@ -280,8 +281,8 @@ function setup() {
     mouseVector = new THREE.Vector3();
 
     //lighting
-    var light = new THREE.PointLight(0xffffff, 0.8);
-    light.position.set(0, 0, 1000).normalize();
+    var light = new THREE.DirectionalLight(0xffffff, 0.8);
+    light.position.set(0.1, 0.1, 1).normalize();
     State.scene.add(light);
 
     //create the backdrop
@@ -356,11 +357,11 @@ function animate(time) {
     while (State.accumulator >= physics_step) {
         gameLogic();
         State.accumulator -= physics_step;
+        //animations contain integration... so physics so they should happen at fixed 60fps
+        processAnimations(State.accumulator);
     }
 
-    //animations run as fast as they can
-    processAnimations(elapsed_time);
-
+    //rendering should be as fast as possible (though the browser usually chooses 60fps)
     renderer.render(State.scene, camera);
 
     animationFrameID = requestAnimationFrame(animate);
@@ -368,7 +369,7 @@ function animate(time) {
 
 var moving_forward_animation;
 
-function processAnimations(elapsed_time) {
+function processAnimations(accumulator) {
     /* Execute animations:
      * ===================
      * animationlist is a list of Animations whose play method returns true if complete
@@ -377,7 +378,7 @@ function processAnimations(elapsed_time) {
      */
     var len = State.animationlist.length;
     while (len--) {
-        var done = State.animationlist[len].playStep(elapsed_time);
+        var done = State.animationlist[len].playStep(accumulator);
         if (done) {
             var nextAnims = State.animationlist[len].getNextAnis();
             State.animationlist.splice(len, 1);
@@ -1898,10 +1899,11 @@ module.exports.simple_material = new THREE.MeshLambertMaterial({
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
-module.exports.simple_material2 = new THREE.MeshBasicMaterial({
+module.exports.simple_material2 = new THREE.MeshPhongMaterial({
+    shading: THREE.FlatShading,
     transparent: true,
-    color: 0x333399,
-    opacity: 1,
+    color: 0x777777,
+    opacity: 0.5,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
@@ -2079,18 +2081,20 @@ Square.prototype.requestMerge = function() {
 };
 Square.prototype.animateFlip = function(pifractions) {
     var mesh = this.mesh;
-    var step = (1 / pifractions) * Math.PI;
+    var step = (1 / (pifractions )) * Math.PI;
     var count = 0;
 
+    mesh.rotation.order = 'ZXY';
     //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
     GameState.animationlist.push(new Animation(
         function() {
-            if (count < pifractions) {
+            if (count < pifractions) {                
                 mesh.rotation.x += step;
                 count++;
 
-                if (mesh.rotation.x >= Math.PI * 2)
-                    mesh.rotation.x = mesh.rotation.x - Math.PI * 2;
+                if (mesh.rotation.x >= Math.PI * 2) {
+                    mesh.rotation.x = mesh.rotation.x - Math.PI * 2;                    
+                }
                 return false;
             } else {
                 if (this.node != null) {
@@ -2153,7 +2157,7 @@ Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEul
             var rotzdiff = rotationEuler.z - mesh.rotation.z;
             rotzdiff /= totalsteps;
 
-            return function() {
+            return function(dt) {
 
                 mesh.position.add(posdiff);
                 thatdimens.sub(dimensiondiff);

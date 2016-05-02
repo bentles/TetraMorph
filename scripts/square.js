@@ -49,18 +49,20 @@ Square.prototype.requestMerge = function() {
 };
 Square.prototype.animateFlip = function(pifractions) {
     var mesh = this.mesh;
-    var step = (1 / pifractions) * Math.PI;
+    var step = (1 / (pifractions )) * Math.PI;
     var count = 0;
 
+    mesh.rotation.order = 'ZXY';
     //LEXICAL CLOSURES HAAA!!!! (Imagine DBZ voice acting)
     GameState.animationlist.push(new Animation(
         function() {
-            if (count < pifractions) {
+            if (count < pifractions) {                
                 mesh.rotation.x += step;
                 count++;
 
-                if (mesh.rotation.x >= Math.PI * 2)
-                    mesh.rotation.x = mesh.rotation.x - Math.PI * 2;
+                if (mesh.rotation.x >= Math.PI * 2) {
+                    mesh.rotation.x = mesh.rotation.x - Math.PI * 2;                    
+                }
                 return false;
             } else {
                 if (this.node != null) {
@@ -123,7 +125,7 @@ Square.prototype.animateMoveTo = function(posVect3, dimensionsVect2, rotationEul
             var rotzdiff = rotationEuler.z - mesh.rotation.z;
             rotzdiff /= totalsteps;
 
-            return function() {
+            return function(dt) {
 
                 mesh.position.add(posdiff);
                 thatdimens.sub(dimensiondiff);
