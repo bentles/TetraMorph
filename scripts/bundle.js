@@ -519,9 +519,7 @@ function onMouseMoveGenerator() {
     //keep track of which spaces we have changed (will probably only ever be 1 element)
     var changed = [];
     
-    return function(e) {
-        console.log("move");
-        
+    return function(e) {        
         //pop items off the list and reset their colour
         for(var i = changed.length - 1; i >= 0; i--) {
             var ch = changed.pop();
@@ -1999,7 +1997,7 @@ var Config = require("./config.js");
 var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
 var GameState = require("./gamestate.js");
-
+var Types = require("./types.js");
 
 function Space(config_details) {    
     if (config_details.node === undefined)
@@ -2074,7 +2072,7 @@ Space.prototype.getType = function() {
 
 module.exports = Space;
 
-},{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./materials.js":9}],12:[function(require,module,exports){
+},{"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./materials.js":9,"./types.js":14}],12:[function(require,module,exports){
 /*
  * Squares are the basic building blocks of a gamesquare. Each square is either flipped or not 
  * Squares may or may not be editable. Squares that are not editable cannot be flipped nor

@@ -284,9 +284,7 @@ function onMouseMoveGenerator() {
     //keep track of which spaces we have changed (will probably only ever be 1 element)
     var changed = [];
     
-    return function(e) {
-        console.log("move");
-        
+    return function(e) {        
         //pop items off the list and reset their colour
         for(var i = changed.length - 1; i >= 0; i--) {
             var ch = changed.pop();

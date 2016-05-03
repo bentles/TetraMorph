@@ -13,7 +13,7 @@ var Config = require("./config.js");
 var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
 var GameState = require("./gamestate.js");
-
+var Types = require("./types.js");
 
 function Space(config_details) {    
     if (config_details.node === undefined)
