@@ -35,8 +35,8 @@ module.exports.simple_material = new THREE.MeshLambertMaterial({
 module.exports.simple_material2 = new THREE.MeshPhongMaterial({
     shading: THREE.FlatShading,
     transparent: true,
-    color: 0x777777,
-    opacity: 0.5,
+    color: Config.normal_colour,
+    opacity: Config.normal_opacity,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
