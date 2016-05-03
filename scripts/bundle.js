@@ -196,7 +196,7 @@ Backdrop.prototype.addColorUints = function(color, alpha, array, i) {
 
 module.exports = Backdrop;
 
-},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./utilities.js":14}],3:[function(require,module,exports){
+},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./utilities.js":15}],3:[function(require,module,exports){
 module.exports = {
     //game config
     tps : 60,                    // ticks per second
@@ -208,14 +208,25 @@ module.exports = {
     //aesthetics config
     breathe_speed : 0.005,       // background animation speed
     start_pos : -5000,           // how far away the square starts
-    gap: 25,                     // space between squares
+    gap: 28,                     // space between squares
     depth: 5,                    // how deep the squares are in the z direction
     small_font : "20pt",         // font sizes of scores
     large_font : "30pt",
     score_animation_time : 0.5,  // time (s) for the score animation
+
+    //square colours
     light_colour : 0x00B500,
     dark_colour : 0x145214,
     side_colour : 0x123123,
+
+    //space colours
+    normal_colour : 0xFFFFFF,
+    highlight_colour : 0x4285f4,
+
+    //space opacity
+    normal_opacity : 0.1,
+    highlight_opacity : 0.9,
+    
     camera_z : 1300,
     player_x_offset : -550,
     gamesquare_x_offset : 550
@@ -237,6 +248,7 @@ var Animation = require("./animation.js");
 var Score = require("./score.js");
 var State = require("./gamestate.js");
 var Util = require("./utilities.js");
+var Types = require("./types.js");
 
 var camera, renderer, raycaster, mouseVector, composer;
 var backdrop;
@@ -247,7 +259,7 @@ var animationFrameID;
 var physics_step = 1000 / Config.tps;
 
 function setup() {
-    //TODO: move me pls!!
+    //TODO: move me pls!! (possibly add animations)
     //create a simple effect to give a sense of depth
     var squareCount = 30;
     
@@ -263,12 +275,6 @@ function setup() {
         State.scene.add(mesh);
 
         var frames = 0;
-
-        State.animationlist.push(new Animation(function() {
-            frames++;
-            mesh.position.z = z + 2 * Math.sin(squareCount + z);
-            return false;            
-        }));
     }
     
     //get canvas
@@ -281,7 +287,7 @@ function setup() {
     mouseVector = new THREE.Vector3();
 
     //lighting
-    var light = new THREE.DirectionalLight(0xffffff, 0.8);
+    var light = new THREE.DirectionalLight(0xffffff, 0.9);
     light.position.set(0.1, 0.1, 1).normalize();
     State.scene.add(light);
 
@@ -318,8 +324,10 @@ function setup() {
     var score = new Score("score", Config.light_colour, "score: ");
     State.add("score", score);
 
+    var onMouseMove = onMouseMoveGenerator();
     //add event listeners for mouse
     document.addEventListener('mousedown', onMouseDown, false);
+    document.addEventListener('mousemove', onMouseMove, false);
     window.addEventListener('resize', onWindowResize, false);
     window.addEventListener('keydown', onKeyBoard, false);
     window.addEventListener('blur', onBlur, false);
@@ -496,7 +504,7 @@ function onMouseDown(e) {
         raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
         var intersects = raycaster.intersectObjects(State.scene.children);
 
-        if (intersects[0] && (intersects[0].object.shape !== undefined)) {
+        if (intersects[0] && (intersects[0].object.shape)) {
             if (e.button === 0 && e.shiftKey || e.button === 1)
                 intersects[0].object.shape.requestMerge();
             else if (e.button === 0)
@@ -505,6 +513,40 @@ function onMouseDown(e) {
                 intersects[0].object.shape.flip();
         }
     }
+}
+
+function onMouseMoveGenerator() {
+    //keep track of which spaces we have changed (will probably only ever be 1 element)
+    var changed = [];
+    
+    return function(e) {
+        console.log("move");
+        
+        //pop items off the list and reset their colour
+        for(var i = changed.length - 1; i >= 0; i--) {
+            var ch = changed.pop();
+            ch.material.color = new THREE.Color( Config.normal_colour );
+            ch.material.opacity = Config.normal_opacity;
+        }
+
+        //make spaces change colour when mousing over
+        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+        
+        var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
+        raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        var intersected = raycaster.intersectObjects(State.scene.children)[0];
+
+        //set anything currently under the mouse to the highlight colour
+        if (intersected && intersected.object.shape &&
+            intersected.object.shape.getType() === Types.Space) {
+            
+            intersected.object.shape.mesh.material.color =
+                new THREE.Color( Config.highlight_colour );            
+            intersected.object.shape.mesh.material.opacity = Config.highlight_opacity;            
+            changed.push(intersected.object.shape.mesh);
+        }
+    };
 }
 
 function onKeyBoard(e) {
@@ -601,7 +643,7 @@ setup();
 switchToScreen(0);
 
 
-},{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials.js":9,"./score.js":10,"./utilities.js":14}],5:[function(require,module,exports){
+},{"./animation.js":1,"./backdrop.js":2,"./config.js":3,"./gamesquare.js":5,"./gamestate.js":6,"./lib/seedrandom.min.js":7,"./lib/three.min.js":8,"./materials.js":9,"./score.js":10,"./types.js":14,"./utilities.js":15}],5:[function(require,module,exports){
 var THREE = require("./lib/three.min.js");
 
 var Square = require("./square.js");
@@ -1902,8 +1944,8 @@ module.exports.simple_material = new THREE.MeshLambertMaterial({
 module.exports.simple_material2 = new THREE.MeshPhongMaterial({
     shading: THREE.FlatShading,
     transparent: true,
-    color: 0x777777,
-    opacity: 0.5,
+    color: Config.normal_colour,
+    opacity: Config.normal_opacity,
     shininess: 50,
     vertexColors: THREE.FaceColors
 });
@@ -1957,6 +1999,7 @@ var Config = require("./config.js");
 var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
 var GameState = require("./gamestate.js");
+
 
 function Space(config_details) {    
     if (config_details.node === undefined)
@@ -2025,7 +2068,9 @@ Space.prototype.addToScene = function() {
     GameState.scene.add(this.mesh);
 };
 
-
+Space.prototype.getType = function() {
+    return Types.Space;
+};
 
 module.exports = Space;
 
@@ -2040,6 +2085,7 @@ var THREE = require("./lib/three.min.js");
 var Animation = require("./animation.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");
+var Types = require("./types.js");
 
 function Shape(mesh) {
     this.mesh = mesh;
@@ -2192,9 +2238,13 @@ Square.prototype.addToScene = function() {
     GameState.scene.add(this.mesh);
 };
 
+Square.prototype.getType = function() {
+    return Types.Square;
+};
+
 module.exports = Square ;
 
-},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8}],13:[function(require,module,exports){
+},{"./animation.js":1,"./config.js":3,"./gamestate.js":6,"./lib/three.min.js":8,"./types.js":14}],13:[function(require,module,exports){
 /*
  * Gamesquares are quaternary trees. The basic building blocks of these trees are treenodes.
  * Treenodes will always have a value which is either a square or a space. If the value is
@@ -2292,6 +2342,10 @@ Node.prototype.setValue = function(square) {
 module.exports = Node;
 
 },{"./gamesquare.js":5,"./gamestate.js":6,"./lib/three.min.js":8,"./space.js":11}],14:[function(require,module,exports){
+module.exports.Space = "space";
+module.exports.Square = "square";
+
+},{}],15:[function(require,module,exports){
 //a is start
 //r is the multiplication factor
 //n is the term number
@@ -2391,4 +2445,4 @@ module.exports.less3p = less3p;
 module.exports.greater2p = greater2p;
 module.exports.getRGB = getRGB;
 
-},{}]},{},[1,2,3,4,5,6,7,8,9,10,12,13,14]);
+},{}]},{},[1,2,3,4,5,6,7,8,9,10,12,13,15]);

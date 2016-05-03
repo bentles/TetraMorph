@@ -13,6 +13,7 @@ var Animation = require("./animation.js");
 var Score = require("./score.js");
 var State = require("./gamestate.js");
 var Util = require("./utilities.js");
+var Types = require("./types.js");
 
 var camera, renderer, raycaster, mouseVector, composer;
 var backdrop;
@@ -23,7 +24,7 @@ var animationFrameID;
 var physics_step = 1000 / Config.tps;
 
 function setup() {
-    //TODO: move me pls!!
+    //TODO: move me pls!! (possibly add animations)
     //create a simple effect to give a sense of depth
     var squareCount = 30;
     
@@ -39,12 +40,6 @@ function setup() {
         State.scene.add(mesh);
 
         var frames = 0;
-
-        State.animationlist.push(new Animation(function() {
-            frames++;
-            mesh.position.z = z + 2 * Math.sin(squareCount + z);
-            return false;            
-        }));
     }
     
     //get canvas
@@ -57,7 +52,7 @@ function setup() {
     mouseVector = new THREE.Vector3();
 
     //lighting
-    var light = new THREE.DirectionalLight(0xffffff, 0.8);
+    var light = new THREE.DirectionalLight(0xffffff, 0.9);
     light.position.set(0.1, 0.1, 1).normalize();
     State.scene.add(light);
 
@@ -94,8 +89,10 @@ function setup() {
     var score = new Score("score", Config.light_colour, "score: ");
     State.add("score", score);
 
+    var onMouseMove = onMouseMoveGenerator();
     //add event listeners for mouse
     document.addEventListener('mousedown', onMouseDown, false);
+    document.addEventListener('mousemove', onMouseMove, false);
     window.addEventListener('resize', onWindowResize, false);
     window.addEventListener('keydown', onKeyBoard, false);
     window.addEventListener('blur', onBlur, false);
@@ -272,7 +269,7 @@ function onMouseDown(e) {
         raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
         var intersects = raycaster.intersectObjects(State.scene.children);
 
-        if (intersects[0] && (intersects[0].object.shape !== undefined)) {
+        if (intersects[0] && (intersects[0].object.shape)) {
             if (e.button === 0 && e.shiftKey || e.button === 1)
                 intersects[0].object.shape.requestMerge();
             else if (e.button === 0)
@@ -281,6 +278,40 @@ function onMouseDown(e) {
                 intersects[0].object.shape.flip();
         }
     }
+}
+
+function onMouseMoveGenerator() {
+    //keep track of which spaces we have changed (will probably only ever be 1 element)
+    var changed = [];
+    
+    return function(e) {
+        console.log("move");
+        
+        //pop items off the list and reset their colour
+        for(var i = changed.length - 1; i >= 0; i--) {
+            var ch = changed.pop();
+            ch.material.color = new THREE.Color( Config.normal_colour );
+            ch.material.opacity = Config.normal_opacity;
+        }
+
+        //make spaces change colour when mousing over
+        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+        
+        var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
+        raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        var intersected = raycaster.intersectObjects(State.scene.children)[0];
+
+        //set anything currently under the mouse to the highlight colour
+        if (intersected && intersected.object.shape &&
+            intersected.object.shape.getType() === Types.Space) {
+            
+            intersected.object.shape.mesh.material.color =
+                new THREE.Color( Config.highlight_colour );            
+            intersected.object.shape.mesh.material.opacity = Config.highlight_opacity;            
+            changed.push(intersected.object.shape.mesh);
+        }
+    };
 }
 
 function onKeyBoard(e) {

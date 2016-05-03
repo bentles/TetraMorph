@@ -8,6 +8,7 @@ var THREE = require("./lib/three.min.js");
 var Animation = require("./animation.js");
 var Config = require("./config.js");
 var GameState = require("./gamestate.js");
+var Types = require("./types.js");
 
 function Shape(mesh) {
     this.mesh = mesh;
@@ -158,6 +159,10 @@ Square.prototype.kill = function() {
 
 Square.prototype.addToScene = function() {
     GameState.scene.add(this.mesh);
+};
+
+Square.prototype.getType = function() {
+    return Types.Square;
 };
 
 module.exports = Square ;

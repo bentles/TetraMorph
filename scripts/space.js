@@ -14,6 +14,7 @@ var THREE = require("./lib/three.min.js");
 var Materials = require("./materials.js");
 var GameState = require("./gamestate.js");
 
+
 function Space(config_details) {    
     if (config_details.node === undefined)
         throw "Spaces must have associated nodes";
@@ -81,6 +82,8 @@ Space.prototype.addToScene = function() {
     GameState.scene.add(this.mesh);
 };
 
-
+Space.prototype.getType = function() {
+    return Types.Space;
+};
 
 module.exports = Space;
