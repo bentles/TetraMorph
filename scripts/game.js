@@ -319,6 +319,7 @@ function onKeyBoard(e) {
             onBlur();
         else
             onFocus();
+    }
 }
 
 function onFocus() {
