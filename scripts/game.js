@@ -319,10 +319,6 @@ function onKeyBoard(e) {
             onBlur();
         else
             onFocus();
-    } else if (e.keyCode === 107)
-        Config.breathe_speed += 0.001;
-    else if (e.keyCode === 109)
-        Config.breathe_speed -= 0.001;
 }
 
 function onFocus() {
