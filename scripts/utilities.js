@@ -1,3 +1,5 @@
+var State = require("./gamestate.js");
+
 //a is start
 //r is the multiplication factor
 //n is the term number
@@ -58,6 +60,7 @@ function showScreen(screenNumber) {
     for (var i = 0; i < screens.length; i++) {
         document.getElementById(screens[i]).style.display = (i === screenNumber) ? "block" : "none";
     }
+    State.current_screen = screenNumber;
 }
 
 function evenp(i) {

@@ -15,7 +15,7 @@ var State = require("./gamestate.js");
 var Util = require("./utilities.js");
 var Types = require("./types.js");
 
-var camera, renderer, raycaster, mouseVector, composer;
+var renderer, raycaster, composer;
 var backdrop;
 var animationFrameID;
 
@@ -41,15 +41,11 @@ function setup() {
 
         var frames = 0;
     }
+    window.addEventListener('resize', onWindowResize, false); 
+    window.addEventListener('blur', onBlur, false);
     
     //get canvas
     var canvas =  document.getElementById("canvas");
-   
-    //scene and camera
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 30000);
-    camera.position.z = Config.camera_z;
-
-    mouseVector = new THREE.Vector3();
 
     //lighting
     var light = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -69,7 +65,7 @@ function setup() {
 
     //set up post processing for pause screen
     composer = new THREE.EffectComposer(renderer);
-    composer.addPass( new THREE.RenderPass(State.scene, camera));
+    composer.addPass( new THREE.RenderPass(State.scene, State.camera));
     var hblur = new THREE.ShaderPass(THREE.HorizontalBlurShader);
     hblur.uniforms.h = {type:"f", value:15/window.innerWidth};
     composer.addPass(hblur);
@@ -89,17 +85,7 @@ function setup() {
     var score = new Score("score", Config.light_colour, "score: ");
     State.add("score", score);
 
-    var onMouseMove = onMouseMoveGenerator();
-    //add event listeners for mouse
-    document.addEventListener('mousedown', onMouseDown, false);
-    document.addEventListener('mousemove', onMouseMove, false);
-    window.addEventListener('resize', onWindowResize, false);
-    window.addEventListener('keydown', onKeyBoard, false);
-    window.addEventListener('blur', onBlur, false);
-
-    //stop right-click context menu from appearing. ever.
-    window.addEventListener('contextmenu', function(event) {
-        event.preventDefault(); }, false);
+   
 }
 
 function reSeed()
@@ -135,7 +121,7 @@ function animate(time) {
     }
 
     //rendering should be as fast as possible (though the browser usually chooses 60fps)
-    renderer.render(State.scene, camera);
+    renderer.render(State.scene, State.camera);
 
     animationFrameID = requestAnimationFrame(animate);
 }
@@ -242,42 +228,16 @@ function gameSquareLose(score) {
         "<h3>Score: " + score.count +
         "</h3><h3>Difficulty Reached: " + State.difficulty +
         "</h3>"; //<h3>Refresh to play again</h3>";
-    switchToScreen(1); //game over
+    Util.showScreen(1); //game over
     State.lost = true;
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    State.camera.aspect = window.innerWidth / window.innerHeight;
+    State.camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    composer.render(State.scene, camera);
-}
-
-function onMouseDown(e) {
-    if (State.lost) {
-        //gameReset();
-    } else if (!State.active) {
-        onFocus();
-    } else //must be resumed by click before another click can do anything
-    {
-        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
-        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
-
-        var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
-
-        raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-        var intersects = raycaster.intersectObjects(State.scene.children);
-
-        if (intersects[0] && (intersects[0].object.shape)) {
-            if (e.button === 0 && e.shiftKey || e.button === 1)
-                intersects[0].object.shape.requestMerge();
-            else if (e.button === 0)
-                intersects[0].object.shape.requestSplit();
-            else if (e.button === 2)
-                intersects[0].object.shape.flip();
-        }
-    }
+    composer.render(State.scene, State.camera);
 }
 
 function onMouseMoveGenerator() {
@@ -292,13 +252,7 @@ function onMouseMoveGenerator() {
             ch.material.opacity = Config.normal_opacity;
         }
 
-        //make spaces change colour when mousing over
-        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
-        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
-        
-        var vector = new THREE.Vector3(mouseVector.x, mouseVector.y, 1).unproject(camera);
-        raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-        var intersected = raycaster.intersectObjects(State.scene.children)[0];
+        var intersected = State.looking_at[0];
 
         //set anything currently under the mouse to the highlight colour
         if (intersected && intersected.object.shape &&
@@ -312,43 +266,9 @@ function onMouseMoveGenerator() {
     };
 }
 
-function onKeyBoard(e) {
-    e = e || window.event;
-    if (e.keyCode === 27) {
-        if (State.active)
-            onBlur();
-        else
-            onFocus();
-    }
-}
-
-function onFocus() {
-    if (!State.active) //needed on firefox
-    {
-        State.active = true;
-        switchToScreen(4);
-
-        //implicitly reset State.paused
-        requestAnimationFrame(animate);
-    }
-}
-
-function onBlur() {
-    if (State.active && State.current_screen === 4) //just to be safe && only on game screen
-    {
-        document.getElementById("seed-display").innerHTML = "seed: " + State.seed ;
-        composer.render(State.scene, camera);
-        State.active = false;
-        if (!State.lost)
-            switchToScreen(2);
-        State.paused = true;
-        cancelAnimationFrame(animationFrameID);
-    }
-}
-
 function restartGame() {
     cancelAnimationFrame(animationFrameID);
-    switchToScreen(4);
+    Util.showScreen(4);
     State.reset();
     backdrop.animateBreathe();
     animationFrameID = requestAnimationFrame(animate);
@@ -365,17 +285,35 @@ function startWithSeed() {
     restartGame();
 }
 
-function switchToScreen(screen)
-{
-    Util.showScreen(screen);
-    State.current_screen = screen;
-}
-
 function addEventListenerByClass(className, eventName, func) {
     var elements = document.getElementsByClassName(className);
 
     for(var i = 0; i < elements.length; i++) {
         elements[i].addEventListener(eventName, func);
+    }
+}
+
+function onFocus() {
+    if (!State.active) //needed on firefox
+    {
+        State.active = true;
+        Util.showScreen(4);
+
+        //implicitly reset State.paused
+        requestAnimationFrame(animate);
+    }
+}
+
+function onBlur() {
+    if (State.active && State.current_screen === 4) //just to be safe && only on game screen
+    {
+        document.getElementById("seed-display").innerHTML = "seed: " + State.seed ;
+        composer.render(State.scene, State.camera);
+        State.active = false;
+        if (!State.lost)
+            Util.showScreen(2);
+        State.paused = true;
+        cancelAnimationFrame(animationFrameID);
     }
 }
 
@@ -391,14 +329,14 @@ document.getElementById("ez-mode").
                          Config.time_for_shape = 70;
                          startGame();});
 document.getElementById("retry").addEventListener("click", restartGame);
-addEventListenerByClass("main-menu", "mousedown", function(){switchToScreen(0);});
+addEventListenerByClass("main-menu", "mousedown", function(){Util.showScreen(0);});
 document.getElementById("enter-seed").
-    addEventListener("click", function(){switchToScreen(3);
+    addEventListener("click", function(){Util.showScreen(3);
                                          document.getElementById("seed-value").focus();});
 document.getElementById("start-seeded").addEventListener("click", startWithSeed);
-document.getElementById("back").addEventListener("click", function(){switchToScreen(0);});
+document.getElementById("back").addEventListener("click", function(){Util.showScreen(0);});
 document.getElementById("seed-display").addEventListener("mousedown", function(e) {e.stopPropagation();});
 
 setup();
-switchToScreen(0);
+Util.showScreen(0);
 

@@ -14,6 +14,7 @@ module.exports = {
     small_font : "20pt",         // font sizes of scores
     large_font : "30pt",
     score_animation_time : 0.5,  // time (s) for the score animation
+    fov : 50,
 
     //square colours
     light_colour : 0x00B500,

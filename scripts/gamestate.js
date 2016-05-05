@@ -5,6 +5,8 @@ var Seedrandom = require("./lib/seedrandom.min.js");
 var game_state = {
     scene : new THREE.Scene(),
     animationlist : [],
+    camera : new THREE.PerspectiveCamera(Config.fov,
+                                         window.innerWidth / window.innerHeight, 1, 30000), 
 
     //time related vars
     current_time : 0,
@@ -15,6 +17,13 @@ var game_state = {
     paused : true,
     lost : false,
     active : true,
+
+    //inputs
+    mouse_pos : new THREE.Vector2(),
+    mouse_button : undefined,
+
+    //objects looked at
+    looking_at : undefined,
 
     //creating the game squares
     count_down_to_next_shape : 0,
@@ -28,6 +37,9 @@ var game_state = {
     seed : Math.random(),
     rng : Seedrandom(seed),
 
+    //a list of shapes whose colours need resetting
+    changed : [],
+
     //reference to the reset function
     reset : reset,
     add : add
@@ -36,6 +48,7 @@ var game_state = {
 //puts everything in order for a new game
 function reset() {
     game_state.current_screen = 4;
+    game_state.changed = [];
 
     game_state.rng = Seedrandom(game_state.seed);
 
@@ -47,6 +60,11 @@ function reset() {
     game_state.gs = null;
     game_state.animationlist = [];
 
+    //camera
+    game_state.camera =
+        new THREE.PerspectiveCamera(Config.fov, window.innerWidth / window.innerHeight, 1, 30000);
+    game_state.camera.position.z = Config.camera_z;
+    
     //time
     game_state.paused = true;
     game_state.current_time = 0;
