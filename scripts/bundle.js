@@ -215,7 +215,7 @@ module.exports = {
     score_animation_time : 0.5,  // time (s) for the score animation
 
     //square colours
-    light_colour : 0x00B500,
+    light_colour : 0x33CC33,
     dark_colour : 0x145214,
     side_colour : 0x123123,
 
